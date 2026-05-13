@@ -1,7 +1,7 @@
 # Hoku Tech — ドキュメント一覧
 
-> 最終更新: 2025年  
-> プロジェクト: Hoku Tech（AI駆動フルスタック育成プログラム）
+> 最終更新: 2026-05-13  
+> プロジェクト: Hoku Tech (AI 駆動フルスタック育成プログラム)
 
 ---
 
@@ -29,7 +29,8 @@
 | 17 | [17_risk_management.md](./17_risk_management.md) | リスク管理表 | PM・開発者 | リスク発生・解消時 |
 | 18 | [18_issue_management.md](./18_issue_management.md) | 課題管理表 | PM・開発者 | 週次 |
 | 19 | [19_github_operation.md](./19_github_operation.md) | GitHub運用ルール | 開発者 | ルール変更時 |
-| 20 | [20_claude_code_rules.md](./20_claude_code_rules.md) | Claude Code開発ルール | 開発者 | ルール変更時 |
+| 20 | [20_claude_code_rules.md](./20_claude_code_rules.md) | Claude Code 開発ルール | 開発者 | ルール変更時 |
+| 21 | [21_audit_report.md](./21_audit_report.md) | 監査結果と変更サマリ (2026-05-13) | PM・開発者 | 大規模監査 / リファクタ実施時 |
 
 ---
 
@@ -67,24 +68,28 @@
 
 ---
 
-## 関連ファイル（プロジェクトルート）
+## 関連ファイル (プロジェクトルート)
 
 ```
-v2/
-├── README.md              ← プロジェクト概要（エントリーポイント）
-├── index.html             ← メインHTML（単一ファイル）
+Hoku-Tech/
+├── README.md              ← プロジェクト概要 (エントリポイント)
+├── CLAUDE.md              ← Claude Code 用プロジェクト規約
+├── index.html             ← メイン HTML (単一ファイル / マスター)
 ├── assets/
 │   ├── css/style.css      ← 全スタイル定義
 │   └── js/main.js         ← 全インタラクション処理
-├── data/                  ← 教材データ（*.js）
-└── docs/                  ← 本ドキュメント群（本ディレクトリ）
+├── data/                  ← 教材データ (*.js)
+├── scripts/
+│   └── build_full.py      ← 単一 HTML ビルド (標準ライブラリのみ)
+├── dist/                  ← ビルド成果物 (gitignored)
+└── docs/                  ← 本ドキュメント群 (本ディレクトリ)
 ```
 
 ## ビルド・出力
 
 ```bash
-python3 /tmp/build_full.py
-# → /mnt/user-data/outputs/hoku-tech.html
+python3 scripts/build_full.py
+# → dist/hoku-tech.html  (~1.4 MB / CSS と全 JS をインライン化した単一 HTML)
 ```
 
 ---
