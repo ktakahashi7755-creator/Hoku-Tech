@@ -277,5 +277,5 @@
 | SC | Skill Check。各Phaseの理解度確認問題 |
 | Hoku | Hoku Tech専用AIメンターキャラクター |
 | Provider Adapter | AI APIを差し替えやすくするための抽象化レイヤー |
-| Mock Responder | AI API未接続時のダミー応答 |
-| fcc:v2 | LocalStorageのキープレフィックス |
+| Mock Responder | AI API 未接続時に Hoku が返す固定パターンの応答生成器 (`HOKU_PROVIDER.send` の既定実装) |
+| hoku:v2 | LocalStorage のキープレフィックス (旧 `fcc:v2` から移行。旧キーは読み出し時のみフォールバック) |

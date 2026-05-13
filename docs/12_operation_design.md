@@ -74,7 +74,7 @@ ls -lh /mnt/user-data/outputs/hoku-tech.html
 
 - Playwright全テスト合格（17/17以上）× 5回連続
 - pageerror 0件
-- `[FCC]` warningを含むconsole.warn 0件
+- `[Hoku]` warning を含む console.warn 0 件 (旧 `[FCC]` ラベルは 2026-05 のブランド整理で置換済み)
 - 375/390/768/1440px横スクロールなし
 
 ---

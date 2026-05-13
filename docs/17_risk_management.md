@@ -11,7 +11,7 @@
 |----|--------|--------|---------|--------|------|---------|---------|
 | R-001 | 単一HTMLが2MB超過 | 中 | 中 | 🟡中 | hoku-assets.jsの画像圧縮・遅延読み込み検討 | ビルド時サイズ確認 | 1.8MB超えたら画像最適化着手 |
 | R-002 | JSエラー発生 | 高 | 低 | 🔴高 | node --check・Playwright 5回必須 | Playwright pageerror | 即修正・5回テスト |
-| R-003 | iOS Safari Script error | 高 | 低 | 🔴高 | try-catch全保護・filter:none維持 | 実機確認・[FCC]warn | iOS互換修正を即実施 |
+| R-003 | iOS Safari Script error | 高 | 低 | 🔴高 | try-catch 全保護・filter:none 維持 | 実機確認・`[Hoku]` warn (旧 `[FCC]`) | iOS 互換修正を即実施 |
 | R-004 | スマホ横スクロール | 中 | 低 | 🟡中 | 全幅375px確認必須 | Playwright scrollWidth確認 | overflow/width修正 |
 | R-005 | HokuがAI丸投げを助長 | 高 | 中 | 🔴高 | Mock応答に防止文言・UI内明示 | 講師の口頭確認 | 応答設計の見直し |
 | R-006 | APIキー漏洩 | 最高 | 低 | 🔴高 | フロントに直書き禁止・サーバー管理 | コードレビュー | 即座にキーローテーション |

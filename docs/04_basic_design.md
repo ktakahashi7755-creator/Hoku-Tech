@@ -53,11 +53,19 @@ v2/
 │   ├── hoku.js             ← Hoku設定・テンプレート基本
 │   ├── hoku-assets.js      ← Hoku画像base64（161KB）
 │   ├── hoku-phase-support.js ← Phase別Hoku支援データ
-│   ├── glossary.js         ← 用語集・エラー集
-│   ├── assignments.js      ← 課題定義
-│   ├── skillchecks.js      ← SC問題定義
-│   └── lesson-p00〜p12.js  ← Lesson本文（計174Lesson）
-├── docs/                   ← ドキュメント群（本ディレクトリ）
+│   ├── glossary.js         ← 用語集 (50 語) ・エラー集 (20 件)
+│   ├── assignments.js      ← 課題定義 (13 件)
+│   ├── skillchecks.js      ← SC 問題定義 (p00〜p12)
+│   ├── sc-enhancements.js  ← SC 詳細解説
+│   ├── lesson-p00〜p12.js  ← Lesson 本文 (約 204 Lesson)
+│   ├── lesson-p02-append.js / lesson-p03-append.js
+│   ├── phase-illustrations.js / diagrams.js / p12-apps.js
+│   ├── hoku.js / hoku-assets.js / hoku-phase-support.js
+├── scripts/
+│   └── build_full.py       ← 単一 HTML ビルド (標準ライブラリのみ)
+├── dist/                   ← ビルド成果物 (gitignored)
+├── docs/                   ← ドキュメント群 (本ディレクトリ)
+├── CLAUDE.md               ← Claude Code 用プロジェクト規約
 └── README.md               ← プロジェクト概要
 ```
 

@@ -9,8 +9,8 @@
 | 自動テスト優先 | Playwrightによる自動化テスト（5回連続合格必須）|
 | JSエラーゼロ | pageerror イベント0件 |
 | 横スクロールゼロ | scrollWidth ≤ viewportWidth+10px |
-| iOS互換 | Script error.（[FCC]warn）0件 |
-| テスト前必須 | node --check → build_full.py → Playwright |
+| iOS 互換 | Script error. (`[Hoku]` warn / 旧 `[FCC]` warn) 0 件 |
+| テスト前必須 | `node --check` → `python3 scripts/build_full.py` → Playwright |
 
 ---
 
@@ -102,7 +102,7 @@
 | TC-ID | テスト項目 | 確認方法 | 期待結果 | 優先度 |
 |-------|---------|---------|---------|--------|
 | TC-501 | JSエラーゼロ | Playwright pageerror | 0件 | 高 |
-| TC-502 | [FCC]エラーゼロ | console.warn | [FCC]含むwarn = 0件 | 高 |
+| TC-502 | `[Hoku]` エラーゼロ (旧 `[FCC]` 互換) | console.warn | `[Hoku]` / `[FCC]` を含む warn = 0 件 | 高 |
 | TC-503 | JS構文チェック | node --check main.js | エラーなし | 高 |
 | TC-504 | data/*.js構文 | node --check data/*.js | 全ファイルエラーなし | 高 |
 | TC-505 | ビルド成功 | build_full.py | hoku-tech.html 生成・サイズ確認 | 高 |
@@ -114,15 +114,15 @@
 ### 4.1 JS構文チェック
 
 ```bash
-node --check /home/claude/v2/assets/js/main.js
-for f in /home/claude/v2/data/*.js; do node --check "$f"; done
+node --check assets/js/main.js
+for f in data/*.js; do node --check "$f"; done
 ```
 
 ### 4.2 ビルド
 
 ```bash
-python3 /tmp/build_full.py
-# → ✅ Build complete: /mnt/user-data/outputs/hoku-tech.html
+python3 scripts/build_full.py
+# → [build_full] wrote dist/hoku-tech.html (~1.4 MB, inlined 1 CSS / 29 JS)
 ```
 
 ### 4.3 Playwrightテスト（5回連続）
@@ -143,7 +143,7 @@ const checks = [
   'SE横スクロールなし',
   'PC横スクロールなし',
   'JSエラーゼロ',
-  '[FCC]エラーゼロ',
+  '[Hoku]エラーゼロ', // 旧 [FCC] ラベル (両方を検査)
 ];
 ```
 
@@ -155,7 +155,7 @@ const checks = [
 |------|------|
 | Playwright 5回連続全項目pass | 必須 |
 | JSエラー 0件 | 必須 |
-| [FCC]エラー 0件 | 必須 |
+| `[Hoku]` エラー 0 件 (旧 `[FCC]` 互換) | 必須 |
 | 横スクロール 0（375/390/768/1440px）| 必須 |
 | ビルド成功（hoku-tech.html 生成）| 必須 |
 | Phase 13枚表示 | 必須 |

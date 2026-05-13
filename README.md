@@ -114,7 +114,7 @@ const { chromium } = require('playwright');
 
 # 受け入れ基準:
 # - JSエラー 0件
-# - [FCC]エラー（iOS Safari）0件
+# - [Hoku] / [FCC] エラー (iOS Safari) 0 件
 # - Phase 13枚表示
 # - Hokuバブル常駐・パネル開閉
 # - 375/390/768/1440px 横スクロールなし

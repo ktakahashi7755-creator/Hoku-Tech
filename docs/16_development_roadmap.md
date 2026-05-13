@@ -25,7 +25,7 @@ Phase H: 自社教育プロダクト化   🔮長期
 
 ### 完了済み
 
-- 全13Phase / 174Lesson整備
+- 全 13 Phase / 約 204 Lesson 整備
 - iOS Safari完全対応（Script error.ゼロ）
 - Hokuフローティング常駐UI（ドラッグ・吸着・アニメ）
 - 相談パネル（チャットUI・カテゴリチップ・テンプレートコピー）

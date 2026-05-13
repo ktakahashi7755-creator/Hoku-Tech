@@ -29,8 +29,8 @@
 
 | 項目 | 内容 |
 |------|------|
-| 目的 | Lesson本文定義（計174Lesson）|
-| ファイル | data/lesson-p00.js〜lesson-p12.js |
+| 目的 | Lesson 本文定義 (約 204 Lesson) |
+| ファイル | data/lesson-p00.js〜data/lesson-p12.js (および data/lesson-p02-append.js / data/lesson-p03-append.js) |
 
 ### 構造
 
