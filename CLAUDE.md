@@ -59,6 +59,7 @@
 | `data/hoku-assets.js` | Hoku アバター base64 (約 165 KB)。`window.HOKU_IMGS` / `window.HOKU_IMG_MAIN`。 |
 | `data/hoku-phase-support.js` | Phase 別 Hoku 支援。`window.HOKU_PHASE_SUPPORT`。 |
 | `scripts/build_full.py` | 単一 HTML 化スクリプト。`dist/hoku-tech.html` を出力。 |
+| `scripts/audit_data_consistency.py` | `data/*.js` の整合性検査 (Python 標準ライブラリのみ)。chapter↔lesson 参照 / nextLesson / 孤立 / Assignment 必須フィールドを検査し、失敗時 exit 1。 |
 | `dist/` | ビルド成果物。Git 追跡しない (`.gitignore` 設定)。 |
 | `docs/00…20_*.md` | 全設計ドキュメント。 |
 
@@ -111,6 +112,9 @@ business / p12-apps / pricing
 # 構文チェック
 node --check assets/js/main.js
 for f in data/*.js; do node --check "$f"; done
+
+# データ整合性検査 (chapter↔lesson 参照 / nextLesson / 孤立 / Assignment 必須フィールド)
+python3 scripts/audit_data_consistency.py
 
 # 単一 HTML ビルド
 python3 scripts/build_full.py

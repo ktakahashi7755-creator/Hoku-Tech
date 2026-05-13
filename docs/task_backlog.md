@@ -49,7 +49,7 @@
 
 | Task ID | カテゴリ | 対象ファイル | 改善内容 | エージェント | 難易度 | 完了条件 | ステータス |
 |---------|---------|------------|---------|--------------|-------|---------|-----------|
-| T-P3-01 | DevOps | `scripts/validate_schema.py` (新規) | `data/*.js` のスキーマ検証スクリプトを追加 (instructorCheckPoints 必須 等) | Release Manager | M | CI で実行可能 | ⬜ |
+| T-P3-01 | DevOps | `scripts/audit_data_consistency.py` | `data/*.js` のスキーマ検証スクリプトを追加 (chapter↔lesson 参照 / nextLesson / 孤立 / Assignment 必須 5 フィールド)。Python 標準ライブラリのみ。失敗時 exit 1。 | Release Manager | M | CI で実行可能、CLAUDE.md 作業後チェックリストに追加済 | ✅ |
 | T-P3-02 | Lesson 深掘り | `data/lesson-p*.js` 全て | 各 Lesson に `commonPitfalls` を 2-3 件追加 | Beginner Designer | L | 全 Lesson 4+ 件 | ⬜ |
 | T-P3-03 | Hoku | `assets/js/main.js` | Hoku に「Phase 文脈を使いますか?」明示的プロンプト | Hoku Mentor UX | S | UI に出る | ⬜ |
 | T-P3-04 | テスト | `tests/playwright/` (新規) | Playwright スクリプトを正式同梱 | QA | L | 5 連発合格 | ⬜ |
