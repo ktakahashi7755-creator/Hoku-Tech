@@ -17,8 +17,8 @@
 | T-P0-02 | UI 描画 | `assets/js/main.js:981-1001` | `renderAssignments` に `criteria` / `resubmit` / `reviewPoints` を描画 | UI/UX + Instructor Op | M | 課題詳細で全フィールドが表示される | ⬜ |
 | T-P0-03 | Hoku | `assets/js/main.js:3265-3316` `buildMockResponse` | カテゴリ `report` / `claudecode` を実装し汎用 fallback から救出 | Hoku Mentor UX | S | `report`/`claudecode` カテゴリで意味のある応答が返る | ⬜ |
 | T-P0-04 | 検証 | プロジェクト全体 | 禁止フレーズスキャン (準備中/TODO/ダミー/旧 FCC) を作業後に毎回実行 | QA | S | grep 結果 0 件 | ⬜ |
-| T-P0-05 | データ整合 | `data/lesson-p02.js` / `lesson-p02-append.js` | Lesson 詳細画面から append ファイルのレッスンへ到達できるか検証。到達不可なら `nextLesson` リンクを明示化 | Curriculum Architect | M | P02 の全 Lesson が UI から到達可能 | ⬜ |
-| T-P0-06 | データ整合 | `data/lesson-p03.js` / `lesson-p03-append.js` | 同上、P03 の `l03-2-2` 以降が UI から到達可能か検証 | Curriculum Architect | M | P03 の全 Lesson が UI から到達可能 | ⬜ |
+| T-P0-05 | データ整合 | `data/lesson-p02.js` / `lesson-p02-append.js` / `chapters.js` | Lesson 詳細画面から append ファイルのレッスンへ到達できるか検証。到達不可なら `nextLesson` リンクを明示化 | Curriculum Architect | M | P02 の全 Lesson が UI から到達可能 (20/20 チェーン到達) | ✅ |
+| T-P0-06 | データ整合 | `data/lesson-p03.js` / `lesson-p03-append.js` | 同上、P03 の `l03-2-2` 以降が UI から到達可能か検証 | Curriculum Architect | M | P03 の全 Lesson が UI から到達可能 (22/22 チェーン到達) | ✅ |
 
 ## P1 — 高優先 (品質直結)
 

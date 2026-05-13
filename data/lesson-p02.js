@@ -421,7 +421,7 @@ window.LESSON_P02 = {
   aiOk:['この色コード#2563ebはどんな色ですか', 'font-weightの値の一覧を教えてください'],
   aiNg:[],
   interviewQ:['CSSで色を指定する方法をいくつか教えてください。'],
-  nextLesson:'l02-3-1'
+  nextLesson:'l02-3-2'
 }
 
 }; // end LESSON_P02
