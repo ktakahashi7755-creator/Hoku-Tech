@@ -12846,6 +12846,38 @@ window.HOKU_PHASE_SUPPORT = {
     ],
     noGo: ['全部設定して', '何が問題か調べて'],
     instructorCheck: 'VS Code が起動するか・ターミナルでコマンドが動くかを確認しよう',
+    lessonHints: {
+      'l00-1-1': [
+        'ファイルとフォルダの違いを 1 行で説明して',
+        '拡張子が変わると何が起きるか整理して',
+        '隠しファイルとは何か / なぜ表示されないか教えて',
+      ],
+      'l00-3-2': [
+        'cd .. と cd ~ の違いを整理して',
+        'ls -la のオプション意味を教えて',
+        'pwd と ls の違いをたとえ話で説明して',
+      ],
+      'l00-2-1': [
+        'VS Code の Workspace と単一ファイル開きの違いを教えて',
+        '拡張機能で最低限入れるべきものを 5 つ教えて',
+        '日本語化で気を付ける点を整理して',
+      ],
+      'l00-4-1': [
+        'Node.js と npm の関係を 1 行で説明して',
+        'なぜ Node 18 以上が必要か理由を整理して',
+        'npm install と npm i の違いを教えて',
+      ],
+      'l00-5-1': [
+        'Git とローカル / リモートの関係をたとえ話で説明して',
+        'なぜ Git のような仕組みが必要か整理して',
+        '個人開発でも Git を使う理由を教えて',
+      ],
+      'l00-6-2': [
+        'public / private の違いと使い分けを整理して',
+        'README.md に最低限書くべきことを教えて',
+        'リポジトリの命名規則のおすすめを教えて',
+      ],
+    },
   },
 
   p01: {
@@ -12860,6 +12892,38 @@ window.HOKU_PHASE_SUPPORT = {
     ],
     noGo: ['全部暗記するリストを出して', '試験に出るとこだけ教えて'],
     instructorCheck: 'Webアプリの基本構成を自分の言葉で説明できるか確認しよう',
+    lessonHints: {
+      'l01-1-2': [
+        'クライアントとサーバーの責務をたとえ話で整理して',
+        'ブラウザは「クライアント」と言える理由を教えて',
+        'サーバーには種類があるか / どう違うか整理して',
+      ],
+      'l01-1-3': [
+        'HTTP と HTTPS の違いを 1 行で説明して',
+        '8080 ポートが開発でよく使われる理由を教えて',
+        'localhost が指す範囲をたとえ話で整理して',
+      ],
+      'l01-2-1': [
+        'HTTP メソッドの GET / POST / PUT / DELETE を業務シーンで例えて',
+        'ステータスコード 4xx と 5xx の違いを教えて',
+        'リクエストヘッダとボディの違いを整理して',
+      ],
+      'l01-2-2': [
+        'JSON と XML の違いをたとえ話で説明して',
+        'JSON.parse と JSON.stringify の使い分けを教えて',
+        'なぜ API は JSON が標準になったか整理して',
+      ],
+      'l01-3-1': [
+        'フロント / バック / DB の責務分担をたとえ話で整理して',
+        '3 層構造のメリットを 3 つ教えて',
+        '1 層 / モノリスとの違いを教えて',
+      ],
+      'l01-4-1': [
+        'REST API のリソース指向設計の意味を教えて',
+        'GraphQL との違いを 1 段落で整理して',
+        'API バージョニングの方法を教えて',
+      ],
+    },
   },
 
   p02: {
@@ -12874,6 +12938,43 @@ window.HOKU_PHASE_SUPPORT = {
     ],
     noGo: ['このデザインのコード全部作って', 'CSSを全部書いて'],
     instructorCheck: '自分で作ったHTMLの構造を説明できるか確認しよう',
+    lessonHints: {
+      'l02-1-1': [
+        'HTML の役割を 1 行でたとえ話で説明して',
+        'DOCTYPE 宣言の意味を教えて',
+        'meta charset を入れない場合に何が起きるか整理して',
+      ],
+      'l02-1-5': [
+        'div だらけと <section> / <article> の違いを教えて',
+        'SEO 観点でセマンティック HTML が有利な理由を整理して',
+        'スクリーンリーダーがセマンティックを使う理由を教えて',
+      ],
+      'l02-2-2': [
+        'CSS セレクタの詳細度の優先順位を教えて',
+        'なぜ !important は推奨されないか整理して',
+        'クラス命名で BEM が広まった理由を教えて',
+      ],
+      'l02-2-3': [
+        'box-sizing: border-box にすると何が変わるか整理して',
+        'margin の相殺 (collapse) を初心者向けに説明して',
+        'padding と margin の使い分けを教えて',
+      ],
+      'l02-3-2': [
+        'Flexbox の justify-content と align-items の違いを整理して',
+        'flex-wrap の必要性を実例で教えて',
+        'Flexbox と Grid の使い分けを 1 段落で整理して',
+      ],
+      'l02-3-3': [
+        'Grid の grid-template-columns で repeat と minmax を教えて',
+        'Grid と Flexbox の使い分け基準を整理して',
+        'auto-fit と auto-fill の違いを実例で教えて',
+      ],
+      'l02-4-1': [
+        'モバイルファーストとは何か / なぜ推奨されるか整理して',
+        'ブレイクポイントの目安と理由を教えて',
+        'meta viewport の役割を教えて',
+      ],
+    },
   },
 
   p03: {
@@ -12888,6 +12989,48 @@ window.HOKU_PHASE_SUPPORT = {
     ],
     noGo: ['ToDoアプリを全部作って', '答えだけ教えて'],
     instructorCheck: '書いたコードを声に出して説明できるか確認しよう',
+    lessonHints: {
+      'l03-1-2': [
+        'let / const / var の使い分け基準を教えて',
+        'const で配列を変更できる理由を整理して',
+        '巻き上げ (hoisting) を初心者向けに説明して',
+      ],
+      'l03-2-1': [
+        '関数宣言と関数式の違いを教えて',
+        '引数のデフォルト値と分割代入の使いどころを整理して',
+        'なぜ関数を小さく分けるべきか教えて',
+      ],
+      'l03-2-2': [
+        'アロー関数と通常関数の違いを 3 点で整理して',
+        'this の挙動がアロー関数で変わる理由を教えて',
+        'map / filter / reduce の使い分けを教えて',
+      ],
+      'l03-2-3': [
+        'スコープとクロージャの違いを整理して',
+        'クロージャの実用例を 2 つ教えて',
+        'var で起きるスコープの罠を教えて',
+      ],
+      'l03-3-1': [
+        '配列を直接 mutate するとなぜダメか整理して',
+        'スプレッド構文と Object.assign の違いを教えて',
+        '分割代入の使いどころを教えて',
+      ],
+      'l03-3-2': [
+        'Promise と async/await の関係を整理して',
+        'await を忘れた時に起きる問題を教えて',
+        'Promise.all と Promise.allSettled の違いを教えて',
+      ],
+      'l03-4-1': [
+        'querySelector と getElementById の違いを教えて',
+        'innerHTML と textContent の使い分けを整理して',
+        'DOM 操作で気を付けるパフォーマンスポイントを教えて',
+      ],
+      'l03-5-1': [
+        'fetch のレスポンスで .ok を確認する理由を教えて',
+        'response.json() がなぜ Promise を返すか整理して',
+        'ネットワークエラーと HTTP エラーの違いを教えて',
+      ],
+    },
   },
 
   p04: {
@@ -12902,6 +13045,38 @@ window.HOKU_PHASE_SUPPORT = {
     ],
     noGo: ['全コマンドの暗記リストを出して', 'GitHubの設定を全部やって'],
     instructorCheck: 'pushができてGitHubで変更が確認できるか確認しよう',
+    lessonHints: {
+      'l04-1-2': [
+        'git add と git commit の違いを 1 行で整理して',
+        'なぜステージングという概念があるか教えて',
+        'git status を毎回見る習慣の理由を教えて',
+      ],
+      'l04-2-1': [
+        'origin と main の意味を整理して',
+        'git push -u origin main の -u の意味を教えて',
+        'リモートとローカルの関係をたとえ話で説明して',
+      ],
+      'l04-2-3': [
+        '.gitignore に最低限入れるべきものを教えて',
+        'すでにコミット済みファイルを ignore する手順を教えて',
+        'グローバル .gitignore の意味と使いどころを教えて',
+      ],
+      'l04-3-1': [
+        'feature ブランチと main ブランチの責務分担を整理して',
+        'ブランチを切るタイミングを教えて',
+        'ブランチ命名規則のおすすめを教えて',
+      ],
+      'l04-3-3': [
+        'コンフリクトが起きる仕組みを 1 段落で整理して',
+        'コンフリクト解消で気を付ける点を教えて',
+        'rebase と merge の違いを教えて',
+      ],
+      'l04-4-1': [
+        'プルリクエスト (PR) の目的を教えて',
+        '良い PR description の書き方を整理して',
+        'PR が大きすぎる時の問題と対処を教えて',
+      ],
+    },
   },
 
   p05: {
@@ -12916,6 +13091,48 @@ window.HOKU_PHASE_SUPPORT = {
     ],
     noGo: ['このアプリ全部作って', 'Reactの全コードを書いて'],
     instructorCheck: 'useStateとuseEffectの違いを自分の言葉で説明できるか確認しよう',
+    lessonHints: {
+      'l05-1-1': [
+        'Vite と create-react-app の違いを 3 点で整理して',
+        'なぜ Node 18+ が必要か教えて',
+        'npm run dev でエラーが出た時の確認順を教えて',
+      ],
+      'l05-2-1': [
+        'コンポーネントを分ける基準を教えて',
+        'Atomic Design の概念を 1 段落で整理して',
+        '関数コンポーネントとクラスコンポーネントの違いを教えて',
+      ],
+      'l05-2-2': [
+        'props の変更がなぜ親側でしかできないか整理して',
+        '子から親に値を渡す方法 (callback prop) を教えて',
+        'props drilling の問題と解決策を教えて',
+      ],
+      'l05-3-1': [
+        'state を直接 mutate するとどうなるか教えて',
+        'なぜ再レンダリングが起きないか整理して',
+        '関数型 setState (setX(prev => ...)) が必要なシーンを教えて',
+      ],
+      'l05-4-1': [
+        'controlled component と uncontrolled の違いを教えて',
+        'value と defaultValue の使い分けを整理して',
+        'フォームバリデーションのタイミング設計を教えて',
+      ],
+      'l05-4-2': [
+        'useEffect の依存配列が空 [] と未指定の違いを教えて',
+        '無限ループが起きる原因 3 パターンを整理して',
+        '副作用のクリーンアップが必要なケースを教えて',
+      ],
+      'l05-5-1': [
+        'cleanup 関数を return する目的を整理して',
+        'subscribe / setInterval を使った時のクリーンアップを教えて',
+        'cleanup を忘れるとどんなバグが起きるか教えて',
+      ],
+      'l05-5-2': [
+        'カスタムフックの命名 (use 接頭辞) の理由を教えて',
+        'useFetch / useLocalStorage の設計例を整理して',
+        'カスタムフックでテストしやすくなる理由を教えて',
+      ],
+    },
   },
 
   p06: {
@@ -12930,6 +13147,38 @@ window.HOKU_PHASE_SUPPORT = {
     ],
     noGo: ['Next.jsアプリを全部作って', 'ファイル構成を全部決めて'],
     instructorCheck: 'App Routerのファイル構成を説明できるか確認しよう',
+    lessonHints: {
+      'l06-1-2': [
+        'layout.tsx と page.tsx の役割を整理して',
+        'ネストレイアウトの活用例を教えて',
+        'loading.tsx / error.tsx の使い分けを教えて',
+      ],
+      'l06-2-1': [
+        '動的ルート [id] の使い方を教えて',
+        'generateStaticParams の役割を整理して',
+        'Link と <a> の違いを教えて',
+      ],
+      'l06-3-1': [
+        'Server Component と Client Component の判断基準を教えて',
+        '"use client" を付ける場面を整理して',
+        'Server Component で使えない API を教えて',
+      ],
+      'l06-3-2': [
+        'async Server Component でデータ取得する利点を教えて',
+        'fetch のキャッシュ戦略 (force-cache / no-store) を整理して',
+        'revalidate オプションの使いどころを教えて',
+      ],
+      'l06-4-1': [
+        'Route Handler (app/api) の使い方を教えて',
+        'GET と POST のハンドラ実装例を整理して',
+        'NextResponse.json の使いどころを教えて',
+      ],
+      'l06-5-1': [
+        'Vercel デプロイで詰まる典型エラーを 3 つ教えて',
+        'NEXT_PUBLIC_ プレフィックスの意味を整理して',
+        'プレビューデプロイの活用方法を教えて',
+      ],
+    },
   },
 
   p07: {
@@ -12944,6 +13193,38 @@ window.HOKU_PHASE_SUPPORT = {
     ],
     noGo: ['このプログラムを全部書いて', 'Javaの試験に出るとこだけ教えて'],
     instructorCheck: 'クラスとインスタンスの違いを自分の言葉で説明できるか確認しよう',
+    lessonHints: {
+      'l07-1-2': [
+        'プリミティブ型と参照型の違いをたとえ話で教えて',
+        'int / Integer のラップとアンラップを整理して',
+        'String が immutable な理由を教えて',
+      ],
+      'l07-3-1': [
+        'クラスとインスタンスの違いをたとえ話で説明して',
+        'コンストラクタの役割を整理して',
+        'static メンバとインスタンスメンバの違いを教えて',
+      ],
+      'l07-3-2': [
+        'カプセル化の目的を 3 点で教えて',
+        'なぜ private + getter/setter にするか整理して',
+        'Lombok @Data の便利さと注意点を教えて',
+      ],
+      'l07-4-1': [
+        '継承とコンポジションの使い分けを教えて',
+        'Override と Overload の違いを整理して',
+        '継承のデメリットを 2 つ教えて',
+      ],
+      'l07-4-2': [
+        'インターフェースと抽象クラスの違いを教えて',
+        'インターフェースを使うとテストしやすくなる理由を整理して',
+        'デフォルトメソッド (Java 8+) の使いどころを教えて',
+      ],
+      'l07-5-1': [
+        'チェック例外と非チェック例外の違いを整理して',
+        'try-with-resources の使いどころを教えて',
+        '独自例外クラスを作る基準を教えて',
+      ],
+    },
   },
 
   p08: {
@@ -12958,6 +13239,38 @@ window.HOKU_PHASE_SUPPORT = {
     ],
     noGo: ['DB設計を全部やって', 'SQLを全部書いて'],
     instructorCheck: 'テーブル設計の理由を自分の言葉で説明できるか確認しよう',
+    lessonHints: {
+      'l08-1-3': [
+        'NOT NULL と DEFAULT の使い分けを整理して',
+        'CHAR と VARCHAR の違いを教えて',
+        'BIGINT と INT を選ぶ基準を教えて',
+      ],
+      'l08-2-1': [
+        'SELECT * を本番で避ける理由を整理して',
+        'WHERE と HAVING の違いを教えて',
+        'ORDER BY と LIMIT の組み合わせ注意点を教えて',
+      ],
+      'l08-2-2': [
+        'UPDATE / DELETE で WHERE を忘れた時の影響を教えて',
+        'BEGIN ... COMMIT を使う場面を整理して',
+        'ON DUPLICATE KEY UPDATE の使いどころを教えて',
+      ],
+      'l08-3-1': [
+        'INNER JOIN と LEFT JOIN の違いをたとえ話で教えて',
+        '3 テーブル以上の JOIN 設計を整理して',
+        '結合条件を間違えた時に件数が爆発する理由を教えて',
+      ],
+      'l08-4-1': [
+        'ER 図のカーディナリティ表記を教えて',
+        '中間テーブルが必要になる場面を整理して',
+        '識別子としての主キー設計の考え方を教えて',
+      ],
+      'l08-4-2': [
+        '第 1 / 第 2 / 第 3 正規形を例で整理して',
+        'あえて非正規化する場面を教えて',
+        '正規化のやりすぎで起きる問題を教えて',
+      ],
+    },
   },
 
   p09: {
@@ -12972,6 +13285,48 @@ window.HOKU_PHASE_SUPPORT = {
     ],
     noGo: ['Spring Bootを全部実装して', 'API設計を全部決めて'],
     instructorCheck: '3層構造を自分の言葉で説明できるか確認しよう',
+    lessonHints: {
+      'l09-2-1': [
+        '@RestController と @Controller の違いを教えて',
+        '@GetMapping と @RequestMapping(method=GET) の違いを整理して',
+        '@PathVariable と @RequestParam の使い分けを教えて',
+      ],
+      'l09-2-3': [
+        'CORS が必要になる場面を 1 段落で整理して',
+        '@CrossOrigin と WebMvcConfigurer の違いを教えて',
+        'プリフライトリクエストの仕組みを教えて',
+      ],
+      'l09-3-1': [
+        'Service と Controller の責務分担を教えて',
+        '@Service と @Component の違いを整理して',
+        'Service が無い小さなアプリの問題を教えて',
+      ],
+      'l09-4-1': [
+        '@Entity と @Table の使い分けを教えて',
+        'JPA の Lazy / Eager フェッチの選び方を整理して',
+        '@Id と @GeneratedValue の組み合わせを教えて',
+      ],
+      'l09-4-2': [
+        'Repository と DAO の違いを教えて',
+        'Spring Data JPA の derived query method の利点を整理して',
+        '@Transactional を付ける基準を教えて',
+      ],
+      'l09-5-1': [
+        'DTO と Entity を分ける目的を教えて',
+        'Request DTO と Response DTO を分ける利点を整理して',
+        'MapStruct を使う場面を教えて',
+      ],
+      'l09-5-2': [
+        '@Valid と @Validated の違いを教えて',
+        'BindingResult の扱い方を整理して',
+        'カスタムバリデーターの作り方を教えて',
+      ],
+      'l09-6-2': [
+        'Render と Vercel の使い分けを教えて',
+        'application.properties を環境変数化する方法を整理して',
+        'Render の sleep 仕様の対策を教えて',
+      ],
+    },
   },
 
   p10: {
@@ -12986,6 +13341,38 @@ window.HOKU_PHASE_SUPPORT = {
     ],
     noGo: ['Pythonスクリプトを全部書いて', 'データ処理を全部やって'],
     instructorCheck: '書いたスクリプトの動作を自分の言葉で説明できるか確認しよう',
+    lessonHints: {
+      'l10-1-1': [
+        'venv が必要な理由を整理して',
+        'pip と pip3 の違いを教えて',
+        'requirements.txt と pyproject.toml の違いを教えて',
+      ],
+      'l10-2-1': [
+        'list / tuple / set / dict の使い分けを教えて',
+        'リスト内包表記の利点と読みづらさのバランスを整理して',
+        '辞書の get と [] アクセスの違いを教えて',
+      ],
+      'l10-3-1': [
+        'CSV の文字コード (utf-8 / cp932) の扱いを教えて',
+        'pandas の read_csv と csv.reader の違いを整理して',
+        'カラム数が揃わない CSV の対処を教えて',
+      ],
+      'l10-4-1': [
+        'DataFrame の groupby と pivot_table の違いを教えて',
+        '欠損値 (NaN) の扱い方を整理して',
+        'メモリ節約のテクニックを教えて',
+      ],
+      'l10-5-1': [
+        'requests のタイムアウト設定の必要性を教えて',
+        'response.raise_for_status() の使いどころを整理して',
+        '認証ヘッダの渡し方を教えて',
+      ],
+      'l10-5-2': [
+        '業務自動化スクリプトを安全に運用するポイントを教えて',
+        'ログ出力で気を付けることを整理して',
+        'cron / Task Scheduler との連携を教えて',
+      ],
+    },
   },
 
   p11: {
@@ -13000,6 +13387,38 @@ window.HOKU_PHASE_SUPPORT = {
     ],
     noGo: ['全部AIに作らせて提出して', 'コードは説明しなくていいから早く仕上げて'],
     instructorCheck: 'AIを使った箇所を説明できるか・自分で理解できているか確認しよう',
+    lessonHints: {
+      'l11-1-2': [
+        'AI 丸投げの兆候を 3 つ教えて',
+        '丸投げを防ぐためのワークフローを整理して',
+        '「AI が出したから正しい」と思ってしまう罠を教えて',
+      ],
+      'l11-2-1': [
+        'プロンプト 4 要素 (前提 / 指示 / 制約 / 確認) を例で教えて',
+        '良いプロンプトと悪いプロンプトの違いを整理して',
+        'プロンプトを再利用しやすく蓄積する方法を教えて',
+      ],
+      'l11-2-2': [
+        'エラー文を AI に貼る前に自分で確認すべきことを教えて',
+        'スタックトレースの読み方を整理して',
+        'AI に「先入観なく見て」と言う場面を教えて',
+      ],
+      'l11-3-2': [
+        'Issue → 実装 → PR の AI 駆動フローを整理して',
+        'Issue に書くべき項目を教えて',
+        '小さな PR を心がける理由を教えて',
+      ],
+      'l11-5-2': [
+        'AI に渡してはいけない情報を 5 つ教えて',
+        '会社のソースコードを AI に渡す時の判断基準を整理して',
+        'AI チャットの履歴ログがどう扱われるか教えて',
+      ],
+      'l11-6-1': [
+        'AI 利用ログに最低限書くべき項目を教えて',
+        'PR description で AI 利用を明記する書き方を整理して',
+        '採用・修正・却下の判断記録の重要性を教えて',
+      ],
+    },
   },
 
   p12: {
@@ -13014,6 +13433,38 @@ window.HOKU_PHASE_SUPPORT = {
     ],
     noGo: ['卒業制作を全部作って', '完成コードをそのまま出して'],
     instructorCheck: '制作物の設計判断を自分の言葉で説明できるか確認しよう',
+    lessonHints: {
+      'l12-1-1': [
+        '卒業制作のテーマ選定で重視すべき軸を教えて',
+        '誰の何を解決するかを 1 段落で書く練習をして',
+        'スコープを大きくしすぎないコツを整理して',
+      ],
+      'l12-2-2': [
+        'ER 図を最初に作る理由を教えて',
+        'テーブル間のリレーションを整理して',
+        '正規化と非正規化のバランスを教えて',
+      ],
+      'l12-3-1': [
+        'REST API 設計でリソース指向にする理由を教えて',
+        'エンドポイント命名のおすすめパターンを整理して',
+        'OpenAPI / Postman Collection の活用を教えて',
+      ],
+      'l12-4-1': [
+        'Spring Boot で 3 層構造を守る判断ポイントを整理して',
+        'Service 層を厚く / Controller 層を薄くする理由を教えて',
+        '例外ハンドリングの集約方法を教えて',
+      ],
+      'l12-6-1': [
+        'Vercel + Render の構成のメリットを教えて',
+        'デプロイ前のチェックリストを整理して',
+        '環境変数の本番 / 開発の分離を教えて',
+      ],
+      'l12-8-1': [
+        '面談 23 問のうち最頻出の 5 問を教えて',
+        '「なぜこの技術を選んだか」の答え方を整理して',
+        '「詰まった点とその解決」を 1 分で語る型を教えて',
+      ],
+    },
   },
 };
 
@@ -16214,18 +16665,40 @@ function _qsa(sel, root) { return Array.from((root || document).querySelectorAll
     var H = window.Hoku_MENTOR || {};
     var advice = phaseId && (H.phaseAdvice || {})[phaseId];
 
-    var canAsk = advice ? advice.canAsk.slice(0,3) : [
-      'このコードを1行ずつ説明して',
-      'このエラー文の意味を整理して',
-      '面談でどう説明すればいいか練習して',
-    ];
+    /* Lesson 別の hokuMemos があれば最優先で使用。
+       無ければ Phase 共通の HOKU_PHASE_SUPPORT.examples、最後に汎用 fallback */
+    var hints = null;
+    var hintSource = null;
+    var PS = window.HOKU_PHASE_SUPPORT || {};
+    var psPhase = phaseId ? PS[phaseId] : null;
+    if (psPhase && psPhase.lessonHints && lessonId && psPhase.lessonHints[lessonId]) {
+      hints = psPhase.lessonHints[lessonId];
+      hintSource = 'lesson';
+    } else if (advice && advice.canAsk && advice.canAsk.length) {
+      hints = advice.canAsk.slice(0, 3);
+      hintSource = 'phase-advice';
+    } else if (psPhase && psPhase.examples && psPhase.examples.length) {
+      hints = psPhase.examples.slice(0, 3);
+      hintSource = 'phase-examples';
+    } else {
+      hints = [
+        'このコードを 1 行ずつ説明して',
+        'このエラー文の意味を整理して',
+        '面談でどう説明すればいいか練習して',
+      ];
+      hintSource = 'fallback';
+    }
 
-    var html = '<div class="hoku-sc-hint" style="margin-top:16px">' +
+    var hintLabel = (hintSource === 'lesson')
+      ? 'このレッスンで詰まったら、以下を Hoku に送ってみよう:'
+      : 'このフェーズで詰まったら、以下を Hoku に送ってみよう:';
+
+    var html = '<div class="hoku-sc-hint" style="margin-top:16px" data-hint-source="' + hintSource + '">' +
       '<div class="hoku-avatar-sm" style="flex-shrink:0">H</div>' +
       '<div><span class="hoku-sc-hint-label">Hoku メモ</span>' +
-        '<div class="hoku-sc-hint-text">このレッスンで詰まったら、以下を Hoku に送ってみよう：' +
+        '<div class="hoku-sc-hint-text">' + hesc(hintLabel) +
         '<ul style="margin:6px 0 0 16px;padding:0;font-size:.83rem;">' +
-          canAsk.map(function(s){ return '<li>' + hesc(s) + '</li>'; }).join('') +
+          hints.map(function(s){ return '<li>' + hesc(s) + '</li>'; }).join('') +
         '</ul>' +
         (advice && advice.tip ? '<p style="margin:6px 0 0;font-size:.8rem;color:#1e3a8a;">' + hesc(advice.tip) + '</p>' : '') +
       '</div></div>' +

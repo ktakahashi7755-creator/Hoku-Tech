@@ -2948,18 +2948,40 @@ function _qsa(sel, root) { return Array.from((root || document).querySelectorAll
     var H = window.Hoku_MENTOR || {};
     var advice = phaseId && (H.phaseAdvice || {})[phaseId];
 
-    var canAsk = advice ? advice.canAsk.slice(0,3) : [
-      'このコードを1行ずつ説明して',
-      'このエラー文の意味を整理して',
-      '面談でどう説明すればいいか練習して',
-    ];
+    /* Lesson 別の hokuMemos があれば最優先で使用。
+       無ければ Phase 共通の HOKU_PHASE_SUPPORT.examples、最後に汎用 fallback */
+    var hints = null;
+    var hintSource = null;
+    var PS = window.HOKU_PHASE_SUPPORT || {};
+    var psPhase = phaseId ? PS[phaseId] : null;
+    if (psPhase && psPhase.lessonHints && lessonId && psPhase.lessonHints[lessonId]) {
+      hints = psPhase.lessonHints[lessonId];
+      hintSource = 'lesson';
+    } else if (advice && advice.canAsk && advice.canAsk.length) {
+      hints = advice.canAsk.slice(0, 3);
+      hintSource = 'phase-advice';
+    } else if (psPhase && psPhase.examples && psPhase.examples.length) {
+      hints = psPhase.examples.slice(0, 3);
+      hintSource = 'phase-examples';
+    } else {
+      hints = [
+        'このコードを 1 行ずつ説明して',
+        'このエラー文の意味を整理して',
+        '面談でどう説明すればいいか練習して',
+      ];
+      hintSource = 'fallback';
+    }
 
-    var html = '<div class="hoku-sc-hint" style="margin-top:16px">' +
+    var hintLabel = (hintSource === 'lesson')
+      ? 'このレッスンで詰まったら、以下を Hoku に送ってみよう:'
+      : 'このフェーズで詰まったら、以下を Hoku に送ってみよう:';
+
+    var html = '<div class="hoku-sc-hint" style="margin-top:16px" data-hint-source="' + hintSource + '">' +
       '<div class="hoku-avatar-sm" style="flex-shrink:0">H</div>' +
       '<div><span class="hoku-sc-hint-label">Hoku メモ</span>' +
-        '<div class="hoku-sc-hint-text">このレッスンで詰まったら、以下を Hoku に送ってみよう：' +
+        '<div class="hoku-sc-hint-text">' + hesc(hintLabel) +
         '<ul style="margin:6px 0 0 16px;padding:0;font-size:.83rem;">' +
-          canAsk.map(function(s){ return '<li>' + hesc(s) + '</li>'; }).join('') +
+          hints.map(function(s){ return '<li>' + hesc(s) + '</li>'; }).join('') +
         '</ul>' +
         (advice && advice.tip ? '<p style="margin:6px 0 0;font-size:.8rem;color:#1e3a8a;">' + hesc(advice.tip) + '</p>' : '') +
       '</div></div>' +
