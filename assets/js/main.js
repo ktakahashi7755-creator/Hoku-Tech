@@ -992,9 +992,34 @@ function _qsa(sel, root) { return Array.from((root || document).querySelectorAll
       html += '<details class="asn-detail"><summary>課題の詳細を見る</summary><div class="asn-body">';
       html += '<h4>作成するもの</h4><p>' + _esc(a.build) + '</p>';
       html += '<h4>必須要件</h4><ul>' + (a.requirements||[]).map(function(r){ return '<li>'+_esc(r)+'</li>'; }).join('') + '</ul>';
-      html += '<h4>📦 提出物</h4><ul>' + (a.deliverables||[]).map(function(r){ return '<li>'+_esc(r)+'</li>'; }).join('') + '</ul>';
+      if (a.optionalFeatures && a.optionalFeatures.length) {
+        html += '<h4>任意要件 (発展)</h4><ul>' + a.optionalFeatures.map(function(r){ return '<li>'+_esc(r)+'</li>'; }).join('') + '</ul>';
+      }
+      html += '<h4>提出物</h4><ul>' + (a.deliverables||[]).map(function(r){ return '<li>'+_esc(r)+'</li>'; }).join('') + '</ul>';
+      if (a.readmeChecklist && a.readmeChecklist.length) {
+        html += '<h4>README チェックリスト</h4><ul>' + a.readmeChecklist.map(function(r){ return '<li>'+_esc(r)+'</li>'; }).join('') + '</ul>';
+      }
+      if (a.aiUsageLogTemplate) {
+        html += '<h4>AI 利用ログ</h4><pre class="asn-ailog">' + _esc(a.aiUsageLogTemplate) + '</pre>';
+      }
       if (a.github && a.github.required) html += '<div class="callout">GitHubリポジトリへのpushが必須です。' + (a.github.readme ? 'README.mdも必須。' : '') + '</div>';
+      if (a.criteria && a.criteria.length) {
+        html += '<h4>評価基準</h4><ul>' + a.criteria.map(function(r){ return '<li>'+_esc(r)+'</li>'; }).join('') + '</ul>';
+      }
+      if (a.scoringRubric && a.scoringRubric.length) {
+        html += '<h4>採点配点</h4><ul>' + a.scoringRubric.map(function(r){ return '<li>'+_esc(r)+'</li>'; }).join('') + '</ul>';
+      }
       html += '<h4>合格条件</h4><p>' + _esc(a.passCond) + '</p>';
+      if (a.resubmit) html += '<h4>再提出条件</h4><p>' + _esc(a.resubmit) + '</p>';
+      if (a.reviewPoints && a.reviewPoints.length) {
+        html += '<h4>講師レビュー観点</h4><ul>' + a.reviewPoints.map(function(r){ return '<li>'+_esc(r)+'</li>'; }).join('') + '</ul>';
+      }
+      if (a.instructorCheckPoints && a.instructorCheckPoints.length) {
+        html += '<h4>講師チェックポイント</h4><ul>' + a.instructorCheckPoints.map(function(r){ return '<li>'+_esc(r)+'</li>'; }).join('') + '</ul>';
+      }
+      if (a.interviewPoints && a.interviewPoints.length) {
+        html += '<h4>面談で答えるべきポイント</h4><ul>' + a.interviewPoints.map(function(r){ return '<li>'+_esc(r)+'</li>'; }).join('') + '</ul>';
+      }
       html += '</div></details></div>';
     });
     root.innerHTML = html || '<p class="empty-msg">課題データを読み込み中です。</p>';
@@ -1006,14 +1031,26 @@ function _qsa(sel, root) { return Array.from((root || document).querySelectorAll
     if (!root || root.dataset.rendered) return;
     root.dataset.rendered = '1';
     var SC = window.SKILLCHECKS || {};
+    var ENH = window.SC_ENHANCEMENTS || {};
     var html = '';
     Object.values(SC).forEach(function(phase) {
       html += '<div class="sc-phase"><h2>Phase ' + _esc(phase.phase.replace('p','')) + ': ' + _esc(phase.title) + '</h2>';
       html += '<div class="sc-questions">';
       (phase.questions||[]).forEach(function(q, i) {
+        var enh = (q.id && ENH[q.id]) ? ENH[q.id] : null;
         html += '<details class="sc-item"><summary><span class="sc-num">Q'+(i+1)+'</span>' + _esc(q.q) + '</summary>';
         html += '<div class="sc-answer"><div class="sc-ans-label">模範解答</div><p>' + _esc(q.answer) + '</p>';
         if (q.explanation) html += '<p class="sc-explain">' + _esc(q.explanation) + '</p>';
+        if (enh && enh.commonMistakes && enh.commonMistakes.length) {
+          html += '<div class="sc-block sc-mistakes"><div class="sc-block-label">よくある間違い</div><ul>' +
+                  enh.commonMistakes.map(function(m){ return '<li>'+_esc(m)+'</li>'; }).join('') + '</ul></div>';
+        }
+        if (enh && enh.passLine) {
+          html += '<div class="sc-block sc-passline"><div class="sc-block-label">合格ライン</div><p>' + _esc(enh.passLine) + '</p></div>';
+        }
+        if (enh && enh.instructorCheckPoint) {
+          html += '<div class="sc-block sc-instructor"><div class="sc-block-label">講師チェックポイント</div><p>' + _esc(enh.instructorCheckPoint) + '</p></div>';
+        }
         html += '</div></details>';
       });
       html += '</div></div>';
@@ -3269,50 +3306,104 @@ function _qsa(sel, root) { return Array.from((root || document).querySelectorAll
     var ctx = payload.currentContext;
 
     var ctxStr = '';
-    if (ctx && ctx.phase) ctxStr = ctx.phase + (ctx.lesson ? ' / ' + ctx.lesson : '');
+    var phaseNum = null;
+    if (ctx && ctx.phase) {
+      ctxStr = ctx.phase + (ctx.lesson ? ' / ' + ctx.lesson : '');
+      var pm = ctx.phase.match(/(\d+)/);
+      if (pm) phaseNum = parseInt(pm[1], 10);
+    }
 
-    if (cat === 'error' || /エラー|error|Error/.test(msg)) {
+    /* ── 丸投げガード (全カテゴリ共通) ── */
+    if (/全部書いて|全部作って|丸ごと(書いて|作って|実装)|コード(全部|全て)書いて|完成形を(書いて|出して)/.test(msg)
+        && cat !== 'task' && cat !== 'interview' && cat !== 'vocab') {
+      return 'うーん、完成コードを丸ごと出すのはここでは控えるね。\n\n' +
+        '目的は「自分の言葉で説明できるようになること」だから、まず:\n' +
+        '・どこまで自分で書けたか\n' +
+        '・どこで詰まっているか\n' +
+        '・自分なりの仮説\n\n' +
+        'を送ってくれれば、考え方を一緒に整理するよ。' +
+        (ctxStr ? '\n\n今は ' + ctxStr + ' だね。' : '');
+    }
+
+    /* ── Phase 別エラー応答 (P03/P05/P07/P09/P10) ── */
+    function phaseSpecificErrorHint(p) {
+      if (p === 3) return '\n\nP03 (JavaScript) 頻出:\n・undefined / null へのプロパティアクセス\n・非同期の順番 (await 抜け / then の戻り値忘れ)\n・配列 forEach 内で return しても外側に返らない\n・CORS エラー (fetch 先の Access-Control-Allow-Origin)';
+      if (p === 5) return '\n\nP05 (React) 頻出:\n・state を直接 mutate (`arr.push()` / `obj.x = ...`) して再レンダリングされない\n・useEffect の依存配列に値を入れ忘れて stale closure になる\n・key 属性ミス (index を key にして並び替えで壊れる)\n・useState の更新は非同期。直後に参照しても古い値';
+      if (p === 6) return '\n\nP06 (Next.js) 頻出:\n・"use client" を忘れて useState が動かない\n・環境変数を NEXT_PUBLIC_ プレフィックス無しでクライアントから参照\n・Vercel ビルドエラーは型と環境変数を疑う\n・App Router の Server/Client 境界';
+      if (p === 7) return '\n\nP07 (Java) 頻出:\n・NullPointerException → 直前のオブジェクトが null\n・型変換ミス (Object → String キャスト)\n・コレクションのループ中に remove で ConcurrentModificationException\n・スタックトレースは下から読む (原因) → 上 (発生箇所)';
+      if (p === 8) return '\n\nP08 (SQL) 頻出:\n・WHERE 抜けで UPDATE / DELETE が全行に効く\n・JOIN の条件抜けで件数爆発\n・NULL 比較は = ではなく IS NULL\n・主キー / 外部キー制約違反';
+      if (p === 9) return '\n\nP09 (Spring Boot) 頻出:\n・スタックの一番下 "Caused by:" に本当の原因\n・BeanCreationException → @Service / @Repository / @Autowired の付け忘れ\n・application.properties の DB URL / user / password\n・CORS は @CrossOrigin or WebMvcConfigurer で許可\n・404 → @RequestMapping のパスを確認';
+      if (p === 10) return '\n\nP10 (Python) 頻出:\n・IndentationError → タブとスペース混在\n・ModuleNotFoundError → pip install / 仮想環境\n・KeyError / IndexError → 存在しないキー・範囲外参照\n・トレースバックは一番下 (最後の行) が実際のエラー';
+      return '';
+    }
+
+    if (cat === 'error' || /エラー|error|Error|Exception|Traceback/.test(msg)) {
       return 'OK、まず状況を整理しよ。\n\n' +
-        (hasImg ? 'スクリーンショットを確認した。' : '') +
-        'エラーが出る時は、だいたい以下のどれか：\n' +
-        '・typo（変数名・プロパティ名のミス）\n' +
-        '・import / export のミス\n' +
-        '・非同期処理の順番\n' +
-        '・undefinedへのアクセス\n\n' +
-        '確認する順番：\n1. Consoleログを全部確認\n2. エラーが出た行を見る\n3. 直前に変えたコードを確認\n\n' +
-        (hasImg ? '画像だけでは原因を断定できないので、エラー文とコードも一緒に送ってみて。' : 'Consoleのエラー文とコードも一緒に送ってくれると精度が上がる。') +
+        (hasImg ? 'スクリーンショットを確認した。\n' : '') +
+        'エラー対応の汎用ステップ:\n' +
+        '1. エラー文 (1 行目とスタック) を全部読む\n' +
+        '2. 直前に変えたコード行を確認\n' +
+        '3. 期待値と実際値を分けて整理\n' +
+        phaseSpecificErrorHint(phaseNum) +
+        '\n\n' +
+        (hasImg ? '画像だけでは断定できないので、エラー文 (テキスト) とコードも一緒に送って。' : 'エラー文とコードも一緒に送ってくれると精度が上がる。') +
         '\n\n講師にも状況を共有しておこう。';
     }
     if (cat === 'screenshot' || hasImg) {
       return 'スクショ確認した。\n\n' +
-        (msg ? 'やろうとしていたこと：' + msg.slice(0,60) + '\n\n' : '') +
-        '読み取れること：\n・画面の状態を確認中\n・表示崩れ or エラー状態の可能性\n\n' +
-        '追加で送ってほしいもの：\n' +
-        '・Consoleのエラー文\n・直前に変えたコードの該当部分\n・Terminal ログ（Next.js / Spring Boot の場合）\n\n' +
+        (msg ? 'やろうとしていたこと: ' + msg.slice(0,60) + '\n\n' : '') +
+        '読み取れること:\n・画面の状態を確認中\n・表示崩れ or エラー状態の可能性\n\n' +
+        '追加で送ってほしいもの:\n' +
+        '・Console のエラー文 (テキストで)\n・直前に変えたコードの該当部分\n・Terminal ログ (Next.js / Spring Boot の場合)\n\n' +
         '画像だけだと断定はできないので、補足情報を一緒に送ってみよう。';
     }
     if (cat === 'code') {
-      return 'コードを見るよ。\n\nコードを貼ってくれれば、1行ずつの意味・全体の流れ・改善できる点を整理するね。\n\n' +
+      var lens = '';
+      if (phaseNum === 5) lens = '\n\nP05 (React) の視点で:\n・このコンポーネントの props と state は何か\n・useEffect / useState の依存関係\n・親→子のデータの流れ';
+      else if (phaseNum === 6) lens = '\n\nP06 (Next.js) の視点で:\n・Server Component か Client Component か\n・データ取得はサーバ側かクライアント側か\n・App Router のルーティング構造';
+      else if (phaseNum === 7) lens = '\n\nP07 (Java) の視点で:\n・クラスの責務 / 継承関係\n・例外処理の流れ\n・コレクションの選択理由';
+      else if (phaseNum === 9) lens = '\n\nP09 (Spring Boot) の視点で:\n・Controller → Service → Repository のどの層か\n・DTO / Entity の使い分け\n・@Transactional / バリデーション';
+      else if (phaseNum === 10) lens = '\n\nP10 (Python) の視点で:\n・データ構造 (list / dict / set / tuple)\n・例外処理\n・ファイル I/O のパス処理';
+      return 'コードを見るよ。\n\nコードを貼ってくれれば、1 行ずつの意味・全体の流れ・改善できる点を整理するね。\n\n' +
         '面談で説明するための「自分の言葉バージョン」も一緒に作ろう。' +
-        (ctxStr ? '\n\n今は ' + ctxStr + ' を学習中なんだね。' : '');
+        lens +
+        (ctxStr ? '\n\n今は ' + ctxStr + ' を学習中。' : '');
     }
     if (cat === 'vocab') {
-      return '用語の説明ね。\n\n知りたい用語を送ってくれれば：\n・一言でいうと\n・現場ではどう使うか\n・具体例\n・面談でどう説明するか\n\nをまとめるよ。';
+      return '用語の説明ね。\n\n知りたい用語を送ってくれれば:\n・一言でいうと\n・現場ではどう使うか\n・具体例\n・面談でどう説明するか\n\nをまとめるよ。' +
+        (ctxStr ? '\n\n今は ' + ctxStr + ' の用語かな?' : '');
     }
     if (cat === 'task') {
-      return 'いいね、まず分解しよう。\n\n課題名と要件を送ってくれれば、進める順番を一緒に整理する。\n\n完成コードをそのまま出すのはやめておく。課題の目的は「自分の言葉で説明できるようになること」だから、進め方と考え方を一緒に整理しよう。';
+      return 'いいね、まず分解しよう。\n\n課題名と要件を送ってくれれば、進める順番を一緒に整理する。\n\n' +
+        '完成コードをそのまま出すのはやめておく。課題の目的は「自分の言葉で説明できるようになること」だから、進め方と考え方を一緒に整理しよう。\n\n' +
+        '最初に決めると楽:\n・最小要件 (MVP) は何か\n・データ構造はどうするか\n・どこからコードを書き始めるか';
     }
     if (cat === 'interview') {
-      return '面談練習やろう。\n\n制作物名・使用技術・実装した機能・苦戦した点を送ってくれれば、面談で聞かれそうな質問を出して、回答を一緒に磨いていく。';
+      return '面談練習やろう。\n\n制作物名・使用技術・実装した機能・苦戦した点を送ってくれれば、面談で聞かれそうな質問を出して、回答を一緒に磨いていく。\n\n' +
+        '特に磨くポイント:\n・なぜその技術を選んだか\n・どこで詰まって、どう解決したか\n・AI をどう使ったか (使った範囲を正直に)';
     }
     if (cat === 'readme') {
-      return 'README一緒に作ろう。\n\n制作物名・概要・使用技術・実装した機能・工夫した点・苦戦した点・AI使用箇所を送ってくれれば、READMEに入れるべき項目と文章案を整理するよ。';
+      return 'README 一緒に作ろう。\n\n制作物名・概要・使用技術・実装した機能・工夫した点・苦戦した点・AI 使用箇所を送ってくれれば、README に入れるべき項目と文章案を整理するよ。\n\n' +
+        '基本構成:\n・サービス概要 (1-2 行)\n・スクリーンショット or デモ URL\n・技術スタック\n・主な機能\n・セットアップ手順\n・工夫点 / 苦戦点\n・AI 利用ログ';
     }
     if (cat === 'github') {
-      return 'GitHub提出前チェックをしよう。\n\nリポジトリURL・README概要・AI使用箇所・環境変数の扱いを送ってくれれば、提出前の確認ポイントを整理する。APIキーやパスワードがコミットされていないかも確認しよう。';
+      return 'GitHub 提出前チェックをしよう。\n\n' +
+        '送ってほしい情報:\n・リポジトリ URL\n・README 概要\n・AI 使用箇所\n・環境変数の扱い\n\n' +
+        '確認ポイント:\n・APIキー / パスワード / .env がコミットされていないか (.gitignore で除外)\n・main ブランチが動く状態か\n・README に課題の趣旨が書かれているか\n・コミットメッセージが読めるか';
+    }
+    if (cat === 'claudecode') {
+      return 'Claude Code の指示文を一緒に磨こう。\n\n' +
+        '良いプロンプトの型:\n・何を作りたいか (1 行)\n・前提 (技術スタック / 既存コード)\n・期待する動作 (Input / Output)\n・触ってよい / ダメなファイル\n・確認手順\n\n' +
+        '丸投げプロンプト ("ToDo アプリ全部作って") は NG。\n機能単位 / メソッド単位に分けて指示するほど精度が上がる。\n\n' +
+        '指示文の例:\n「Spring Boot の TaskController に GET /tasks/{id} を追加してください。Service と Repository は既存の findById を使い、見つからない場合は 404 を返してください。テストも 1 件追加してください。」';
+    }
+    if (cat === 'report') {
+      return '日報 / 週報を一緒に整理しよう。\n\n' +
+        '送ってほしい情報:\n・今日 / 今週やったこと\n・詰まったこと\n・解決方法\n・明日 / 来週やること\n\n' +
+        '書き方のコツ:\n・「やったこと」は完了形で動詞から書く (例: "useState の挙動を理解した")\n・「詰まったこと」は事実 + 仮説 + 解決手段の 3 点セット\n・AI を使った箇所は明記 (どのプロンプトで何を出したか)\n・所要時間を書くと振り返りに使える';
     }
     return 'OK、詳しく教えてくれると一緒に整理できる。\n\n状況・エラー文・スクリーンショットがあるとかなり正確に見やすい。\n\n' +
-      (ctxStr ? '今は ' + ctxStr + ' を学習中なんだね。どこで詰まってる？' : '何で詰まってる？');
+      (ctxStr ? '今は ' + ctxStr + ' を学習中なんだね。どこで詰まってる?' : '何で詰まってる?');
   }
 
   /* ── sendToHoku: AI接続の抽象化レイヤー ── */
