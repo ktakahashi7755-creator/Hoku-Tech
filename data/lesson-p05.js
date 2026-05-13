@@ -8,11 +8,19 @@ window.LESSON_P05 = {
   steps:[{num:1,title:'Vite + Reactプロジェクトを作成する',description:'',windows:'cd ~/Desktop/dev\nnpm create vite@latest react-todo -- --template react\ncd react-todo\nnpm install\nnpm run dev',mac:'同上。'}],
   code:'// src/App.jsx を編集して動作確認\nfunction App() {\n  return <h1>Hello React!</h1>;\n}\nexport default App;',
   expectedOutput:'http://localhost:5173 でReactアプリが表示される。',
-  errors:[{msg:'command not found: npm',cause:'Node.jsがインストールされていない',fix:'Phase 0の手順でNode.jsをインストールする。'}],
-  quiz:[{q:'Viteとcreate-react-appの主な違いは？',a:'Viteは起動・ホットリロードが高速。現在はViteが推奨。'}],
-  miniTask:'App.jsxを編集して「Hello React!」と自分の名前を表示させてください。',
-  aiOk:['Viteの設定方法を教えてください'],aiNg:[],
-  interviewQ:['ReactとVueの違いを知っていますか？'],nextLesson:'l05-1-2'},
+  errors:[
+    {msg:'command not found: npm',cause:'Node.jsがインストールされていない、またはPATHが通っていない',fix:'Phase 0の手順でNode.jsをインストールし、ターミナルを再起動する。node --version で確認。'},
+    {msg:'npm ERR! engine Unsupported engine / Vite requires Node.js version XX',cause:'Node.jsのバージョンが古い (Vite 5 以降は Node 18+ 必須)',fix:'node --version で確認。古い場合は nvm install 20 などで Node 20 にアップデートし、ターミナルを再起動。'},
+    {msg:'EACCES: permission denied (npm install 実行時)',cause:'グローバルインストール権限不足、または node_modules を sudo で作って所有者がずれた',fix:'プロジェクト内 npm install で動く。 sudo は使わない。すでに壊れていれば node_modules を削除して再 install。'},
+    {msg:'Port 5173 is in use',cause:'別のViteプロセスが既に5173を使っている',fix:'lsof -i :5173 (Mac) / netstat -ano | findstr :5173 (Win) で確認しプロセスを停止。または --port 5174 で別ポート起動。'},
+    {msg:'Cannot find module ... (npm run dev 実行時)',cause:'npm install を実行していない、または node_modules が壊れている',fix:'rm -rf node_modules package-lock.json && npm install で再インストール。'},
+    {msg:'白い画面 / Console に "Failed to fetch dynamically imported module"',cause:'保存時にファイルが半保存状態、またはキャッシュ不整合',fix:'保存し直してブラウザをリロード。直らなければ Vite を一度停止して再起動。'}
+  ],
+  quiz:[{q:'Viteとcreate-react-appの主な違いは？',a:'Viteは起動・ホットリロードが高速。現在はViteが推奨。'},
+        {q:'npm run dev でエラーが出る時、最初にどこを確認しますか？',a:'1) ターミナルのエラー文を読む  2) node --version でバージョン確認  3) node_modules が無ければ npm install。'}],
+  miniTask:'App.jsxを編集して「Hello React!」と自分の名前を表示させてください。さらに、開発サーバーを停止して再起動し、ホットリロードが効くか確認してください。',
+  aiOk:['Viteの設定方法を教えてください','npm ERR! engine が出た時の対処法を教えてください'],aiNg:['ToDoアプリの全コードを書いてください'],
+  interviewQ:['ReactとVueの違いを知っていますか？','Vite と create-react-app の違いを 1 分で説明してください。'],nextLesson:'l05-1-2'},
 
 'l05-1-2': { id:'l05-1-2', chapter:'c05-1', num:'5-1-2', title:'JSXの書き方とルール', duration:'20分',
   goal:'JSXの基本構文とルール（単一ルート要素・className・式の埋め込み）を理解してコンポーネントを書ける。',
@@ -80,12 +88,27 @@ window.LESSON_P05 = {
   fieldUse:'ほぼ全てのReactコンポーネントでuseStateを使う。',
   analogy:'useStateは「コンポーネントの記憶力」。値が変わるたびに画面を更新してくれる。',
   terms:[{term:'useState',meaning:'関数コンポーネントで状態を管理するReact Hook。[state, setState]の配列を返す。'},{term:'再レンダリング',meaning:'stateが変わるとReactが自動的にコンポーネントを再描画すること。'},{term:'イミュータブル',meaning:'直接変更しない。配列はスプレッド構文で新しい配列を返す。'}],
-  steps:[],
+  steps:[
+    {num:1,title:'useStateをimportして数値stateを定義する',description:'コンポーネント関数の先頭で const [count, setCount] = useState(0); を書く。配列分割代入で [現在値, 更新関数] を受け取る。',windows:'// src/Counter.jsx\nimport { useState } from \'react\';\nfunction Counter() {\n  const [count, setCount] = useState(0);\n  return <p>{count}</p>;\n}',mac:'同上。'},
+    {num:2,title:'イベントハンドラでsetStateを呼ぶ',description:'onClick={() => setCount(count + 1)} のようにアロー関数で渡す。setCount(...) を直接書くと無限ループするので注意。',windows:'<button onClick={() => setCount(count + 1)}>+1</button>',mac:'同上。'},
+    {num:3,title:'配列・オブジェクトstateはイミュータブルに更新する',description:'arr.push() / obj.x = ... のような直接変更は禁止。常に新しい配列・オブジェクトを作って setState に渡す。',windows:'// NG: tasks.push(newTask); setTasks(tasks);\n// OK: setTasks([...tasks, newTask]);\n// OK: setUser({...user, name: \'新しい名前\'});',mac:'同上。'}
+  ],
   code:"import { useState } from 'react';\n\nfunction Counter() {\n  const [count, setCount] = useState(0);\n  return (\n    <div>\n      <p>カウント: {count}</p>\n      <button onClick={() => setCount(count + 1)}>+1</button>\n      <button onClick={() => setCount(0)}>リセット</button>\n    </div>\n  );\n}\n\nfunction TaskInput() {\n  const [tasks, setTasks] = useState([]);\n  const [input, setInput] = useState('');\n  function add() {\n    if (!input.trim()) return;\n    setTasks([...tasks, input]);\n    setInput('');\n  }\n  return (\n    <div>\n      <input value={input} onChange={e => setInput(e.target.value)} />\n      <button onClick={add}>追加</button>\n      <ul>{tasks.map((t,i) => <li key={i}>{t}</li>)}</ul>\n    </div>\n  );\n}",
-  expectedOutput:'カウンターが動作し、タスクの追加ができる。',
-  errors:[{msg:'stateを直接変更しても画面が更新されない',cause:'arr.push()などで直接変更しているため',fix:'setState([...arr, newItem])のようにスプレッドで新しい配列を作ってsetStateに渡す。'}],
-  quiz:[{q:'なぜstateを直接変更してはいけないのですか？',a:'ReactはsetStateが呼ばれた時だけ再レンダリングする。直接変更してもsetStateが呼ばれないため画面が更新されない。'}],
-  miniTask:'カウンター（+/-/リセット）コンポーネントとタスク追加コンポーネントを作ってください。',
+  expectedOutput:'カウンターが動作し、タスクの追加ができる。+1 を押すたびに数字が増え、追加ボタンを押すと入力したタスクがリストに追加される。',
+  errors:[
+    {msg:'stateを直接変更しても画面が更新されない',cause:'arr.push() / obj.x = ... のように直接変更しているため',fix:'setState([...arr, newItem]) / setState({...obj, x: newVal}) のように新しい参照を作って渡す。Reactは前後の参照を === で比較するので新参照が必要。'},
+    {msg:'setCount(count + 1) を 2 回連続で書いても 1 しか増えない',cause:'state は非同期更新。同じ render 内で count はまだ古い値',fix:'関数型 setState: setCount(c => c + 1) を使う。前の値を引数で受け取れる。'},
+    {msg:'useEffect / setTimeout 内で古い state を参照してしまう (stale closure)',cause:'state はクロージャ内で固定。レンダリング時の値が捕まる',fix:'関数型 setState (setX(prev => ...)) を使うか、useRef で最新値を保持する。'},
+    {msg:'リスト追加で順番が入れ替わる / 削除でおかしくなる',cause:'<li key={index}> のように index を key に使っている',fix:'key には一意な ID を入れる (例: Date.now() / crypto.randomUUID())。index は並び替え・削除で破綻する。'},
+    {msg:'入力欄に文字を打っても画面に反映されない (controlled component が壊れる)',cause:'<input value={x} /> なのに onChange で setX を呼んでいない',fix:'<input value={x} onChange={e => setX(e.target.value)} /> の対で書く。読み取り専用にしたければ defaultValue を使う。'},
+    {msg:'Warning: Cannot update a component while rendering a different component',cause:'render 中に setState を直接呼んでいる (関数本体に setX(...) を書いた)',fix:'setState はイベントハンドラ / useEffect 内でだけ呼ぶ。render 中に必要なら派生値で計算する。'}
+  ],
+  quiz:[
+    {q:'なぜstateを直接変更してはいけないのですか？',a:'Reactは前回の state との参照同一性 (===) で再レンダリング要否を判定する。直接変更すると参照が同じままなので画面が更新されない。'},
+    {q:'setCount(count + 1) を 2 回連続で書いたのに 1 しか増えなかった。なぜ?',a:'state 更新は非同期 / バッチ処理。同じハンドラ内で count はまだ古い値。setCount(c => c + 1) の関数型を使えば前の値を引数で受け取れるので 2 増える。'},
+    {q:'リスト表示の <li key={index}> はなぜダメか?',a:'並び替え・削除時に key と要素の対応が崩れ、Reactが間違った要素を再利用する。データの一意な ID を key にする。'}
+  ],
+  miniTask:'カウンター（+/-/リセット）コンポーネントとタスク追加コンポーネントを作ってください。さらに、タスクに削除ボタンを付けて (key を index ではなく Date.now() にする)、削除しても順番が崩れないことを確認してください。',
   aiOk:['このuseStateの使い方は正しいですか：[コードを貼る]'],aiNg:['タスクリストコンポーネントを全部作ってください'],
   interviewQ:['useStateとは何ですか？再レンダリングはいつ起きますか？'],nextLesson:'l05-3-2'},
 

@@ -94,10 +94,19 @@ window.LESSON_P01 = {
     {term:'ポート番号', meaning:'コンピュータ上のサービスの「受付番号」。0〜65535の数字で表す。HTTP=80、HTTPS=443、SSH=22など。'},
     {term:'localhost', meaning:'自分自身のコンピュータを指すホスト名。127.0.0.1 と同じ意味。開発中は http://localhost:3000 などでアクセスする。'},
   ],
-  steps:[],
+  steps:[
+    {num:1,title:'ターミナルから HTTP プロトコルでサーバーに話しかけてみる',description:'curl コマンドで Google にリクエストを送り、HTTP ステータスとヘッダだけ確認する。-I はヘッダ表示。',windows:'curl -I https://www.google.com',mac:'curl -I https://www.google.com'},
+    {num:2,title:'明示的にポート番号を指定してアクセスする',description:'HTTPSのデフォルトは443番。明示的に書いても同じ結果になる。',windows:'curl -I https://www.google.com:443',mac:'curl -I https://www.google.com:443'},
+    {num:3,title:'localhost の意味を確認する',description:'(任意) 開発用にローカルサーバーを立てて localhost:8000 にアクセスする。Pythonがあれば 1 行で立てられる。',windows:'# 別ターミナルで\npython -m http.server 8000\n# 元のターミナルで\ncurl -I http://localhost:8000',mac:'# 別ターミナルで\npython3 -m http.server 8000\n# 元のターミナルで\ncurl -I http://localhost:8000'},
+    {num:4,title:'今 PC で開いているポートを見る',description:'macOS は lsof、Windows は netstat で確認できる。LISTEN 状態のものが「待ち受けポート」。',windows:'netstat -ano | findstr LISTEN',mac:'lsof -iTCP -sTCP:LISTEN -n -P'}
+  ],
   code:'# よく使うポート番号の一覧\nHTTP      : 80\nHTTPS     : 443\nSSH       : 22\nFTP       : 21\nMySQL     : 3306\nSpring Boot開発 : 8080\nReact開発  : 3000\nNext.js開発 : 3000',
-  expectedOutput:'主要なポート番号を3つ以上言えるようになる。',
-  errors:[],
+  expectedOutput:'curl の HTTP/2 200 ステータス行が見える。localhost:8000 に GET が通る。lsof / netstat で待ち受けポート一覧が表示される。',
+  errors:[
+    {msg:'curl: (6) Could not resolve host',cause:'インターネット未接続 or ホスト名スペルミス',fix:'まず https://www.google.com にブラウザでアクセスできるか確認。スペルもチェック。'},
+    {msg:'curl: (7) Failed to connect to localhost port 8000',cause:'ローカルサーバーが起動していない、または別のポートで起動している',fix:'別ターミナルで python -m http.server 8000 が動いているか確認。起動メッセージのポート番号と合わせる。'},
+    {msg:'Address already in use (port 8000 起動時)',cause:'既に何かが 8000 番ポートを使っている',fix:'別ポートで起動する (python -m http.server 8001)、または既存プロセスを停止する。'}
+  ],
   quiz:[
     {q:'HTTPとFTPの違いは何ですか？', a:'HTTPはWebページの送受信、FTPはファイル転送に使うプロトコル。'},
     {q:'localhost:3000 の意味を説明してください。', a:'自分のPC（localhost）のポート番号3000番で動いているサービスにアクセスする。'},
