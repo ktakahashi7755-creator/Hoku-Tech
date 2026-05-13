@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light">
+<meta name="theme-color" content="#ffffff">
+<title>Hoku Tech — AI駆動フルスタック育成プログラム</title>
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<div class="app-shell">
+
+  <!-- ═══════ Sidebar ═══════ -->
+  <aside id="sidebar">
+    <div class="sidebar-head">
+      <span class="brand-mark">H</span>
+      <div class="brand-txt">Hoku Tech<small>AI駆動フルスタック育成</small></div>
+    </div>
+
+    <nav>
+      <div class="nav-group">
+        <div class="nav-label">学ぶ</div>
+        <div class="nav-item active" data-view="home"><span class="ni-icon"></span>ホーム</div>
+        <div class="nav-item" data-view="phases"><span class="ni-icon"></span>Phase 一覧</div>
+        <div class="nav-item" data-view="glossary"><span class="ni-icon"></span>用語集</div>
+        <div class="nav-item" data-view="error-list"><span class="ni-icon"></span>エラー集</div>
+        <div class="nav-item" data-view="assignments"><span class="ni-icon"></span>課題提出</div>
+        <div class="nav-item" data-view="skillchecks"><span class="ni-icon"></span>スキルチェック</div>
+        <div class="nav-item" data-view="hoku"><span class="ni-icon"></span>Hoku活用</div>
+        <div class="nav-item" data-view="p12-apps"><span class="ni-icon"></span>卒業制作テーマ</div>
+      </div>
+      <div class="nav-group">
+        <div class="nav-label">実践・運用</div>
+        <div class="nav-item" data-view="ai-rules"><span class="ni-icon"></span>AI活用ルール</div>
+        <div class="nav-item" data-view="claude-code"><span class="ni-icon"></span>Claude Code</div>
+        <div class="nav-item" data-view="portfolio"><span class="ni-icon"></span>ポートフォリオ</div>
+        <div class="nav-item" data-view="instructor"><span class="ni-icon"></span>講師向け</div>
+        <div class="nav-item" data-view="templates"><span class="ni-icon"></span>テンプレート集</div>
+      </div>
+      <div class="nav-group">
+        <div class="nav-label">ビジネス</div>
+        <div class="nav-item" data-view="business"><span class="ni-icon"></span>法人・SES向け</div>
+        <div class="nav-item" data-view="pricing"><span class="ni-icon"></span>価格プラン</div>
+      </div>
+    </nav>
+  </aside>
+
+  <div class="backdrop"></div>
+
+  <!-- ═══════ Content ═══════ -->
+  <div class="content-wrap">
+    <header class="topbar">
+      <button id="menu-btn" aria-label="メニュー">
+        <div class="hamburger-icon"><span></span><span></span><span></span></div>
+      </button>
+      <div id="breadcrumb"><span class="bc-current">ホーム</span></div>
+      <div class="progress-pill">進捗 <b id="progress-pill">0%</b></div>
+    </header>
+
+    <div class="page-content">
+
+      <!-- ── HOME ── -->
+      <section class="app-section active" id="sec-home">
+        <div class="page">
+          <div class="home-hero">
+            <div class="hero-eyebrow"><strong style="color:var(--pro-accent)">Hoku Tech</strong> — フルスタックエンジニア育成プログラム</div>
+            <h1>AI駆動開発で、<br>市場価値の高いフルスタックエンジニアへ</h1>
+            <p class="lead">React / Next.js、Java / Spring Boot、Python、GitHub、AI活用を体系的に学び、<br class="pc-only">設計・実装・課題提出・ポートフォリオ制作まで一貫して経験する12週間の実践型カリキュラム。</p>
+            <p class="lead-sub">Hoku AIメンターが学習の相棒として常駐し、エラー相談・コード解説・課題整理・README作成・面談練習をサポート。人間講師のレビューと組み合わせ、AIを活用しながら自分の言葉で説明できるエンジニアを目指します。</p>
+            <div class="hero-tech-tags">
+              <span class="tech-badge tech-front">React / Next.js</span>
+              <span class="tech-badge tech-back">Java / Spring Boot</span>
+              <span class="tech-badge tech-db">MySQL</span>
+              <span class="tech-badge tech-front">TypeScript</span>
+              <span class="tech-badge tech-ai">Python / AI</span>
+              <span class="tech-badge" style="background:#f1f5f9;color:#475569;border:1px solid #e2e8f0">Git / GitHub</span>
+            </div>
+            <div class="hero-stats-bar">
+              <div class="hero-stat"><div class="hero-stat-num" id="stat-lessons">0</div><div class="hero-stat-label">完了Lesson</div></div>
+              <div class="hero-stat"><div class="hero-stat-num" id="stat-phases">0</div><div class="hero-stat-label">完了Phase</div></div>
+              <div class="hero-stat"><div class="hero-stat-num">204</div><div class="hero-stat-label">総Lesson数</div></div>
+              <div class="hero-stat"><div class="hero-stat-num">13</div><div class="hero-stat-label">Phase</div></div>
+              <div class="hero-stat"><div class="hero-stat-num">12週</div><div class="hero-stat-label">学習期間</div></div>
+            </div>
+          </div>
+
+          <div class="home-progress">
+            <h3>学習進捗</h3>
+            <p><b id="progress-num">0 / 13</b> Phase 完了</p>
+            <div class="progress-bar"><div class="progress-bar-fill" id="progress-fill" style="width:0%"></div></div>
+          </div>
+
+          <div class="stats-row">
+            <div class="stat-card"><div class="num">13</div><div class="lbl">Phase</div></div>
+            <div class="stat-card"><div class="num">50+</div><div class="lbl">Chapter</div></div>
+            <div class="stat-card"><div class="num">204</div><div class="lbl">Lesson</div></div>
+            <div class="stat-card"><div class="num">23</div><div class="lbl">面談質問</div></div>
+          </div>
+
+          <h2>12週間のロードマップ</h2>
+          <div class="flow-row" style="margin:16px 0 28px">
+            <div class="flow-step"><span class="lbl">Phase 0-1</span>基礎</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-step"><span class="lbl">Phase 2-6</span>Frontend</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-step"><span class="lbl">Phase 7-9</span>Backend</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-step"><span class="lbl">Phase 10-11</span>AI×自動化</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-step"><span class="lbl">Phase 12</span>制作発表</div>
+          </div>
+
+          <h2>このカリキュラムの特徴</h2>
+          <div class="feature-grid">
+            <div class="feature-card">
+              <div class="feature-num">01</div>
+              <h3>AI活用と自走力を同時に養う</h3>
+              <p>Claude Code・プロンプト設計・AI利用ログまで一貫して学習。AIを使いながら自分で判断・説明できる力を育てます。</p>
+            </div>
+            <div class="feature-card">
+              <div class="feature-num">02</div>
+              <h3>動くだけで終わらない実装力</h3>
+              <p>スキルチェック・課題提出・講師レビューを通じて、面談で自分の言葉で説明できる設計力・実装力を養います。</p>
+            </div>
+            <div class="feature-card">
+              <div class="feature-num">03</div>
+              <h3>実務に直結する技術選定</h3>
+              <p>SES・受託開発で実際に使われるReact/Next.js・Spring Boot・MySQLで構成。現場に入った初日から役立つ技術を習得します。</p>
+            </div>
+          </div>
+
+          <div class="btn-row" style="margin-top:28px">
+            <button class="btn btn-primary" onclick="document.querySelector('.nav-item[data-view=phases]').click()">Phase 一覧を見る →</button>
+            <button class="btn btn-ghost" onclick="document.querySelector('.nav-item[data-view=ai-rules]').click()">AI活用ガイドを見る</button>
+
+          <div id="hoku-home-section" style="margin-top:32px">
+            <!-- Hoku紹介はJS（renderHokuHomeSection）で動的に描画 -->
+          </div>
+
+          </div>
+        </div>
+      </section>
+
+      <!-- ── PHASE 一覧 ── -->
+      <section class="app-section" id="sec-phases">
+        <div class="page">
+          <div class="page-head">
+            <h1>Phase 一覧</h1>
+            <p class="lead">13 Phase を順番に進めます。Phaseをクリックすると Chapter 一覧に進めます。</p>
+          </div>
+          <div class="filter-bar">
+            <input id="phase-search" type="search" class="search-input" placeholder="Phase名・技術名で検索（例：React、Spring）">
+          </div>
+          <div id="phase-filter" class="filter-bar">
+            <div class="filter-chip active" data-cat="all">すべて</div>
+            <div class="filter-chip" data-cat="Foundation">Foundation</div>
+            <div class="filter-chip" data-cat="Frontend">Frontend</div>
+            <div class="filter-chip" data-cat="Backend">Backend</div>
+            <div class="filter-chip" data-cat="Database">Database</div>
+            <div class="filter-chip" data-cat="DevOps">DevOps</div>
+            <div class="filter-chip" data-cat="Automation">Automation</div>
+            <div class="filter-chip" data-cat="AI">AI</div>
+            <div class="filter-chip" data-cat="Capstone">Capstone</div>
+          </div>
+          <div class="grid-2" id="phase-grid"></div>
+        </div>
+      </section>
+
+      <!-- ── PHASE DETAIL ── -->
+      <section class="app-section" id="sec-phase-detail">
+        <div class="page">
+          <button class="btn btn-ghost" style="margin-bottom:16px" onclick="document.querySelector('.nav-item[data-view=phases]').click()">← Phase 一覧に戻る</button>
+          <div id="phase-detail-root"></div>
+        </div>
+      </section>
+
+      <!-- ── CHAPTER DETAIL ── -->
+      <section class="app-section" id="sec-chapter-detail">
+        <div class="page">
+          <button class="btn btn-ghost" style="margin-bottom:16px" id="back-to-phase">← Phase に戻る</button>
+          <div id="chapter-detail-root"></div>
+        </div>
+      </section>
+
+      <!-- ── LESSON DETAIL ── -->
+      <section class="app-section" id="sec-lesson-detail">
+        <div class="page">
+          <button class="btn btn-ghost" style="margin-bottom:16px" id="back-to-chapter">← Chapter に戻る</button>
+          <div id="lesson-detail-root"></div>
+        </div>
+      </section>
+
+      <!-- ── GLOSSARY ── -->
+      <section class="app-section" id="sec-glossary">
+        <div class="page">
+          <div class="page-head">
+            <h1>用語集</h1>
+            <p class="lead">プログラミング・Web・IT業界でよく使われる重要用語を解説します。</p>
+          </div>
+          <div id="glossary-root"></div>
+        </div>
+      </section>
+
+      <!-- ── ERROR LIST ── -->
+      <section class="app-section" id="sec-error-list">
+        <div class="page">
+          <div class="page-head">
+            <h1>よくあるエラー集</h1>
+            <p class="lead">初心者が遭遇しやすいエラーの原因と解決方法をまとめています。</p>
+          </div>
+          <div id="error-list-root"></div>
+        </div>
+      </section>
+
+      <!-- ── AI RULES ── -->
+      <section class="app-section" id="sec-ai-rules">
+        <div class="page">
+          <div class="page-head">
+            <h1>AI 活用ルール</h1>
+            <p class="lead">AIを「使われる側」ではなく「使い倒す側」になるための原則。</p>
+          </div>
+
+          <h2>AI 活用の 6 原則</h2>
+          <div class="grid-2">
+            <div style="background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:16px"><h3>① 役割・前提・制約・出力形式</h3><p>4要素が揃ったプロンプトの精度は飛躍的に上がる。</p></div>
+            <div style="background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:16px"><h3>② 出力は必ず自分で読む</h3><p>1行ずつ目を通す。意味不明な行は聞き返してから採用。</p></div>
+            <div style="background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:16px"><h3>③ AI利用ログを残す</h3><p>プロンプトと採用判断を記録。面談で「AIをどう使ったか」を語れる状態。</p></div>
+            <div style="background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:16px"><h3>④ 機密情報を貼らない</h3><p>APIキー・個人情報・社内情報はプロンプトに絶対使わない。</p></div>
+            <div style="background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:16px"><h3>⑤ 自分の言葉で再現できるまで進めない</h3><p>説明できないコードは「未理解」と同じ。</p></div>
+            <div style="background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:16px"><h3>⑥ レビューする側に回る</h3><p>「なぜこの書き方か」「他の選択肢は」とAIに問い直す。</p></div>
+          </div>
+
+          <h2>OK / NG の区別</h2>
+          <div class="ai-guidance" style="margin-top:14px">
+            <div class="ai-ok">
+              <h4> AIに任せてOK</h4>
+              <div class="ai-item">定型コード・ボイラープレートの生成</div>
+              <div class="ai-item">エラーメッセージの解読と原因仮説</div>
+              <div class="ai-item">関数単位の実装の叩き台</div>
+              <div class="ai-item">README・コメントの下書き</div>
+              <div class="ai-item">テストケースの洗い出し</div>
+            </div>
+            <div class="ai-ng">
+              <h4> 丸投げしてはいけない</h4>
+              <div class="ai-item ai-ng-item">要件定義の最終決定</div>
+              <div class="ai-item ai-ng-item">セキュリティ判断</div>
+              <div class="ai-item ai-ng-item">面談で語る作品の代筆</div>
+              <div class="ai-item ai-ng-item">機密情報を含むプロンプト</div>
+              <div class="ai-item ai-ng-item">AI利用ログ自体をAIに書かせる</div>
+            </div>
+          </div>
+
+          <h2>プロンプトテンプレート</h2>
+          <div class="code-block-wrap" style="margin-top:14px">
+            <div class="code-block-header"><span>プロンプト4要素テンプレ</span><button class="copy-btn"> コピー</button></div>
+            <pre class="code-block">あなたは〇〇（役割）です。
+
+【前提】
+- 私は未経験エンジニア
+- 〇〇を学習中
+
+【依頼】
+〇〇を実装するコードを生成してください
+
+【制約】
+- 〇〇は禁止
+- 全行に日本語コメントを付ける
+- 100行以内
+
+【出力形式】
+```java で区切って出力
+最後に「押さえるポイント」を5行で</pre>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── CLAUDE CODE ── -->
+      <section class="app-section" id="sec-claude-code">
+        <div class="page">
+          <div class="page-head">
+            <h1>Claude Code 活用ガイド</h1>
+            <p class="lead">ターミナルで動くAIアシスタントを「設計者として」使いこなすための実践ガイド。</p>
+          </div>
+
+          <h2>Claude Code とは</h2>
+          <div class="tbl" style="margin-top:14px">
+            <table class="tbl"><thead><tr><th>項目</th><th>通常チャットAI</th><th>Claude Code</th></tr></thead>
+            <tbody>
+              <tr><td>動作環境</td><td>ブラウザ</td><td>ターミナル</td></tr>
+              <tr><td>ファイル操作</td><td>不可（コピペ）</td><td>直接読み書き</td></tr>
+              <tr><td>プロジェクト文脈</td><td>毎回貼る</td><td>CLAUDE.mdで保持</td></tr>
+              <tr><td>Git連携</td><td>不可</td><td>コミット・ブランチ操作</td></tr>
+            </tbody></table>
+          </div>
+
+          <h2>CLAUDE.md 雛形</h2>
+          <div class="code-block-wrap" style="margin-top:14px">
+            <div class="code-block-header"><span>CLAUDE.md</span><button class="copy-btn"> コピー</button></div>
+            <pre class="code-block"># プロジェクト名
+
+## 目的
+タスク管理 API を Spring Boot で実装する
+
+## 技術スタック
+- Java 17 / Spring Boot 3 / MySQL 8
+
+## コーディング規約
+- Controller/Service/Repository の3層厳守
+- Entity を直接返さず DTO に詰め替え
+
+## 私の理解度
+- 未経験（学習開始2ヶ月）
+- コードに日本語コメントを必ず付けてほしい</pre>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── PORTFOLIO ── -->
+      <section class="app-section" id="sec-portfolio">
+        <div class="page">
+          <div class="page-head">
+            <h1>ポートフォリオ制作ガイド</h1>
+            <p class="lead">面談で「これを作りました」と胸を張って見せられるフルスタックアプリの作り方。</p>
+          </div>
+          <h2>卒業制作 9 テーマ</h2>
+          <div class="grid-3" style="margin-top:14px">
+            <div style="background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:16px"><h3>1. タスク管理</h3><p>定番。CRUDの基本がすべて学べる。</p></div>
+            <div style="background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:16px"><h3>2. 学習記録</h3><p>ダッシュボード集計で見せ場を作る。</p></div>
+            <div style="background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:16px"><h3>3. 勤怠管理</h3><p>月次集計・CSV出力で業務感が出る。</p></div>
+            <div style="background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:16px"><h3>4. 問い合わせ管理</h3><p>ステータス管理・担当者割り当て。</p></div>
+            <div style="background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:16px"><h3>5. 在庫管理</h3><p>入出庫・在庫推移。複数テーブル練習。</p></div>
+            <div style="background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:16px"><h3>6. 家計簿</h3><p>収支・カテゴリ・グラフ表示。</p></div>
+            <div style="background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:16px"><h3>7. CRM</h3><p>顧客マスタ・対応履歴・タグ管理。</p></div>
+            <div style="background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:16px"><h3>8. 日報管理</h3><p>業務報告・検索・期間絞り込み。</p></div>
+            <div style="background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:16px;border-color:var(--brand);border-width:2px"><h3>★ 9. AI業務支援</h3><p>問い合わせ管理 + AIで返信ドラフト生成。</p></div>
+          </div>
+        </div>
+      </section>
+
+
+      <!-- ── ASSIGNMENTS ── -->
+      <section class="app-section" id="sec-assignments">
+        <div class="page">
+          <div class="page-head">
+            <h1>課題提出ガイド</h1>
+            <p class="lead">Phase毎の課題・要件・合格基準・講師レビュー観点。提出前に必ず確認してください。</p>
+          </div>
+          <div id="assignments-root"></div>
+        </div>
+      </section>
+
+      <!-- ── SKILL CHECKS ── -->
+      <section class="app-section" id="sec-skillchecks">
+        <div class="page">
+          <div class="page-head">
+            <h1>スキルチェック</h1>
+            <p class="lead">Phase毎の確認テスト。各問題を開いて模範解答と照合してください。全問自分の言葉で説明できる状態を目指しましょう。</p>
+          </div>
+          <div id="skillchecks-root"></div>
+        </div>
+      </section>
+
+      <!-- ── Hoku ── -->
+      <section class="app-section" id="sec-hoku">
+        <div class="page" id="hoku-page-root">
+          <!-- Hoku ページはJS（renderHokuPage）で動的に描画 -->
+        </div>
+      </section>
+
+      <!-- ── INSTRUCTOR ── -->
+      <section class="app-section" id="sec-instructor">
+        <div class="page">
+          <div class="page-head">
+            <h1>講師向け運用ガイド</h1>
+            <p class="lead">受講者を「やる気がある間に」「自走できる状態まで」導くためのハンドブック。AI時代の講師は"教える人"ではなく"自走を引き出す人"。</p>
+          </div>
+
+          <h2>講師の役割と人間・AIの分担</h2>
+          <table class="data-table" style="margin-top:12px">
+            <thead><tr><th>役割</th><th>Hoku（AI）</th><th>人間講師</th></tr></thead>
+            <tbody>
+              <tr><td>24時間の質問対応</td><td></td><td>—</td></tr>
+              <tr><td>コードのエラー解読</td><td></td><td>—</td></tr>
+              <tr><td>課題の採点・合否判定</td><td></td><td></td></tr>
+              <tr><td>AI丸投げの検出</td><td></td><td> 口頭確認</td></tr>
+              <tr><td>週次面談・キャリア相談</td><td></td><td></td></tr>
+              <tr><td>面談模擬・フィードバック</td><td>参考程度</td><td></td></tr>
+              <tr><td>卒業判定</td><td></td><td></td></tr>
+            </tbody>
+          </table>
+
+          <h2 style="margin-top:28px">週次面談の進め方（30分）</h2>
+          <ol style="padding-left:20px;line-height:1.9">
+            <li><strong>ハイライト確認（5分）</strong>：「今週一番できるようになったことは？」から始める。自己肯定感を先に上げる。</li>
+            <li><strong>詰まり箇所の解消（10分）</strong>：「Hokuに聞いても解決しなかったことは？」で本当に詰まっている箇所を特定。</li>
+            <li><strong>コードウォーク（10分）</strong>：提出物の一部を指差しながら「この部分をなぜこう書きましたか？」と聞く。AI丸投げ検出にも使う。</li>
+            <li><strong>次週目標の合意（5分）</strong>：「来週の火曜日までにここまでやる、で合ってる？」と受講者に言わせて確認する。</li>
+          </ol>
+
+          <h2 style="margin-top:28px">AI丸投げを見抜く質問</h2>
+          <div class="callout" style="margin-top:14px">
+            <strong>口頭1〜2問で、ほぼ確実に検出できます</strong>
+            <ul style="margin-top:10px;padding-left:20px">
+              <li>「このコードの最後の行が何をしているか30秒で説明してください」</li>
+              <li>「この変数名、なぜこの名前にしましたか？」</li>
+              <li>「最後にAIに何と聞きましたか？採用・不採用の判断は？」</li>
+              <li>「このエラーが出た時どうやって解決しましたか？手順を話してください」</li>
+              <li>「このコードを消して同じものを今書けますか？（実際に書かせる）」</li>
+            </ul>
+          </div>
+
+          <h2 style="margin-top:24px">課題レビューの観点</h2>
+          <div class="grid-2" style="margin-top:14px">
+            <div style="background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:16px">
+              <h3>Phase 1〜4（基礎）</h3>
+              <ul style="padding-left:18px;line-height:1.8">
+                <li>セマンティックHTMLになっているか</li>
+                <li>CSSが適切にスコープされているか</li>
+                <li>Gitのコミットが意味のある単位か</li>
+                <li>node_modules/.envがGitにない</li>
+              </ul>
+            </div>
+            <div style="background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:16px">
+              <h3>Phase 5〜12（応用）</h3>
+              <ul style="padding-left:18px;line-height:1.8">
+                <li>コンポーネントが適切に分割されているか</li>
+                <li>EntityをそのままAPIで返していないか</li>
+                <li>バリデーション・例外処理があるか</li>
+                <li>AI-USAGE.mdが記録されているか</li>
+              </ul>
+            </div>
+          </div>
+
+          <h2 style="margin-top:24px">スキルチェック採点方法</h2>
+          <div class="callout" style="margin-top:12px">
+            <p>スキルチェックは「自分で説明できるか」を重視します。選択問題は正誤で採点、記述問題は以下の基準で採点してください。</p>
+            <ul style="margin-top:8px;padding-left:18px">
+              <li><strong>4点（十分）</strong>：模範解答と同等の内容。具体例や理由も述べられている</li>
+              <li><strong>3点（合格）</strong>：概念の核心を正しく理解している。細かい部分の欠落は許容</li>
+              <li><strong>2点（要復習）</strong>：部分的な理解。重要な概念の混乱がある</li>
+              <li><strong>1点（要再学習）</strong>：理解が不十分。該当レッスンを再受講を推奨</li>
+            </ul>
+          </div>
+
+          <h2 style="margin-top:24px">卒業判定基準</h2>
+          <ul class="checklist" data-checklist="graduation-check">
+            <li><span>全12 Phase のスキルチェックで平均3点以上</span></li>
+            <li><span>フルスタック卒業制作がVercel + Renderでデプロイされている</span></li>
+            <li><span>CRUD全操作がデモURLで動作する</span></li>
+            <li><span>README.md が整備されている（ER図・API仕様・起動手順）</span></li>
+            <li><span>AI-USAGE.md が記録されている</span></li>
+            <li><span>面談想定23問に自分の言葉で回答できる（口頭確認済み）</span></li>
+            <li><span>GitHubプロフィールが整備されている</span></li>
+          </ul>
+
+          <h2 style="margin-top:24px">週次チェックリスト（講師用）</h2>
+          <ul class="checklist" data-checklist="instructor-weekly">
+            <li><span>担当受講者全員の提出状況を確認した</span></li>
+            <li><span>2週連続提出が滞っている受講者に声をかけた</span></li>
+            <li><span>レビューを「良かった点→改善点→励まし」の順で書いた</span></li>
+            <li><span>AI丸投げが疑われる提出に口頭確認した</span></li>
+            <li><span>次週の目標を受講者本人に言わせて合意した</span></li>
+          </ul>
+
+          <h2 style="margin-top:24px"> レビューコメント例</h2>
+          <div class="template-card" style="margin-top:12px">
+            <pre class="code-block" style="white-space:pre-wrap">【良い例】
+「TaskServiceのcreateメソッドのバリデーション実装が丁寧ですね。
+特にtitleのnullチェックをsetterで行っている点は良い設計判断です。
+1点改善するとすれば、deleteメソッドで存在しないIDの場合のエラー
+処理が抜けています。TaskNotFoundExceptionをthrowして404を返すように
+修正してみてください。来週の面談で確認します！」
+
+【悪い例（避けるべき）】
+「OK」「良いです」「修正してください」（具体性がない）</pre>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── TEMPLATES ── -->
+      <section class="app-section" id="sec-templates">
+        <div class="page">
+          <div class="page-head">
+            <h1>テンプレート集</h1>
+            <p class="lead">課題提出・日報・AI利用ログ・CLAUDE.md・READMEの雛形。コピーして即使えます。</p>
+          </div>
+          <div id="templates-root"></div>
+        </div>
+      </section>
+
+      <!-- ── BUSINESS ── -->
+      <section class="app-section" id="sec-business">
+        <div class="page">
+          <div class="page-head">
+            <h1>法人・SES向け提案</h1>
+            <p class="lead">未経験社員の早期戦力化・案件単価アップ・AI時代の差別化を実現する、<br>フルスタック × AI駆動開発カリキュラム。</p>
+          </div>
+
+          <h2>未経験採用の課題を解決する</h2>
+          <div class="grid-2" style="margin-top:14px">
+            <div style="background:#fff;border:1px solid #f87171;border-radius:var(--r);padding:16px">
+              <h3 style="color:#dc2626"> 現状の課題</h3>
+              <ul style="padding-left:18px;line-height:1.8;margin-top:8px">
+                <li>未経験採用しても1年で戦力化できない</li>
+                <li>教育コストが高く手間もかかる</li>
+                <li>AIを使わせると丸投げになりスキルが身につかない</li>
+                <li>面談通過率が低く投資回収できない</li>
+                <li>技術書や動画だけでは続かない受講者が多い</li>
+              </ul>
+            </div>
+            <div style="background:#fff;border:1px solid #4ade80;border-radius:var(--r);padding:16px">
+              <h3 style="color:#16a34a"> このカリキュラムで解決</h3>
+              <ul style="padding-left:18px;line-height:1.8;margin-top:8px">
+                <li>13 Phase × 12週間で体系的にフルスタックを習得</li>
+                <li>AI利用ログで丸投げを防止・自走力を育成</li>
+                <li>全Phase課題・スキルチェック・講師レビュー付き</li>
+                <li>ポートフォリオ + 面談対策23問まで含む</li>
+                <li>Hoku AIメンターが24時間質問に対応</li>
+              </ul>
+            </div>
+          </div>
+
+          <h2 style="margin-top:28px">技術スタック選定の理由</h2>
+          <div class="grid-2" style="margin-top:14px">
+            <div class="callout">
+              <strong>Java / Spring Boot を入れる理由</strong>
+              <p style="margin-top:8px">SES案件の40〜60%がJava/Spring Boot。明示的な型付け・OOPの4原則・例外処理が「プロの書き方」を体に染み込ませる。</p>
+            </div>
+            <div class="callout">
+              <strong>React / Next.js を入れる理由</strong>
+              <p style="margin-top:8px">フロントエンド案件はReact/Next.jsが業界標準。TypeScript・Server Componentまで含めると差別化になる。</p>
+            </div>
+            <div class="callout">
+              <strong>Python / 自動化を入れる理由</strong>
+              <p style="margin-top:8px">業務自動化・データ分析ニーズは急増中。非エンジニア部門への提案やSES単価アップに直結する。</p>
+            </div>
+            <div class="callout">
+              <strong>AI駆動開発（Claude Code）を入れる理由</strong>
+              <p style="margin-top:8px">AIを「使う」だけでなく「正しく使う」エンジニアを育成。AI利用ログ文化で品質担保・差別化になる。</p>
+            </div>
+          </div>
+
+          <h2 style="margin-top:28px">SES企業・法人研修の導入メリット</h2>
+          <table class="data-table" style="margin-top:14px">
+            <thead><tr><th>項目</th><th>効果・数値目標</th></tr></thead>
+            <tbody>
+              <tr><td>戦力化期間</td><td>従来の18〜24ヶ月 → 6〜12ヶ月へ短縮（目標）</td></tr>
+              <tr><td>面談通過率</td><td>ポートフォリオ + 23問対策で業界平均比向上</td></tr>
+              <tr><td>案件単価</td><td>フルスタック + AI駆動で50〜80万/月の案件参画可能</td></tr>
+              <tr><td>離職率</td><td>スキルの可視化・達成感で学習定着率向上</td></tr>
+              <tr><td>教育コスト</td><td>Hoku AIメンター + 体系的教材で講師の工数を削減</td></tr>
+            </tbody>
+          </table>
+
+          <h2 style="margin-top:28px">受講者の成果物（面談で見せられるもの）</h2>
+          <div class="grid-2" style="margin-top:14px">
+            <div class="callout success">
+              <strong> ポートフォリオサイト</strong>
+              <p>Next.js製 / Vercel公開 / フルスタックアプリへのリンク付き</p>
+            </div>
+            <div class="callout success">
+              <strong> フルスタックアプリ</strong>
+              <p>Next.js + Spring Boot + MySQL / CRUD実装済み / デプロイ済み</p>
+            </div>
+            <div class="callout success">
+              <strong> GitHub整備</strong>
+              <p>コミット履歴 / README / AI-USAGE.md / ER図</p>
+            </div>
+            <div class="callout success">
+              <strong> 業務自動化スクリプト</strong>
+              <p>Python + pandas / CSV集計 / Excel出力 / API連携</p>
+            </div>
+          </div>
+
+          <h2 style="margin-top:28px">導入プランと参考価格</h2>
+          <table class="data-table" style="margin-top:14px">
+            <thead><tr><th>プラン</th><th>内容</th><th>参考価格</th></tr></thead>
+            <tbody>
+              <tr><td><strong>ライセンス提供</strong></td><td>教材・スキルチェック・テンプレートのライセンス（社内利用）</td><td>応相談</td></tr>
+              <tr><td><strong>研修パッケージ</strong></td><td>教材 + 講師派遣 + 月次進捗報告（5〜20名）</td><td>応相談</td></tr>
+              <tr><td><strong>伴走サポート</strong></td><td>カスタマイズ研修 + 講師育成 + 継続改善</td><td>応相談</td></tr>
+            </tbody>
+          </table>
+
+          <div class="callout" style="margin-top:20px;text-align:center">
+            <strong>まずは無料相談から</strong>
+            <p style="margin-top:8px">貴社の採用・育成課題をお聞きして、最適なプランをご提案します。</p>
+            <a href="mailto:info@example.com" class="btn btn-primary" style="display:inline-block;margin-top:12px">お問い合わせ</a>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── P12 APPS ── -->
+      <section class="app-section" id="sec-p12-apps">
+        <div class="page">
+          <div class="page-head">
+            <h1>Phase 12 卒業制作テーマ一覧</h1>
+            <p class="lead">8種類のアプリテンプレートから1つ選んで実装します。DB設計・API設計・実装手順・面談での説明ポイントまで全て含みます。</p>
+          </div>
+          <div id="p12-apps-root"></div>
+        </div>
+      </section>
+
+      <!-- ── PRICING ── -->
+      <section class="app-section" id="sec-pricing">
+        <div class="page">
+          <div class="page-head">
+            <h1>価格プラン</h1>
+            <p class="lead">個人3プラン・法人4プラン。税込参考価格。最終価格はお見積もり。</p>
+          </div>
+          <h2>個人向け</h2>
+          <div class="grid-3" style="margin-top:14px">
+            <div style="background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:20px">
+              <span class="chip">Light</span>
+              <h3 style="margin-top:8px">教材のみ</h3>
+              <div style="font-size:1.8rem;font-weight:800;margin:10px 0">¥49,800</div>
+              <p>13 Phase教材・スキルチェック・無期限アクセス。</p>
+            </div>
+            <div style="background:#fff;border:2px solid var(--brand);border-radius:var(--r);padding:20px;position:relative">
+              <span class="chip chip-frontend">Standard ★</span>
+              <h3 style="margin-top:8px">講師レビュー付き</h3>
+              <div style="font-size:1.8rem;font-weight:800;margin:10px 0">¥198,000</div>
+              <p>Phase毎レビュー・週次1on1（30分×12回）・修了証。</p>
+            </div>
+            <div style="background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:20px">
+              <span class="chip">Premium</span>
+              <h3 style="margin-top:8px">個別伴走</h3>
+              <div style="font-size:1.8rem;font-weight:800;margin:10px 0">¥398,000</div>
+              <p>個別1on1×24回・面談模擬3回・職務経歴書添削。</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div><!-- /.page-content -->
+  </div><!-- /.content-area -->
+</div><!-- /.app-shell -->
+
+<!-- ═══════ Data Scripts ═══════ -->
+<script src="data/phases.js"></script>
+<script src="data/chapters.js"></script>
+<script src="data/lesson-p00.js"></script>
+<script src="data/lesson-p01.js"></script>
+<script src="data/lesson-p02.js"></script>
+<script src="data/lesson-p02-append.js"></script>
+<script src="data/lesson-p03.js"></script>
+<script src="data/lesson-p03-append.js"></script>
+<script src="data/lesson-p04.js"></script>
+<script src="data/lesson-p05.js"></script>
+<script src="data/lesson-p06.js"></script>
+<script src="data/lesson-p07.js"></script>
+<script src="data/lesson-p08.js"></script>
+<script src="data/lesson-p09.js"></script>
+<script src="data/lesson-p10.js"></script>
+<script src="data/lesson-p11.js"></script>
+<script src="data/lesson-p12.js"></script>
+<script src="data/glossary.js"></script>
+<script src="data/assignments.js"></script>
+<script src="data/skillchecks.js"></script>
+<script src="data/phases-extra.js"></script>
+<script src="data/diagrams.js"></script>
+<script src="data/p12-apps.js"></script>
+<script src="assets/js/main.js"></script>
+
+<script>
+// Back buttons
+document.getElementById('back-to-phase')?.addEventListener('click', () => {
+  if (window.__currPhaseId) {
+    document.querySelector('.nav-item[data-view=phase-detail]')?.click?.();
+    window.dispatchEvent(new CustomEvent('backToPhase'));
+  } else {
+    document.querySelector('.nav-item[data-view=phases]').click();
+  }
+});
+document.getElementById('back-to-chapter')?.addEventListener('click', () => {
+  if (window.__currChapterId) {
+    window.dispatchEvent(new CustomEvent('backToChapter'));
+  } else {
+    document.querySelector('.nav-item[data-view=phases]').click();
+  }
+});
+
+// Copy blocks (static pages)
+document.addEventListener('click', e => {
+  const btn = e.target.closest('.copy-btn');
+  if (!btn) return;
+  const code = btn.dataset.code
+    || btn.closest('.code-block-wrap')?.querySelector('.code-block')?.innerText || '';
+  navigator.clipboard?.writeText(code.trim()).then(() => {
+    btn.textContent = ' コピー済み';
+    setTimeout(() => btn.textContent = '📋 コピー', 2000);
+  }).catch(() => {});
+});
+</script>
+  <div id="hokuFloatRoot"></div>
+</body>
+</html>
