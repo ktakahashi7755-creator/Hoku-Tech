@@ -51,7 +51,7 @@
 | `data/lesson-p00.js` … `lesson-p12.js` | レッスン本体 (各 `window.LESSON_PXX`)。 |
 | `data/lesson-p02-append.js` / `lesson-p03-append.js` | レッスン追記。スコープは元ファイルと同じ。 |
 | `data/assignments.js` | 13 課題。`window.ASSIGNMENTS`。 |
-| `data/skillchecks.js` | p00〜p09 のスキルチェック。**p10/p11/p12 は欠落** (要追記)。 |
+| `data/skillchecks.js` | p00〜p12 のスキルチェック (品質強化は継続課題)。 |
 | `data/sc-enhancements.js` | SC 詳細解説 (`window.SC_ENHANCEMENTS`)。 |
 | `data/glossary.js` | 用語 50 / エラー 20。`window.GLOSSARY`。 |
 | `data/p12-apps.js` | 卒制 8 テンプレ。`window.P12_APPS`。 |
@@ -176,3 +176,176 @@ LC_ALL=C grep -nE \
 * テスト基準 → `docs/11_test_specification.md`
 * GitHub 運用 → `docs/19_github_operation.md`
 * Claude Code 細則 → `docs/20_claude_code_rules.md`
+* カリキュラム監査 → `docs/curriculum_quality_audit.md`
+* 改善計画 → `docs/curriculum_improvement_plan.md`
+* タスクバックログ → `docs/task_backlog.md`
+
+---
+
+## 開発エージェントチーム (14 エージェント)
+
+Claude Code は単一エージェントではなく、以下の **役割エージェント** を内的に切替えながら作業する。1 タスクごとに「どのエージェントの判断で動いているか」を明示すること。
+
+### A. 戦略レイヤ
+
+| # | エージェント | 役割 | 判断基準 | 主な成果物 |
+|---|-------------|------|----------|-----------|
+| 1 | **Product Owner Agent** | プロダクト価値・優先順位・法人訴求・受講者体験を統括 | (1) Hoku Tech の価値が上がるか (2) 未経験者が迷わないか (3) 法人に見せられるか (4) Hoku の価値が明確か (5) AI 丸投げになっていないか | 改善方針 / 優先順位 / ロードマップ / 受け入れ基準 |
+| 2 | **Curriculum Architect Agent** | 13 Phase / 12 週カリキュラム全体設計 | 学習順序が自然か / 前提知識が満たされるか / Phase 間の接続があるか / 最終制作に収束するか | Phase 設計 / Lesson 設計 / 課題設計 / SC 設計 |
+| 3 | **Beginner Learning Designer Agent** | 完全未経験者が読んで作業できる粒度へ翻訳 | 専門用語が説明されているか / 手順が具体的か / つまずきポイントが明示されているか | 初心者向け説明 / たとえ話 / よくある間違い / Hoku 質問例 |
+
+### B. 技術レイヤ
+
+| # | エージェント | 役割 | 重点領域 |
+|---|-------------|------|----------|
+| 4 | **Fullstack Engineer Agent** | フロント・バック・DB・API・GitHub・デプロイの実務整合性 | 現場で通用するか / 技術説明が正確か / 成果物がポートフォリオになるか |
+| 5 | **React / Next.js Specialist** | React/Next.js 深掘り | コンポーネント / props / state / useState / useEffect / App Router / Server-Client Components / Vercel / 真っ白画面エラー |
+| 6 | **Java / Spring Boot Specialist** | Spring Boot 深掘り | Controller / Service / Repository / Entity / DTO / JPA / Validation / Postman / 起動エラー / DB 接続エラー / CORS |
+| 7 | **Python / Automation Specialist** | Python・業務自動化 | 文法 / CSV / Excel / API / JSON / 業務自動化 / エラー処理 |
+| 8 | **AI Driven Development Specialist** | AI 駆動開発の設計 | Claude Code / プロンプト / AI 利用ログ / AI セルフレビュー / 丸投げ防止設計 |
+
+### C. 体験 / 品質レイヤ
+
+| # | エージェント | 役割 | 重点領域 |
+|---|-------------|------|----------|
+| 9 | **Hoku Mentor UX Agent** | Hoku を学習体験の中心に配置 | Phase 別 Hoku メッセージ / 相談導線 / スクショ相談 / テンプレート / 相棒口調 |
+| 10 | **UI/UX Design Agent** | 視覚・余白・モバイル表示 | カード UI / 余白 / コードブロック / スマホ最適化 / 横スクロール防止 |
+| 11 | **Instructor Operation Agent** | 講師運用 (課題評価・面談・卒業判定) | 講師レビュー観点 / 面談質問 / 合格・再提出基準 / AI 丸投げ判定基準 |
+| 12 | **QA / Test Agent** | 表示崩れ・JS エラー・ビルド健全性 | Playwright シナリオ / スマホ確認 / Console Error / ビルドサイズ |
+| 13 | **Documentation Agent** | README / docs / CLAUDE.md / WBS 更新 | 監査ログ / タスク一覧 / 作業ログ |
+| 14 | **Release Manager Agent** | Git ブランチ / コミット / ビルド / リリース可否 | 作業前後の git 状態 / コミット候補 / リリース判定 / 残課題整理 |
+
+各エージェントの詳細責務は `docs/curriculum_improvement_plan.md` の対応セクションに展開する。
+
+---
+
+## タスク分割ルール
+
+* **1 タスク = 1 成果物または 1 改善領域**。`Phase 単位` / `data ファイル単位` / `UI 単位` のいずれかで切る。
+* **大規模変更前は必ずコミット境界を作る**。安全にロールバックできるサイズに保つ。
+* **実装前に作業計画を出す** (どのファイルのどこを何のために変えるか)。
+* **実装後に検証結果を出す** (構文・ビルド・禁止フレーズ・目視)。
+* **未完了は正直に残課題化する**。「だいたいできた」での `completed` は禁止。
+
+### 悪い例 / 良い例
+
+```
+❌ 悪い例: 「全カリキュラムを改善する」
+✅ 良い例: 「Phase 05 React の useState/useEffect Lesson (l05-2-1, l05-3-1) に、
+   初心者向け説明・コード読解・よくあるエラー・Hoku 質問例を追加する」
+
+❌ 悪い例: 「Skill Check を強化する」
+✅ 良い例: 「Skill Check p05 にコード読解問題を 2 問追加し、
+   commonMistakes / passLine / instructorCheckPoint を補強する」
+```
+
+---
+
+## 教材品質基準 (世界最高峰の定義)
+
+すべての **Phase / Lesson / Assignment / Skill Check** は、以下を満たすこと。1 つでも欠けたら「未完了」。
+
+### Phase レベル必須項目
+
+* このフェーズで何を学ぶか
+* なぜ必要か (キャリア・現場の文脈)
+* 現場でどう使うか
+* 初心者がつまずくポイント (3 件以上)
+* 重要用語と平易な説明
+* 学習ステップ (具体的)
+* 手を動かす演習
+* よくあるエラー (3 件以上)
+* Hoku に相談すべきタイミング
+* Hoku への質問例 (3 件以上)
+* 講師に聞くべきこと
+* 課題提出前チェック
+* 面談で説明すべきこと
+* 次 Phase へ進む条件
+
+### Lesson レベル必須項目
+
+* 目的 (`goal`) / なぜ学ぶか (`why`)
+* 初心者向け説明 / たとえ話 (`analogy`)
+* 現場での使い方 (`fieldUse`)
+* 重要用語 (`terms` — 各 term に平易な `meaning`)
+* 図解 (該当する場合)
+* コード例 (`code`) と読み方の解説
+* 手順付きハンズオン (`steps[]` — 空配列禁止)
+* 期待出力 (`expectedOutput`)
+* よくあるエラー (`errors[]` — 最低 2 件)
+* エラー時の確認順序
+* Hoku 質問例 (`aiOk`)
+* 自分の言葉で説明する練習
+* 小テスト (`quiz` — 最低 1 件)
+* 次にやること (`nextLesson`)
+
+### Assignment レベル必須項目
+
+* 課題の目的 / 想定シーン
+* 作るもの (機能仕様)
+* 必須要件 / 推奨要件
+* 作業手順
+* 提出物 (GitHub URL / README / スクリーンショット)
+* README に書く内容のチェックリスト
+* スクリーンショット要件
+* Hoku 利用ログの記載要件
+* 評価基準 (重み付き)
+* 合格条件 / 再提出条件
+* 講師レビュー観点 (`instructorCheckPoints`)
+* 面談で答えるべきポイント
+
+### Skill Check レベル必須項目
+
+* 問題の狙い
+* 模範解答 / 解説
+* よくある間違い (`commonMistakes`)
+* 合格ライン (`passLine`)
+* 講師確認ポイント (`instructorCheckPoint`)
+* コード読解問題 (各 Phase に最低 1 問)
+* エラー原因特定問題 (各 Phase に最低 1 問)
+* Hoku への質問作成問題 (AI 駆動 Phase で必須)
+* 面談想定質問
+
+---
+
+## 作業完了報告フォーマット
+
+作業終了時は必ず以下を報告すること。
+
+```markdown
+## 作業完了報告 — <作業名>
+
+### 実施エージェント
+<上記 14 エージェントから該当するものを列挙>
+
+### 実施内容
+- <変更点 1>
+- <変更点 2>
+
+### 変更ファイル
+- `path/to/file.js`: <変更内容>
+
+### 追加ファイル
+- `path/to/new.md`: <内容>
+
+### 改善した Phase / Lesson / Assignment / SC
+- Phase 05 (React) — Lesson l05-2-1, l05-3-1
+- Skill Check p09 — commonMistakes / passLine 追加
+
+### Hoku 改善内容
+- <該当する場合>
+
+### 検証結果
+- node --check: ✅ / ❌ <内訳>
+- ビルド: ✅ <サイズ> / ❌
+- 禁止フレーズスキャン: 0 件 / 残 N 件 (内訳)
+- 目視: ホーム / Phase 一覧 / Phase 詳細 / Lesson 詳細 / Assignment / SC / Hoku / 講師 / 法人 全て表示確認
+- スマホ確認: 375 / 390 / 768 / 1440 px 横スクロールなし
+- Console Error: 0 件
+
+### 残課題
+- <正直に書く>
+
+### 次にやるべきタスク
+- <docs/task_backlog.md の該当 Task ID>
+```
