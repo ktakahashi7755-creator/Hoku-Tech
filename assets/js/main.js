@@ -10,7 +10,7 @@ function _safeTimeout(fn, delay) {
   return setTimeout(function() {
     try { fn(); }
     catch(e) {
-      if (window.console) console.warn('[FCC timeout]', e && (e.message || String(e)));
+      if (window.console) console.warn('[Hoku timeout]', e && (e.message || String(e)));
     }
   }, delay || 0);
 }
@@ -18,7 +18,7 @@ function _safeMO(callback) {
   return new MutationObserver(function(muts, obs) {
     try { callback(muts, obs); }
     catch(e) {
-      if (window.console) console.warn('[FCC MO]', e && (e.message || String(e)));
+      if (window.console) console.warn('[Hoku MO]', e && (e.message || String(e)));
     }
   });
 }
@@ -33,14 +33,14 @@ function _safeMO(callback) {
       var line = (e && e.lineno) || 0;
       // エラーを記録（本番では無効化可能）
       if (window.console && console.warn) {
-        console.warn('[FCC] Error:', msg, '@', file, ':', line);
+        console.warn('[Hoku] Error:', msg, '@', file, ':', line);
       }
     } catch(ex) {}
     return false;
   });
   window.addEventListener('unhandledrejection', function(e) {
     try {
-      if (window.console && console.warn) console.warn('[FCC] Promise rejection:', e && e.reason);
+      if (window.console && console.warn) console.warn('[Hoku] Promise rejection:', e && e.reason);
     } catch(ex) {}
   });
 })();
@@ -136,13 +136,32 @@ function _qsa(sel, root) { return Array.from((root || document).querySelectorAll
     set: (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch(e) {} }
   };
 
+  // Canonical keys are 'hoku:v2:*'. The previous brand used 'fcc:v2:*';
+  // we still read from those when the new key is absent so existing
+  // learner progress is not silently lost on upgrade. On any write, the
+  // value is also mirrored to the legacy key for one release so older
+  // tabs / cached pages keep working.
+  const LEGACY_PREFIX = 'fcc:v2:';
+  const NEW_PREFIX = 'hoku:v2:';
+  const _LS_get = (newK, def) => {
+    const v = LS.get(newK, undefined);
+    if (v !== undefined) return v;
+    const legacyK = LEGACY_PREFIX + newK.slice(NEW_PREFIX.length);
+    return LS.get(legacyK, def);
+  };
+  const _LS_set = (newK, v) => {
+    LS.set(newK, v);
+    const legacyK = LEGACY_PREFIX + newK.slice(NEW_PREFIX.length);
+    LS.set(legacyK, v);
+  };
+
   const Progress = {
-    donePhases:  () => LS.get('fcc:v2:donePhases', []),
-    doneLessons: () => LS.get('fcc:v2:doneLessons', []),
-    togglePhase:  n => { const a = Progress.donePhases(); const i = a.indexOf(n); i >= 0 ? a.splice(i,1) : a.push(n); LS.set('fcc:v2:donePhases', a); return a; },
-    toggleLesson: id => { const a = Progress.doneLessons(); const i = a.indexOf(id); i >= 0 ? a.splice(i,1) : a.push(id); LS.set('fcc:v2:doneLessons', a); return a; },
-    checklistGet: k => LS.get('fcc:v2:cl:' + k, false),
-    checklistSet: (k, v) => LS.set('fcc:v2:cl:' + k, v),
+    donePhases:  () => _LS_get('hoku:v2:donePhases', []),
+    doneLessons: () => _LS_get('hoku:v2:doneLessons', []),
+    togglePhase:  n => { const a = Progress.donePhases(); const i = a.indexOf(n); i >= 0 ? a.splice(i,1) : a.push(n); _LS_set('hoku:v2:donePhases', a); return a; },
+    toggleLesson: id => { const a = Progress.doneLessons(); const i = a.indexOf(id); i >= 0 ? a.splice(i,1) : a.push(id); _LS_set('hoku:v2:doneLessons', a); return a; },
+    checklistGet: k => _LS_get('hoku:v2:cl:' + k, false),
+    checklistSet: (k, v) => _LS_set('hoku:v2:cl:' + k, v),
   };
 
   
@@ -1936,7 +1955,7 @@ function _qsa(sel, root) { return Array.from((root || document).querySelectorAll
         addProgressBars();
       });
       obs.observe(grid, {childList:true, subtree:false});
-      try { addProgressBars(); } catch(e) { if(window.console) console.warn('[FCC-prog]', e && e.message); }
+      try { addProgressBars(); } catch(e) { if(window.console) console.warn('[Hoku-prog]', e && e.message); }
     }, 600);
   });
 
