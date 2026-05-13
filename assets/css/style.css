@@ -4510,3 +4510,45 @@ code {
   opacity: .45;
   cursor: not-allowed;
 }
+
+/* ─────────────────────────────────────────────────
+   iPhone X+ Safe Area (env(safe-area-inset-*))
+   viewport-fit=cover が必要
+───────────────────────────────────────────────── */
+
+/* Hoku フローティングボタン: ホームバー・ノッチ回避 */
+.hoku-float {
+  bottom: max(16px, calc(16px + env(safe-area-inset-bottom)));
+  right:  max(16px, calc(16px + env(safe-area-inset-right)));
+}
+
+/* Hoku フローティングパネル: ボトムシートが画面下端に引っかからないよう */
+.hoku-floating-panel {
+  bottom: max(16px, calc(16px + env(safe-area-inset-bottom)));
+  right:  max(16px, calc(16px + env(safe-area-inset-right)));
+}
+
+/* モバイルでパネルが全幅になるとき (bottom:0) */
+@media (max-width: 480px) {
+  .hoku-floating-panel {
+    bottom: 0;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+/* サイドバー: ホームバー分の余白 */
+#sidebar {
+  padding-bottom: max(24px, calc(24px + env(safe-area-inset-bottom)));
+}
+
+/* ページコンテンツ下部: ホームバーとの重なり防止 */
+.page {
+  padding-bottom: max(80px, calc(80px + env(safe-area-inset-bottom)));
+}
+
+/* コンテンツ最下部 (mobile) */
+@media (max-width: 900px) {
+  .page {
+    padding-bottom: max(60px, calc(60px + env(safe-area-inset-bottom)));
+  }
+}
