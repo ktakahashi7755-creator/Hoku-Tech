@@ -299,11 +299,9 @@ function _qsa(sel, root) { return Array.from((root || document).querySelectorAll
             </div>
           </div>
         </div>
-        <p class="pc-goal">${_esc(p.goal)}</p>
-        <div class="pc-progress">
-          <div class="pc-prog-bar"><div style="width:${totalLessons ? Math.round(doneLessonsCount/totalLessons*100) : 0}%"></div></div>
-          <span class="pc-prog-text">${doneLessonsCount}/${totalLessons} Lesson</span>
-        </div>`;
+        <p class="pc-goal">${_esc(p.goal)}</p>`;
+      // 進捗バー(.phase-progress-bar-wrap) は別パッチで card 末尾に追加される
+      // (line 2038 付近)。ここで .pc-progress を出すと 2 重表示になるため省略。
       card.addEventListener('click', () => showPhaseDetail(p.id));
       grid.appendChild(card);
     });
