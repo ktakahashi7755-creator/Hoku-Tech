@@ -4722,6 +4722,42 @@ code {
 }
 
 /* ─────────────────────────────────────────────────
+   .goal-list li の overlap 修正
+   既存 CSS で .goal-list li の定義が 3 重 (line 310 / 1985 / 2422) あり、
+   最後の line 2422 が `padding: 2px 0` を指定して padding-left を 0 に
+   戻してしまうため、`::before` の "✓" (line 311 で left:0) が本文と
+   重なって描画されていた。
+   このレイヤーで padding-left を正しく確保し、::before も少し下げて整える。
+───────────────────────────────────────────────── */
+.goal-list li {
+  padding: 4px 0 4px 22px !important;
+  position: relative !important;
+  line-height: 1.7;
+}
+.goal-list li::before {
+  content: "" !important;
+  position: absolute;
+  left: 2px;
+  top: 9px;
+  width: 12px;
+  height: 12px;
+  background: var(--green-soft, #dcfce7);
+  border-radius: 3px;
+  /* CSS で描いたチェックマーク (擬似要素重ね) */
+}
+.goal-list li::after {
+  content: "";
+  position: absolute;
+  left: 5px;
+  top: 11px;
+  width: 4px;
+  height: 7px;
+  border-right: 2px solid var(--green, #16a34a);
+  border-bottom: 2px solid var(--green, #16a34a);
+  transform: rotate(45deg);
+}
+
+/* ─────────────────────────────────────────────────
    SC enhancement blocks (commonMistakes / passLine / instructorCheckPoint)
 ───────────────────────────────────────────────── */
 .sc-block {
