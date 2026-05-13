@@ -1,4 +1,5 @@
 reference-hokutech-built.html
+dist/
 .DS_Store
 node_modules/
 *.log

@@ -16,19 +16,24 @@
 
 | 機能 | 状態 |
 |------|------|
-| 全13Phase / 174Lesson表示 | ✅ |
-| Assignment詳細（Hoku提出前チェック） | ✅ |
-| Skill Check（SC問題・Hokuヒント） | ✅ |
-| 用語集（約70語）・エラー集 | ✅ |
-| Hokuフローティング常駐UI（ドラッグ可）| ✅ |
-| Hoku相談パネル（チャットUI・画像添付UI）| ✅ |
-| テンプレートコピー機能（10種）| ✅ |
-| Phase検索・カテゴリフィルター | ✅ |
-| 進捗管理（LocalStorage）| ✅ |
-| スマホ対応（375px〜）・iOS Safari対応 | ✅ |
-| 講師向け・法人向けページ | ✅ |
-| 本物のAI API連携 | 🔮 将来拡張 |
-| ログイン・ユーザー管理 | 🔮 将来拡張 |
+| 全 13 Phase / 約 204 Lesson 表示 | ✅ |
+| Assignment 詳細 (Hoku 提出前チェック) | ✅ |
+| Skill Check (p00〜p09) | ✅ |
+| Skill Check (p10〜p12) | ⚠️ `data/skillchecks.js` に未収録 (`phases-extra.js` にインライン記載のみ) |
+| 用語集 (50 語) / エラー集 (20 件) | ✅ |
+| Hoku フローティング常駐 UI (ドラッグ・端吸着・位置保存) | ✅ |
+| Hoku 相談パネル (チャット UI / 画像添付 UI / 10 カテゴリ) | ✅ |
+| Hoku Mock 応答 (`HOKU_PROVIDER.send`) | ✅ |
+| テンプレートコピー機能 (10 種) | ✅ |
+| Phase 検索 / カテゴリフィルタ | ✅ |
+| 進捗管理 (LocalStorage) | ✅ |
+| スマホ対応 (375 px〜) / iOS Safari 対応 | ✅ |
+| 講師向け / 法人向けページ | ✅ |
+| 卒業制作テーマ (8 アプリ) | ✅ |
+| Hoku マイク入力 (`#hokuMicBtn`) | 🟡 UI のみ・ハンドラ未接続 |
+| 本物の AI / マルチモーダル API 連携 | 🔮 将来拡張 (`HOKU_PROVIDER` の差し替えで対応) |
+| ログイン / ユーザー管理 / DB 進捗 | 🔮 将来拡張 |
+| 講師レビュー UI (提出物採点画面) | 🔮 将来拡張 |
 
 ---
 
@@ -67,8 +72,13 @@ v2/
 │   ├── glossary.js              ← 用語集・エラー集
 │   ├── assignments.js           ← 課題定義
 │   ├── skillchecks.js           ← SC問題
-│   └── lesson-p00.js〜p12.js   ← Lesson本文（計174件）
-├── docs/                        ← ドキュメント群
+│   ├── lesson-p00.js〜p12.js   ← Lesson 本文 (約 204 件)
+│   └── lesson-p02-append.js / lesson-p03-append.js
+├── scripts/
+│   └── build_full.py            ← 単一 HTML ビルド (標準ライブラリのみ)
+├── dist/                        ← ビルド成果物 (gitignored)
+├── docs/                        ← ドキュメント群 (00–20)
+├── CLAUDE.md                    ← Claude Code 用プロジェクト規約
 └── README.md                    ← 本ファイル
 ```
 
@@ -77,15 +87,19 @@ v2/
 ## ビルド方法
 
 ```bash
-# 1. JS構文チェック
+# 1. JS 構文チェック
 node --check assets/js/main.js
 for f in data/*.js; do node --check "$f"; done
 
-# 2. 単一HTMLビルド
-python3 /tmp/build_full.py
-# → /mnt/user-data/outputs/hoku-tech.html
-# → /mnt/user-data/outputs/fullstack-career-camp.html（互換用）
+# 2. 単一 HTML ビルド (リポジトリ同梱の Python 標準ライブラリのみ)
+python3 scripts/build_full.py
+# → dist/hoku-tech.html  (1.4 MB 程度 / すべてインライン化)
+
+# オプション: 出力先を指定
+python3 scripts/build_full.py --out /path/to/hoku-tech.html
 ```
+
+`dist/` は `.gitignore` 済み (ビルド成果物は履歴に含めない)。
 
 ---
 
@@ -157,7 +171,7 @@ const { chromium } = require('playwright');
 
 ## 開発ルール
 
-**必読**: [docs/20_claude_code_rules.md](docs/20_claude_code_rules.md)
+**必読**: [CLAUDE.md](CLAUDE.md) / [docs/20_claude_code_rules.md](docs/20_claude_code_rules.md)
 
 - 既存関数・構成を壊さない
 - 新機能はIIFEで追記パッチ方式
