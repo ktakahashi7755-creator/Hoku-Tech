@@ -4448,3 +4448,65 @@ code {
   -webkit-transform: translateZ(0);
   transform: translateZ(0);
 }
+
+/* =========================================================
+   Polish layer — appended last so source-order makes it the
+   final say. Adds: shared .card, accessible focus rings,
+   touch-friendly hit targets, table horizontal-scroll guard,
+   hero badge contrast, mic-button visual-disabled state.
+   ========================================================= */
+
+.card {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  padding: 16px;
+}
+.card > h3:first-child,
+.card > h4:first-child { margin-top: 0; }
+
+.card.card-accent  { border-color: var(--brand); border-width: 2px; }
+.card.card-danger  { border-color: #f87171; }
+.card.card-success { border-color: #4ade80; }
+
+.table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: var(--r);
+}
+.table-wrap > table { width: 100%; min-width: 0; }
+
+@media (max-width: 640px) {
+  .data-table, table.tbl { font-size: .9rem; }
+}
+
+@media (hover: none) {
+  .btn        { padding: 12px 20px; min-height: 44px; }
+  .btn-sm     { padding: 10px 14px; min-height: 40px; }
+  .filter-chip{ padding: 10px 14px; min-height: 40px; }
+  .nav-item   { padding: 12px 14px; min-height: 44px; }
+  .copy-btn   { padding: 10px 14px; min-height: 40px; }
+}
+
+.btn:focus-visible,
+.filter-chip:focus-visible,
+.nav-item:focus-visible,
+.copy-btn:focus-visible,
+.tab-btn:focus-visible,
+.search-input:focus-visible,
+.hoku-quick-prompt:focus-visible {
+  outline: 3px solid var(--brand, #2563eb);
+  outline-offset: 2px;
+}
+
+.hero-tech-tags .tech-badge.tech-tag-neutral {
+  background: #eef2f7;
+  color: #1f2937;
+  border: 1px solid #cbd5e1;
+}
+
+.hoku-mic-btn[aria-disabled="true"] {
+  opacity: .45;
+  cursor: not-allowed;
+}

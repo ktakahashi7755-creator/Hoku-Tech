@@ -3445,7 +3445,7 @@ function _qsa(sel, root) { return Array.from((root || document).querySelectorAll
             '<input type="file" id="hokuImgInput" accept="image/*" multiple style="display:none">' +
           '</label>' +
           '<textarea class="hoku-text-input" id="hokuTextInput" placeholder="状況を教えて…" rows="1"></textarea>' +
-          '<button class="hoku-mic-btn" id="hokuMicBtn" title="音声入力">🎤</button>' +
+          '<button class="hoku-mic-btn" id="hokuMicBtn" type="button" aria-disabled="true" tabindex="-1" title="音声入力 (開発中)">🎤</button>' +
           '<button class="hoku-send-btn" id="hokuSendBtn" title="送信">›</button>' +
         '</div>' +
       '</div>';

@@ -75,7 +75,7 @@
               <span class="tech-badge tech-db">MySQL</span>
               <span class="tech-badge tech-front">TypeScript</span>
               <span class="tech-badge tech-ai">Python / AI</span>
-              <span class="tech-badge" style="background:#f1f5f9;color:#475569;border:1px solid #e2e8f0">Git / GitHub</span>
+              <span class="tech-badge tech-tag-neutral">Git / GitHub</span>
             </div>
             <div class="hero-stats-bar">
               <div class="hero-stat"><div class="hero-stat-num" id="stat-lessons">0</div><div class="hero-stat-label">完了Lesson</div></div>
@@ -224,12 +224,12 @@
 
           <h2>AI 活用の 6 原則</h2>
           <div class="grid-2">
-            <div style="background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:16px"><h3>① 役割・前提・制約・出力形式</h3><p>4要素が揃ったプロンプトの精度は飛躍的に上がる。</p></div>
-            <div style="background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:16px"><h3>② 出力は必ず自分で読む</h3><p>1行ずつ目を通す。意味不明な行は聞き返してから採用。</p></div>
-            <div style="background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:16px"><h3>③ AI利用ログを残す</h3><p>プロンプトと採用判断を記録。面談で「AIをどう使ったか」を語れる状態。</p></div>
-            <div style="background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:16px"><h3>④ 機密情報を貼らない</h3><p>APIキー・個人情報・社内情報はプロンプトに絶対使わない。</p></div>
-            <div style="background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:16px"><h3>⑤ 自分の言葉で再現できるまで進めない</h3><p>説明できないコードは「未理解」と同じ。</p></div>
-            <div style="background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:16px"><h3>⑥ レビューする側に回る</h3><p>「なぜこの書き方か」「他の選択肢は」とAIに問い直す。</p></div>
+            <div class="card"><h3>① 役割・前提・制約・出力形式</h3><p>4要素が揃ったプロンプトの精度は飛躍的に上がる。</p></div>
+            <div class="card"><h3>② 出力は必ず自分で読む</h3><p>1行ずつ目を通す。意味不明な行は聞き返してから採用。</p></div>
+            <div class="card"><h3>③ AI利用ログを残す</h3><p>プロンプトと採用判断を記録。面談で「AIをどう使ったか」を語れる状態。</p></div>
+            <div class="card"><h3>④ 機密情報を貼らない</h3><p>APIキー・個人情報・社内情報はプロンプトに絶対使わない。</p></div>
+            <div class="card"><h3>⑤ 自分の言葉で再現できるまで進めない</h3><p>説明できないコードは「未理解」と同じ。</p></div>
+            <div class="card"><h3>⑥ レビューする側に回る</h3><p>「なぜこの書き方か」「他の選択肢は」とAIに問い直す。</p></div>
           </div>
 
           <h2>OK / NG の区別</h2>
@@ -254,7 +254,7 @@
 
           <h2>プロンプトテンプレート</h2>
           <div class="code-block-wrap" style="margin-top:14px">
-            <div class="code-block-header"><span>プロンプト4要素テンプレ</span><button class="copy-btn"> コピー</button></div>
+            <div class="code-block-header"><span>プロンプト4要素テンプレ</span><button class="copy-btn" type="button" aria-label="コードをコピー">コピー</button></div>
             <pre class="code-block">あなたは〇〇（役割）です。
 
 【前提】
@@ -285,7 +285,7 @@
           </div>
 
           <h2>Claude Code とは</h2>
-          <div class="tbl" style="margin-top:14px">
+          <div class="table-wrap" style="margin-top:14px">
             <table class="tbl"><thead><tr><th>項目</th><th>通常チャットAI</th><th>Claude Code</th></tr></thead>
             <tbody>
               <tr><td>動作環境</td><td>ブラウザ</td><td>ターミナル</td></tr>
@@ -297,7 +297,7 @@
 
           <h2>CLAUDE.md 雛形</h2>
           <div class="code-block-wrap" style="margin-top:14px">
-            <div class="code-block-header"><span>CLAUDE.md</span><button class="copy-btn"> コピー</button></div>
+            <div class="code-block-header"><span>CLAUDE.md</span><button class="copy-btn" type="button" aria-label="コードをコピー">コピー</button></div>
             <pre class="code-block"># プロジェクト名
 
 ## 目的
@@ -326,15 +326,15 @@
           </div>
           <h2>卒業制作 9 テーマ</h2>
           <div class="grid-3" style="margin-top:14px">
-            <div style="background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:16px"><h3>1. タスク管理</h3><p>定番。CRUDの基本がすべて学べる。</p></div>
-            <div style="background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:16px"><h3>2. 学習記録</h3><p>ダッシュボード集計で見せ場を作る。</p></div>
-            <div style="background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:16px"><h3>3. 勤怠管理</h3><p>月次集計・CSV出力で業務感が出る。</p></div>
-            <div style="background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:16px"><h3>4. 問い合わせ管理</h3><p>ステータス管理・担当者割り当て。</p></div>
-            <div style="background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:16px"><h3>5. 在庫管理</h3><p>入出庫・在庫推移。複数テーブル練習。</p></div>
-            <div style="background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:16px"><h3>6. 家計簿</h3><p>収支・カテゴリ・グラフ表示。</p></div>
-            <div style="background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:16px"><h3>7. CRM</h3><p>顧客マスタ・対応履歴・タグ管理。</p></div>
-            <div style="background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:16px"><h3>8. 日報管理</h3><p>業務報告・検索・期間絞り込み。</p></div>
-            <div style="background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:16px;border-color:var(--brand);border-width:2px"><h3>★ 9. AI業務支援</h3><p>問い合わせ管理 + AIで返信ドラフト生成。</p></div>
+            <div class="card"><h3>1. タスク管理</h3><p>定番。CRUDの基本がすべて学べる。</p></div>
+            <div class="card"><h3>2. 学習記録</h3><p>ダッシュボード集計で見せ場を作る。</p></div>
+            <div class="card"><h3>3. 勤怠管理</h3><p>月次集計・CSV出力で業務感が出る。</p></div>
+            <div class="card"><h3>4. 問い合わせ管理</h3><p>ステータス管理・担当者割り当て。</p></div>
+            <div class="card"><h3>5. 在庫管理</h3><p>入出庫・在庫推移。複数テーブル練習。</p></div>
+            <div class="card"><h3>6. 家計簿</h3><p>収支・カテゴリ・グラフ表示。</p></div>
+            <div class="card"><h3>7. CRM</h3><p>顧客マスタ・対応履歴・タグ管理。</p></div>
+            <div class="card"><h3>8. 日報管理</h3><p>業務報告・検索・期間絞り込み。</p></div>
+            <div class="card card-accent"><h3>★ 9. AI業務支援</h3><p>問い合わせ管理 + AIで返信ドラフト生成。</p></div>
           </div>
         </div>
       </section>
@@ -378,18 +378,20 @@
           </div>
 
           <h2>講師の役割と人間・AIの分担</h2>
-          <table class="data-table" style="margin-top:12px">
-            <thead><tr><th>役割</th><th>Hoku（AI）</th><th>人間講師</th></tr></thead>
-            <tbody>
-              <tr><td>24時間の質問対応</td><td></td><td>—</td></tr>
-              <tr><td>コードのエラー解読</td><td></td><td>—</td></tr>
-              <tr><td>課題の採点・合否判定</td><td></td><td></td></tr>
-              <tr><td>AI丸投げの検出</td><td></td><td> 口頭確認</td></tr>
-              <tr><td>週次面談・キャリア相談</td><td></td><td></td></tr>
-              <tr><td>面談模擬・フィードバック</td><td>参考程度</td><td></td></tr>
-              <tr><td>卒業判定</td><td></td><td></td></tr>
-            </tbody>
-          </table>
+          <div class="table-wrap" style="margin-top:12px">
+            <table class="data-table">
+              <thead><tr><th>役割</th><th>Hoku (AI メンター)</th><th>人間講師</th></tr></thead>
+              <tbody>
+                <tr><td>24時間の質問対応</td><td>○</td><td>—</td></tr>
+                <tr><td>コードのエラー解読</td><td>○</td><td>—</td></tr>
+                <tr><td>課題の採点・合否判定</td><td>—</td><td>○</td></tr>
+                <tr><td>AI丸投げの検出</td><td>補助</td><td>○ (口頭確認)</td></tr>
+                <tr><td>週次面談・キャリア相談</td><td>—</td><td>○</td></tr>
+                <tr><td>面談模擬・フィードバック</td><td>参考</td><td>○</td></tr>
+                <tr><td>卒業判定</td><td>—</td><td>○</td></tr>
+              </tbody>
+            </table>
+          </div>
 
           <h2 style="margin-top:28px">週次面談の進め方（30分）</h2>
           <ol style="padding-left:20px;line-height:1.9">
@@ -413,7 +415,7 @@
 
           <h2 style="margin-top:24px">課題レビューの観点</h2>
           <div class="grid-2" style="margin-top:14px">
-            <div style="background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:16px">
+            <div class="card">
               <h3>Phase 1〜4（基礎）</h3>
               <ul style="padding-left:18px;line-height:1.8">
                 <li>セマンティックHTMLになっているか</li>
@@ -422,7 +424,7 @@
                 <li>node_modules/.envがGitにない</li>
               </ul>
             </div>
-            <div style="background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:16px">
+            <div class="card">
               <h3>Phase 5〜12（応用）</h3>
               <ul style="padding-left:18px;line-height:1.8">
                 <li>コンポーネントが適切に分割されているか</li>
@@ -543,16 +545,18 @@
           </div>
 
           <h2 style="margin-top:28px">SES企業・法人研修の導入メリット</h2>
-          <table class="data-table" style="margin-top:14px">
-            <thead><tr><th>項目</th><th>効果・数値目標</th></tr></thead>
-            <tbody>
-              <tr><td>戦力化期間</td><td>従来の18〜24ヶ月 → 6〜12ヶ月へ短縮（目標）</td></tr>
-              <tr><td>面談通過率</td><td>ポートフォリオ + 23問対策で業界平均比向上</td></tr>
-              <tr><td>案件単価</td><td>フルスタック + AI駆動で50〜80万/月の案件参画可能</td></tr>
-              <tr><td>離職率</td><td>スキルの可視化・達成感で学習定着率向上</td></tr>
-              <tr><td>教育コスト</td><td>Hoku AIメンター + 体系的教材で講師の工数を削減</td></tr>
-            </tbody>
-          </table>
+          <div class="table-wrap" style="margin-top:14px">
+            <table class="data-table">
+              <thead><tr><th>項目</th><th>効果・数値目標</th></tr></thead>
+              <tbody>
+                <tr><td>戦力化期間</td><td>従来の18〜24ヶ月 → 6〜12ヶ月へ短縮 (目標)</td></tr>
+                <tr><td>面談通過率</td><td>ポートフォリオ + 23 問対策で業界平均比向上</td></tr>
+                <tr><td>案件単価</td><td>フルスタック + AI 駆動開発で 50〜80 万/月の案件参画ライン</td></tr>
+                <tr><td>離職率</td><td>スキルの可視化・達成感で学習定着率向上</td></tr>
+                <tr><td>教育コスト</td><td>Hoku AI メンター + 体系的教材で講師の工数を削減</td></tr>
+              </tbody>
+            </table>
+          </div>
 
           <h2 style="margin-top:28px">受講者の成果物（面談で見せられるもの）</h2>
           <div class="grid-2" style="margin-top:14px">
@@ -575,14 +579,16 @@
           </div>
 
           <h2 style="margin-top:28px">導入プランと参考価格</h2>
-          <table class="data-table" style="margin-top:14px">
-            <thead><tr><th>プラン</th><th>内容</th><th>参考価格</th></tr></thead>
-            <tbody>
-              <tr><td><strong>ライセンス提供</strong></td><td>教材・スキルチェック・テンプレートのライセンス（社内利用）</td><td>応相談</td></tr>
-              <tr><td><strong>研修パッケージ</strong></td><td>教材 + 講師派遣 + 月次進捗報告（5〜20名）</td><td>応相談</td></tr>
-              <tr><td><strong>伴走サポート</strong></td><td>カスタマイズ研修 + 講師育成 + 継続改善</td><td>応相談</td></tr>
-            </tbody>
-          </table>
+          <div class="table-wrap" style="margin-top:14px">
+            <table class="data-table">
+              <thead><tr><th>プラン</th><th>内容</th><th>参考価格</th></tr></thead>
+              <tbody>
+                <tr><td><strong>ライセンス提供</strong></td><td>教材・スキルチェック・テンプレートのライセンス (社内利用)</td><td>応相談</td></tr>
+                <tr><td><strong>研修パッケージ</strong></td><td>教材 + 講師派遣 + 月次進捗報告 (5〜20 名)</td><td>応相談</td></tr>
+                <tr><td><strong>伴走サポート</strong></td><td>カスタマイズ研修 + 講師育成 + 継続改善</td><td>応相談</td></tr>
+              </tbody>
+            </table>
+          </div>
 
           <div class="callout" style="margin-top:20px;text-align:center">
             <strong>まずは無料相談から</strong>
@@ -694,8 +700,8 @@ document.addEventListener('click', e => {
   const code = btn.dataset.code
     || btn.closest('.code-block-wrap')?.querySelector('.code-block')?.innerText || '';
   navigator.clipboard?.writeText(code.trim()).then(() => {
-    btn.textContent = ' コピー済み';
-    setTimeout(() => btn.textContent = '📋 コピー', 2000);
+    btn.textContent = 'コピー済み';
+    setTimeout(() => btn.textContent = 'コピー', 2000);
   }).catch(() => {});
 });
 </script>
