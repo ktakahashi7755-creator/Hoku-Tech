@@ -434,8 +434,8 @@ function _qsa(sel, root) { return Array.from((root || document).querySelectorAll
       html += '<h4>合格基準</h4><ul class="pass-criteria">';
       px.passCriteria.forEach(c => { html += `<li><input type="checkbox" style="margin-right:6px">${_esc(c)}</li>`; });
       html += '</ul>';
-      if (px.resubmit) html += `<div class="callout callout-warn"><span class="callout-icon">🔄</span><strong>再提出条件：</strong>${_esc(px.resubmit)}</div>`;
-      if (px.nextPhaseCondition) html += `<div class="callout callout-next"><span class="callout-icon">➡️</span><strong>次のPhaseへ進む条件：</strong>${_esc(px.nextPhaseCondition)}</div>`;
+      if (px.resubmit) html += `<div class="callout-clean callout-resubmit"><div class="callout-body"><strong>再提出条件</strong>${_esc(px.resubmit)}</div></div>`;
+      if (px.nextPhaseCondition) html += `<div class="callout-clean callout-next"><div class="callout-body"><strong>次の Phase へ進む条件</strong>${_esc(px.nextPhaseCondition)}</div></div>`;
       html += '</div></details>';
     }
 
@@ -710,7 +710,7 @@ function _qsa(sel, root) { return Array.from((root || document).querySelectorAll
           </div>` : ''}
           ${l.aiNg ? `
           <div class="ai-ng">
-            <h4>❌ AIに丸投げしない</h4>
+            <h4>AI に丸投げしないこと</h4>
             ${l.aiNg.map(x => `<div class="ai-item ai-ng-item">「${_esc(x)}」</div>`).join('')}
           </div>` : ''}
         </div>`, 'ai-section'));
@@ -1087,9 +1087,9 @@ function _qsa(sel, root) { return Array.from((root || document).querySelectorAll
       }
       html += '</div>';
       if(app.tables && app.tables.length) {
-        html += '<h4>🗄️ テーブル設計</h4><table class="data-table"><thead><tr><th>テーブル</th><th>主なカラム</th></tr></thead><tbody>';
+        html += '<div class="section-label">テーブル設計</div><div class="table-wrap"><table class="data-table"><thead><tr><th>テーブル</th><th>主なカラム</th></tr></thead><tbody>';
         app.tables.forEach(function(t){ html += '<tr><td><code>'+_esc(t.name)+'</code></td><td>'+_esc(t.cols)+'</td></tr>'; });
-        html += '</tbody></table>';
+        html += '</tbody></table></div>';
       }
       if(app.apiList && app.apiList.length) {
         html += '<h4>🌐 API設計</h4><table class="data-table"><thead><tr><th>Method</th><th>Path</th><th>説明</th></tr></thead><tbody>';
@@ -1100,7 +1100,7 @@ function _qsa(sel, root) { return Array.from((root || document).querySelectorAll
         html += '</tbody></table>';
       }
       if(app.implementSteps && app.implementSteps.length) {
-        html += '<h4>🗺️ 実装手順</h4><ol class="learning-steps">';
+        html += '<div class="section-label">実装手順</div><ol class="learning-steps">';
         app.implementSteps.forEach(function(s){ html += '<li>'+_esc(s)+'</li>'; });
         html += '</ol>';
       }
@@ -1298,7 +1298,7 @@ function _qsa(sel, root) { return Array.from((root || document).querySelectorAll
         }
         var meta = [];
         if (q.passLine) meta.push('合格ライン: '+_esc(q.passLine));
-        if (q.instructorCheckPoint) meta.push('👤 講師確認: '+_esc(q.instructorCheckPoint));
+        if (q.instructorCheckPoint) meta.push('講師確認: '+_esc(q.instructorCheckPoint));
         if (meta.length) html += '<div class="sc-meta-row">'+meta.map(function(m){ return '<span class="sc-meta-item">'+m+'</span>'; }).join('')+'</div>';
         html += '<div class="sc-hoku-hint">自分の言葉で答えて、HokuまたはClaudeでフィードバックをもらいましょう。</div>';
         html += '</div></details>';
@@ -1324,54 +1324,87 @@ function _qsa(sel, root) { return Array.from((root || document).querySelectorAll
     root.removeAttribute('data-rendered');
     var ASNS = window.ASSIGNMENTS||[];
     var html = '';
+    function listUL(items, cls) {
+      cls = cls || 'check-list';
+      var s = '<ul class="' + cls + '">';
+      items.forEach(function(x){ s += '<li>'+_esc(x)+'</li>'; });
+      return s + '</ul>';
+    }
     ASNS.forEach(function(a) {
       html += '<div class="assignment-card" id="asn-'+_esc(a.id)+'">';
       html += '<div class="asn-header"><span class="chip chip-'+_esc(a.phase)+'">Phase '+_esc(a.phase.replace('p',''))+'</span><h3>'+_esc(a.title)+'</h3></div>';
       html += '<p class="asn-goal">'+_esc(a.goal)+'</p>';
       html += '<details class="phase-accordion"><summary>課題詳細・要件・提出チェックリストを開く</summary><div class="asn-body">';
 
-      if (a.scenario) html += '<div class="callout callout-field"><div><strong>想定シーン</strong><p>'+_esc(a.scenario)+'</p></div></div>';
-      html += '<div class="asn-section"><h4>📦 作るもの</h4><p>'+_esc(a.build)+'</p></div>';
-      html += '<div class="asn-section"><h4>必須要件</h4><ul class="asn-req-list">';
-      (a.requirements||[]).forEach(function(r){ html += '<li>'+_esc(r)+'</li>'; });
-      html += '</ul></div>';
+      if (a.scenario) html += '<div class="callout-clean"><div class="callout-body"><strong>想定シーン</strong>'+_esc(a.scenario)+'</div></div>';
+      html += '<div class="asn-section"><div class="section-label">作るもの</div><p>'+_esc(a.build)+'</p></div>';
+
+      html += '<div class="asn-section"><div class="section-label">必須要件</div>'+listUL(a.requirements||[])+'</div>';
+
+      if (a.optionalFeatures && a.optionalFeatures.length) {
+        html += '<div class="asn-section"><div class="section-label label-info">任意要件 (発展)</div>'+listUL(a.optionalFeatures)+'</div>';
+      }
+
       if (a.recommended && a.recommended.length) {
-        html += '<div class="asn-section"><h4>⭐ 推奨要件</h4><ul class="asn-req-list asn-recommend">';
-        a.recommended.forEach(function(r){ html += '<li>'+_esc(r)+'</li>'; });
-        html += '</ul></div>';
+        html += '<div class="asn-section"><div class="section-label label-info">推奨要件</div>'+listUL(a.recommended)+'</div>';
       }
       if (a.steps && a.steps.length) {
-        html += '<div class="asn-section"><h4>🗺️ 作業手順</h4><ol class="asn-steps">';
+        html += '<div class="asn-section"><div class="section-label">作業手順</div><ol class="asn-steps">';
         a.steps.forEach(function(s){ html += '<li>'+_esc(s)+'</li>'; });
         html += '</ol></div>';
       }
-      html += '<div class="asn-section asn-deliverables"><h4>📤 提出物</h4><ul>';
-      (a.deliverables||[]).forEach(function(d){ html += '<li>'+_esc(d)+'</li>'; });
-      html += '</ul>';
-      if (a.github && a.github.required) html += '<div class="callout" style="margin-top:8px"><span class="callout-icon">📂</span><div><strong>GitHub提出必須</strong>'+(a.github.readme ? '<p>README.md必須（技術スタック・起動方法・AI利用ログ）</p>' : '')+'</div></div>';
-      html += '</div>';
+
+      html += '<div class="asn-section asn-deliverables"><div class="section-label label-submit">提出物</div>'+listUL(a.deliverables||[])+'</div>';
+
+      if (a.readmeChecklist && a.readmeChecklist.length) {
+        html += '<div class="asn-section"><div class="section-label">README チェックリスト</div>'+listUL(a.readmeChecklist)+'</div>';
+      }
+
+      if (a.aiUsageLogTemplate) {
+        html += '<div class="asn-section"><div class="section-label">AI 利用ログ テンプレート</div><pre class="asn-ailog">'+_esc(a.aiUsageLogTemplate)+'</pre></div>';
+      }
+
+      if (a.github && a.github.required) html += '<div class="callout-clean"><div class="callout-body"><strong>GitHub 提出必須</strong>'+(a.github.readme ? 'README.md 必須 (技術スタック・起動方法・AI 利用ログを含む)' : 'リポジトリの URL を提出する')+'</div></div>';
 
       // 提出前チェックリスト
-      var checks = ['機能が全て動作することをブラウザで確認した','Consoleにエラーが出ていない','スマホ（390px）で表示が崩れない','GitHubにpush済み'];
-      if (a.github && a.github.readme) checks.push('README.mdが整備されデプロイURLが記載されている');
-      if (a.hokiLog) checks.push('AI利用ログ（AI-USAGE.md）が作成されている');
-      html += '<div class="asn-section"><h4>提出前チェックリスト</h4><div class="pre-submit-checklist">';
+      var checks = ['機能が全て動作することをブラウザで確認した','Console にエラーが出ていない','スマホ (390px) で表示が崩れない','GitHub に push 済み'];
+      if (a.github && a.github.readme) checks.push('README.md が整備されデプロイ URL が記載されている');
+      if (a.hokiLog) checks.push('AI 利用ログ (AI-USAGE.md) が作成されている');
+      html += '<div class="asn-section"><div class="section-label">提出前チェックリスト</div><div class="pre-submit-checklist">';
       checks.forEach(function(c){ html += '<label class="pre-check-item"><input type="checkbox"> '+_esc(c)+'</label>'; });
       html += '</div></div>';
 
-      // 合格基準
-      html += '<div class="asn-section"><h4>評価基準・合格条件</h4><div class="eval-box">';
-      html += '<div class="eval-pass"><strong>合格条件</strong><p>'+_esc(a.passCond)+'</p></div>';
-      if (a.resubmit) html += '<div class="eval-resubmit"><strong>🔄 再提出条件</strong><p>'+_esc(a.resubmit)+'</p></div>';
-      if (a.criteria && a.criteria.length) { html += '<h5>採点観点:</h5><ul>'; a.criteria.forEach(function(c){ html += '<li>'+_esc(c)+'</li>'; }); html += '</ul>'; }
-      html += '</div></div>';
-
-      // 講師確認
-      if (a.reviewPoints && a.reviewPoints.length) {
-        html += '<details class="phase-accordion" style="margin-top:10px"><summary>👤 講師レビュー観点</summary><div class="acc-body"><ul>';
-        a.reviewPoints.forEach(function(r){ html += '<li>'+_esc(r)+'</li>'; });
-        html += '</ul></div></details>';
+      // 評価基準
+      if (a.criteria && a.criteria.length) {
+        html += '<div class="asn-section"><div class="section-label label-ok">評価基準</div>'+listUL(a.criteria, 'check-list criteria-list')+'</div>';
       }
+
+      // 採点配点
+      if (a.scoringRubric && a.scoringRubric.length) {
+        html += '<div class="asn-section"><div class="section-label label-ok">採点配点</div>'+listUL(a.scoringRubric, 'check-list criteria-list')+'</div>';
+      }
+
+      // 合格条件 / 再提出
+      html += '<div class="asn-section">';
+      html += '<div class="callout-clean callout-next"><div class="callout-body"><strong>合格条件</strong>'+_esc(a.passCond)+'</div></div>';
+      if (a.resubmit) html += '<div class="callout-clean callout-resubmit"><div class="callout-body"><strong>再提出条件</strong>'+_esc(a.resubmit)+'</div></div>';
+      html += '</div>';
+
+      // 講師レビュー観点
+      if (a.reviewPoints && a.reviewPoints.length) {
+        html += '<div class="asn-section"><div class="section-label label-review">講師レビュー観点</div>'+listUL(a.reviewPoints, 'check-list review-list')+'</div>';
+      }
+
+      // 講師チェックポイント
+      if (a.instructorCheckPoints && a.instructorCheckPoints.length) {
+        html += '<div class="asn-section"><div class="section-label label-review">講師チェックポイント</div>'+listUL(a.instructorCheckPoints, 'check-list review-list')+'</div>';
+      }
+
+      // 面談で答えるべきポイント
+      if (a.interviewPoints && a.interviewPoints.length) {
+        html += '<div class="asn-section"><div class="section-label label-info">面談で答えるべきポイント</div>'+listUL(a.interviewPoints)+'</div>';
+      }
+
       html += '</div></details></div>';
     });
     root.innerHTML = html||'<p class="empty-msg">課題データを読み込み中です。</p>';
@@ -1420,7 +1453,7 @@ function _qsa(sel, root) { return Array.from((root || document).querySelectorAll
     });
     var diagDiv = document.createElement('div');
     diagDiv.className = 'phase-diagram-section';
-    var inner = '<details class="phase-accordion" open><summary><span class="acc-icon">🗺️</span>関連図解（'+ids.length+'枚）</summary><div class="acc-body diagrams-section">';
+    var inner = '<details class="phase-accordion" open><summary>関連図解 ('+ids.length+' 枚)</summary><div class="acc-body diagrams-section">';
     ids.forEach(function(did) { if (D[did]) inner += D[did]; });
     inner += '</div></details>';
     diagDiv.innerHTML = inner;
@@ -1532,7 +1565,7 @@ function _qsa(sel, root) { return Array.from((root || document).querySelectorAll
             });
             var div = document.createElement('div');
             div.className = 'phase-diagram-section';
-            var inner = '<details class="phase-accordion"><summary><span class="acc-icon">🗺️</span>関連図解（'+ids.length+'枚）</summary><div class="acc-body diagrams-section">';
+            var inner = '<details class="phase-accordion"><summary>関連図解 ('+ids.length+' 枚)</summary><div class="acc-body diagrams-section">';
             ids.forEach(function(did){ if(D[did]) inner+=D[did]; });
             inner += '</div></details>';
             div.innerHTML = inner;
@@ -1590,7 +1623,7 @@ function _qsa(sel, root) { return Array.from((root || document).querySelectorAll
     var selfExplainDiv = document.createElement('div');
     selfExplainDiv.className = 'lesson-section self-explain-section';
     selfExplainDiv.innerHTML = [
-      '<h3 class="ls-h3"><span class="ls-icon">🗣️</span>自分の言葉で説明してみよう</h3>',
+      '<div class="section-label">自分の言葉で説明してみよう</div>',
       '<div class="self-explain-box">',
       '<p class="se-prompt">このレッスンで学んだことを初心者に説明するとしたら、どう説明しますか？以下の練習をやってみましょう。</p>',
       '<ol class="se-steps">',
@@ -1688,7 +1721,7 @@ function _qsa(sel, root) { return Array.from((root || document).querySelectorAll
     var div = document.createElement('div');
     div.className = 'lesson-section self-explain-section';
     div.innerHTML = [
-      '<h3 class="ls-h3"><span class="ls-icon">🗣️</span>自分の言葉で説明してみよう</h3>',
+      '<div class="section-label">自分の言葉で説明してみよう</div>',
       '<div class="self-explain-box">',
       '<p class="se-prompt">このレッスンで学んだことを初心者に説明するとしたら、どう説明しますか？Hokuに答えを採点してもらう前に、まず自分で答えを書いてみましょう。</p>',
       '<ol class="se-steps">',
@@ -1933,7 +1966,7 @@ function _qsa(sel, root) { return Array.from((root || document).querySelectorAll
       html += '<div style="margin-bottom:14px">';
       html += '<p style="font-size:.88rem;font-weight:600;color:var(--ink-1);margin-bottom:8px">Q: '+_esc(ex.q)+'</p>';
       html += '<div class="interview-compare">';
-      html += '<div class="interview-ng"><div class="ic-label">❌ NG回答</div><p>'+_esc(ex.ng)+'</p><p class="ic-reason">→ '+_esc(ex.ngReason)+'</p></div>';
+      html += '<div class="interview-ng"><div class="ic-label ic-label-ng">NG 回答</div><p>'+_esc(ex.ng)+'</p><p class="ic-reason">→ '+_esc(ex.ngReason)+'</p></div>';
       html += '<div class="interview-ok"><div class="ic-label">OK回答</div><p>'+_esc(ex.ok)+'</p></div>';
       html += '</div></div>';
     });
@@ -2054,11 +2087,11 @@ function _qsa(sel, root) { return Array.from((root || document).querySelectorAll
     'app-task': [
       '# タスク管理アプリ（Hoku Tech 卒業制作）',
       '',
-      '## 🚀 デモURL',
+      '## デモ URL',
       '- **Frontend**: https://your-app.vercel.app',
       '- **API**: https://your-api.onrender.com/api/tasks',
       '',
-      '## 📋 アプリ概要',
+      '## アプリ概要',
       'CRUD操作・優先度管理・キーワード検索を備えたタスク管理Webアプリ。',
       'Next.js + Spring Boot + MySQLのフルスタック構成で実装しました。',
       '',
@@ -2134,21 +2167,21 @@ function _qsa(sel, root) { return Array.from((root || document).querySelectorAll
       'NEXT_PUBLIC_API_URL=http://localhost:8080',
       '```',
       '',
-      '## 🤖 AI利用について',
+      '## AI 利用について',
       '詳細は [AI-USAGE.md](./AI-USAGE.md) を参照。',
       'AIを活用した箇所・採用/修正/却下の判断理由を記録しています。'
     ].join('\\n'),
     'app-ai-support': [
       '# AIチャット付き業務支援アプリ',
       '',
-      '## ⚠️ 注意',
+      '## 注意事項',
       'APIキーの利用にコストが発生します。デモ環境には使用量上限を設定しています。',
       '',
-      '## 🚀 デモURL',
+      '## デモ URL',
       '- **Frontend**: https://your-ai-app.vercel.app',
       '- **API**: https://your-ai-api.onrender.com',
       '',
-      '## 📋 アプリ概要',
+      '## アプリ概要',
       'OpenAI GPT-4またはClaude APIを使ったAIチャット機能と、',
       '問い合わせ返信ドラフト自動生成を持つ業務支援Webアプリ。',
       '',
@@ -2199,7 +2232,7 @@ function _qsa(sel, root) { return Array.from((root || document).querySelectorAll
       'NEXT_PUBLIC_API_URL=http://localhost:8080',
       '```',
       '',
-      '## 🤖 AI利用について',
+      '## AI 利用について',
       '詳細は [AI-USAGE.md](./AI-USAGE.md) を参照。',
       'APIキー・個人情報はプロンプトに含めていません。'
     ].join('\\n')
@@ -3559,7 +3592,7 @@ function _qsa(sel, root) { return Array.from((root || document).querySelectorAll
     var imgStyle = 'width:100%;height:100%;object-fit:contain;display:block;background:none;pointer-events:none;-webkit-transform:translateZ(0);transform:translateZ(0);animation:hokuBreathe 3.5s ease-in-out infinite;';
     bubble.innerHTML =
       '<div class="hoku-float-avatar" id="hokuFloatAvatar" style="background:none!important;border:none!important;box-shadow:none!important;border-radius:0!important;overflow:visible!important;filter:none!important;-webkit-filter:none!important;">' +
-        (av ? '<img src="' + av + '" alt="Hoku" style="' + imgStyle + '">' : '<span style="font-size:2rem">⭐</span>') +
+        (av ? '<img src="' + av + '" alt="Hoku" style="' + imgStyle + '">' : '<span style="font-size:1.6rem;color:#94a3b8;">Hoku</span>') +
         '<div class="hoku-float-dot"></div>' +
         '<div class="hoku-float-badge" id="hokuBadge"></div>' +
       '</div>';

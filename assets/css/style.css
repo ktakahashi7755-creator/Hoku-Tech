@@ -4524,6 +4524,204 @@ code {
 }
 
 /* ─────────────────────────────────────────────────
+   Section label (絵文字見出しの置換)
+   見出しの前に色付きの細いバーを置き、ラベル種別を表現する
+───────────────────────────────────────────────── */
+.section-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: .92rem;
+  font-weight: 700;
+  letter-spacing: .02em;
+  color: var(--ink-1);
+  margin: 18px 0 10px;
+  line-height: 1.4;
+}
+.section-label::before {
+  content: "";
+  flex-shrink: 0;
+  width: 3px;
+  height: 14px;
+  background: var(--brand);
+  border-radius: 2px;
+}
+.section-label.label-warn::before    { background: #f59e0b; }
+.section-label.label-ng::before      { background: #ef4444; }
+.section-label.label-ok::before      { background: #22c55e; }
+.section-label.label-info::before    { background: #06b6d4; }
+.section-label.label-review::before  { background: #8b5cf6; }
+.section-label.label-submit::before  { background: var(--teal, #0891b2); }
+
+/* ─────────────────────────────────────────────────
+   Check list (统一チェックリスト)
+   絵文字を使わず CSS の擬似要素でアイコンを描く
+───────────────────────────────────────────────── */
+.check-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.check-list > li {
+  position: relative;
+  padding: 2px 4px 2px 30px;
+  font-size: .92rem;
+  line-height: 1.65;
+  color: var(--ink-1);
+}
+/* デフォルト (check): ブランドカラーのチェックマーク */
+.check-list > li::before {
+  content: "";
+  position: absolute;
+  left: 4px; top: 6px;
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  background: var(--brand-soft, #eff6ff);
+}
+.check-list > li::after {
+  content: "";
+  position: absolute;
+  left: 9px; top: 10px;
+  width: 5px;
+  height: 9px;
+  border-right: 2px solid var(--brand, #2563eb);
+  border-bottom: 2px solid var(--brand, #2563eb);
+  transform: rotate(45deg);
+}
+
+/* criteria-list: 合格基準 (緑) */
+.check-list.criteria-list > li::before { background: #dcfce7; }
+.check-list.criteria-list > li::after  { border-color: #16a34a; }
+
+/* review-list: 講師レビュー (紫) */
+.check-list.review-list > li::before { background: #ede9fe; }
+.check-list.review-list > li::after  { border-color: #7c3aed; }
+
+/* warning-list: 注意 (橙) — エクスクラメーションマーク */
+.check-list.warning-list > li::before { background: #fef3c7; }
+.check-list.warning-list > li::after {
+  border: none;
+  width: 2px;
+  height: 6px;
+  background: #d97706;
+  box-shadow: 0 8px 0 0 #d97706;
+  left: 12px;
+  top: 9px;
+  transform: none;
+  border-radius: 1px;
+}
+
+/* ng-list: 禁止 (赤) — X マーク */
+.check-list.ng-list > li::before {
+  background:
+    linear-gradient(45deg,  transparent 43%, #dc2626 43%, #dc2626 57%, transparent 57%),
+    linear-gradient(-45deg, transparent 43%, #dc2626 43%, #dc2626 57%, transparent 57%),
+    #fee2e2;
+}
+.check-list.ng-list > li::after { display: none; }
+
+/* 大きいバージョン (Assignment 詳細用) */
+.check-list.check-list-lg > li {
+  padding: 4px 4px 4px 32px;
+  font-size: .95rem;
+}
+.check-list.check-list-lg > li::before { left: 4px; top: 8px; }
+.check-list.check-list-lg > li::after  { left: 9px; top: 12px; }
+
+/* ─────────────────────────────────────────────────
+   Callout (個別コールアウト - 絵文字代替)
+───────────────────────────────────────────────── */
+.callout-clean {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: var(--brand-soft, #eff6ff);
+  border-left: 3px solid var(--brand, #2563eb);
+  margin: 10px 0;
+  font-size: .9rem;
+  line-height: 1.6;
+}
+.callout-clean.callout-warn {
+  background: #fffbeb;
+  border-left-color: #f59e0b;
+}
+.callout-clean.callout-next {
+  background: #f0fdf4;
+  border-left-color: #22c55e;
+}
+.callout-clean.callout-resubmit {
+  background: #fef2f2;
+  border-left-color: #ef4444;
+}
+.callout-clean > .callout-body { flex: 1; min-width: 0; }
+.callout-clean > .callout-body > strong { display: block; margin-bottom: 2px; color: var(--ink-1); }
+
+/* AI 利用ログテンプレ表示 */
+.asn-ailog {
+  background: #0f172a;
+  color: #e2e8f0;
+  padding: 12px 14px;
+  border-radius: 8px;
+  font-size: .8rem;
+  line-height: 1.65;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: 'SF Mono', 'Menlo', 'Consolas', monospace;
+}
+
+/* interview NG ラベル (絵文字なし) */
+.ic-label-ng {
+  display: inline-block;
+  padding: 2px 8px;
+  background: #fee2e2;
+  color: #b91c1c;
+  border-radius: 4px;
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  margin-bottom: 4px;
+}
+
+/* phase-accordion summary を絵文字なしに馴染ませる */
+.phase-accordion > summary {
+  padding-left: 14px;
+  position: relative;
+}
+.phase-accordion > summary::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 12px;
+  background: var(--brand);
+  border-radius: 2px;
+}
+
+/* asn-section 間の余白を統一 */
+.asn-section { margin: 14px 0; }
+.asn-section:first-child { margin-top: 0; }
+.asn-section:last-child  { margin-bottom: 0; }
+
+/* code/pre 横スクロール対策 (スマホ折返し防止) */
+.lesson-detail-root pre,
+#lesson-detail-root pre,
+.lesson-detail pre,
+.code-block {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  max-width: 100%;
+}
+
+/* ─────────────────────────────────────────────────
    SC enhancement blocks (commonMistakes / passLine / instructorCheckPoint)
 ───────────────────────────────────────────────── */
 .sc-block {
