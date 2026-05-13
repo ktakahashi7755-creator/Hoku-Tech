@@ -4524,6 +4524,45 @@ code {
 }
 
 /* ─────────────────────────────────────────────────
+   SC enhancement blocks (commonMistakes / passLine / instructorCheckPoint)
+───────────────────────────────────────────────── */
+.sc-block {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border-left: 3px solid var(--line);
+  background: var(--bg-muted, #f5f7fa);
+}
+.sc-block-label {
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  margin-bottom: 4px;
+}
+.sc-block ul { margin: 0; padding-left: 18px; }
+.sc-block li, .sc-block p { font-size: .88rem; color: var(--ink-1); line-height: 1.65; margin: 2px 0; }
+.sc-mistakes   { border-left-color: #f59e0b; }
+.sc-passline   { border-left-color: #22c55e; }
+.sc-instructor { border-left-color: #2563eb; }
+
+/* ─────────────────────────────────────────────────
+   Assignment 拡張フィールド表示
+───────────────────────────────────────────────── */
+.asn-ailog {
+  background: #0f172a;
+  color: #e2e8f0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: .82rem;
+  line-height: 1.6;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* ─────────────────────────────────────────────────
    iPhone X+ Safe Area (env(safe-area-inset-*))
    viewport-fit=cover が必要
 ───────────────────────────────────────────────── */
@@ -6617,10 +6656,19 @@ window.LESSON_P01 = {
     {term:'ポート番号', meaning:'コンピュータ上のサービスの「受付番号」。0〜65535の数字で表す。HTTP=80、HTTPS=443、SSH=22など。'},
     {term:'localhost', meaning:'自分自身のコンピュータを指すホスト名。127.0.0.1 と同じ意味。開発中は http://localhost:3000 などでアクセスする。'},
   ],
-  steps:[],
+  steps:[
+    {num:1,title:'ターミナルから HTTP プロトコルでサーバーに話しかけてみる',description:'curl コマンドで Google にリクエストを送り、HTTP ステータスとヘッダだけ確認する。-I はヘッダ表示。',windows:'curl -I https://www.google.com',mac:'curl -I https://www.google.com'},
+    {num:2,title:'明示的にポート番号を指定してアクセスする',description:'HTTPSのデフォルトは443番。明示的に書いても同じ結果になる。',windows:'curl -I https://www.google.com:443',mac:'curl -I https://www.google.com:443'},
+    {num:3,title:'localhost の意味を確認する',description:'(任意) 開発用にローカルサーバーを立てて localhost:8000 にアクセスする。Pythonがあれば 1 行で立てられる。',windows:'# 別ターミナルで\npython -m http.server 8000\n# 元のターミナルで\ncurl -I http://localhost:8000',mac:'# 別ターミナルで\npython3 -m http.server 8000\n# 元のターミナルで\ncurl -I http://localhost:8000'},
+    {num:4,title:'今 PC で開いているポートを見る',description:'macOS は lsof、Windows は netstat で確認できる。LISTEN 状態のものが「待ち受けポート」。',windows:'netstat -ano | findstr LISTEN',mac:'lsof -iTCP -sTCP:LISTEN -n -P'}
+  ],
   code:'# よく使うポート番号の一覧\nHTTP      : 80\nHTTPS     : 443\nSSH       : 22\nFTP       : 21\nMySQL     : 3306\nSpring Boot開発 : 8080\nReact開発  : 3000\nNext.js開発 : 3000',
-  expectedOutput:'主要なポート番号を3つ以上言えるようになる。',
-  errors:[],
+  expectedOutput:'curl の HTTP/2 200 ステータス行が見える。localhost:8000 に GET が通る。lsof / netstat で待ち受けポート一覧が表示される。',
+  errors:[
+    {msg:'curl: (6) Could not resolve host',cause:'インターネット未接続 or ホスト名スペルミス',fix:'まず https://www.google.com にブラウザでアクセスできるか確認。スペルもチェック。'},
+    {msg:'curl: (7) Failed to connect to localhost port 8000',cause:'ローカルサーバーが起動していない、または別のポートで起動している',fix:'別ターミナルで python -m http.server 8000 が動いているか確認。起動メッセージのポート番号と合わせる。'},
+    {msg:'Address already in use (port 8000 起動時)',cause:'既に何かが 8000 番ポートを使っている',fix:'別ポートで起動する (python -m http.server 8001)、または既存プロセスを停止する。'}
+  ],
   quiz:[
     {q:'HTTPとFTPの違いは何ですか？', a:'HTTPはWebページの送受信、FTPはファイル転送に使うプロトコル。'},
     {q:'localhost:3000 の意味を説明してください。', a:'自分のPC（localhost）のポート番号3000番で動いているサービスにアクセスする。'},
@@ -8374,11 +8422,19 @@ window.LESSON_P05 = {
   steps:[{num:1,title:'Vite + Reactプロジェクトを作成する',description:'',windows:'cd ~/Desktop/dev\nnpm create vite@latest react-todo -- --template react\ncd react-todo\nnpm install\nnpm run dev',mac:'同上。'}],
   code:'// src/App.jsx を編集して動作確認\nfunction App() {\n  return <h1>Hello React!</h1>;\n}\nexport default App;',
   expectedOutput:'http://localhost:5173 でReactアプリが表示される。',
-  errors:[{msg:'command not found: npm',cause:'Node.jsがインストールされていない',fix:'Phase 0の手順でNode.jsをインストールする。'}],
-  quiz:[{q:'Viteとcreate-react-appの主な違いは？',a:'Viteは起動・ホットリロードが高速。現在はViteが推奨。'}],
-  miniTask:'App.jsxを編集して「Hello React!」と自分の名前を表示させてください。',
-  aiOk:['Viteの設定方法を教えてください'],aiNg:[],
-  interviewQ:['ReactとVueの違いを知っていますか？'],nextLesson:'l05-1-2'},
+  errors:[
+    {msg:'command not found: npm',cause:'Node.jsがインストールされていない、またはPATHが通っていない',fix:'Phase 0の手順でNode.jsをインストールし、ターミナルを再起動する。node --version で確認。'},
+    {msg:'npm ERR! engine Unsupported engine / Vite requires Node.js version XX',cause:'Node.jsのバージョンが古い (Vite 5 以降は Node 18+ 必須)',fix:'node --version で確認。古い場合は nvm install 20 などで Node 20 にアップデートし、ターミナルを再起動。'},
+    {msg:'EACCES: permission denied (npm install 実行時)',cause:'グローバルインストール権限不足、または node_modules を sudo で作って所有者がずれた',fix:'プロジェクト内 npm install で動く。 sudo は使わない。すでに壊れていれば node_modules を削除して再 install。'},
+    {msg:'Port 5173 is in use',cause:'別のViteプロセスが既に5173を使っている',fix:'lsof -i :5173 (Mac) / netstat -ano | findstr :5173 (Win) で確認しプロセスを停止。または --port 5174 で別ポート起動。'},
+    {msg:'Cannot find module ... (npm run dev 実行時)',cause:'npm install を実行していない、または node_modules が壊れている',fix:'rm -rf node_modules package-lock.json && npm install で再インストール。'},
+    {msg:'白い画面 / Console に "Failed to fetch dynamically imported module"',cause:'保存時にファイルが半保存状態、またはキャッシュ不整合',fix:'保存し直してブラウザをリロード。直らなければ Vite を一度停止して再起動。'}
+  ],
+  quiz:[{q:'Viteとcreate-react-appの主な違いは？',a:'Viteは起動・ホットリロードが高速。現在はViteが推奨。'},
+        {q:'npm run dev でエラーが出る時、最初にどこを確認しますか？',a:'1) ターミナルのエラー文を読む  2) node --version でバージョン確認  3) node_modules が無ければ npm install。'}],
+  miniTask:'App.jsxを編集して「Hello React!」と自分の名前を表示させてください。さらに、開発サーバーを停止して再起動し、ホットリロードが効くか確認してください。',
+  aiOk:['Viteの設定方法を教えてください','npm ERR! engine が出た時の対処法を教えてください'],aiNg:['ToDoアプリの全コードを書いてください'],
+  interviewQ:['ReactとVueの違いを知っていますか？','Vite と create-react-app の違いを 1 分で説明してください。'],nextLesson:'l05-1-2'},
 
 'l05-1-2': { id:'l05-1-2', chapter:'c05-1', num:'5-1-2', title:'JSXの書き方とルール', duration:'20分',
   goal:'JSXの基本構文とルール（単一ルート要素・className・式の埋め込み）を理解してコンポーネントを書ける。',
@@ -8446,12 +8502,27 @@ window.LESSON_P05 = {
   fieldUse:'ほぼ全てのReactコンポーネントでuseStateを使う。',
   analogy:'useStateは「コンポーネントの記憶力」。値が変わるたびに画面を更新してくれる。',
   terms:[{term:'useState',meaning:'関数コンポーネントで状態を管理するReact Hook。[state, setState]の配列を返す。'},{term:'再レンダリング',meaning:'stateが変わるとReactが自動的にコンポーネントを再描画すること。'},{term:'イミュータブル',meaning:'直接変更しない。配列はスプレッド構文で新しい配列を返す。'}],
-  steps:[],
+  steps:[
+    {num:1,title:'useStateをimportして数値stateを定義する',description:'コンポーネント関数の先頭で const [count, setCount] = useState(0); を書く。配列分割代入で [現在値, 更新関数] を受け取る。',windows:'// src/Counter.jsx\nimport { useState } from \'react\';\nfunction Counter() {\n  const [count, setCount] = useState(0);\n  return <p>{count}</p>;\n}',mac:'同上。'},
+    {num:2,title:'イベントハンドラでsetStateを呼ぶ',description:'onClick={() => setCount(count + 1)} のようにアロー関数で渡す。setCount(...) を直接書くと無限ループするので注意。',windows:'<button onClick={() => setCount(count + 1)}>+1</button>',mac:'同上。'},
+    {num:3,title:'配列・オブジェクトstateはイミュータブルに更新する',description:'arr.push() / obj.x = ... のような直接変更は禁止。常に新しい配列・オブジェクトを作って setState に渡す。',windows:'// NG: tasks.push(newTask); setTasks(tasks);\n// OK: setTasks([...tasks, newTask]);\n// OK: setUser({...user, name: \'新しい名前\'});',mac:'同上。'}
+  ],
   code:"import { useState } from 'react';\n\nfunction Counter() {\n  const [count, setCount] = useState(0);\n  return (\n    <div>\n      <p>カウント: {count}</p>\n      <button onClick={() => setCount(count + 1)}>+1</button>\n      <button onClick={() => setCount(0)}>リセット</button>\n    </div>\n  );\n}\n\nfunction TaskInput() {\n  const [tasks, setTasks] = useState([]);\n  const [input, setInput] = useState('');\n  function add() {\n    if (!input.trim()) return;\n    setTasks([...tasks, input]);\n    setInput('');\n  }\n  return (\n    <div>\n      <input value={input} onChange={e => setInput(e.target.value)} />\n      <button onClick={add}>追加</button>\n      <ul>{tasks.map((t,i) => <li key={i}>{t}</li>)}</ul>\n    </div>\n  );\n}",
-  expectedOutput:'カウンターが動作し、タスクの追加ができる。',
-  errors:[{msg:'stateを直接変更しても画面が更新されない',cause:'arr.push()などで直接変更しているため',fix:'setState([...arr, newItem])のようにスプレッドで新しい配列を作ってsetStateに渡す。'}],
-  quiz:[{q:'なぜstateを直接変更してはいけないのですか？',a:'ReactはsetStateが呼ばれた時だけ再レンダリングする。直接変更してもsetStateが呼ばれないため画面が更新されない。'}],
-  miniTask:'カウンター（+/-/リセット）コンポーネントとタスク追加コンポーネントを作ってください。',
+  expectedOutput:'カウンターが動作し、タスクの追加ができる。+1 を押すたびに数字が増え、追加ボタンを押すと入力したタスクがリストに追加される。',
+  errors:[
+    {msg:'stateを直接変更しても画面が更新されない',cause:'arr.push() / obj.x = ... のように直接変更しているため',fix:'setState([...arr, newItem]) / setState({...obj, x: newVal}) のように新しい参照を作って渡す。Reactは前後の参照を === で比較するので新参照が必要。'},
+    {msg:'setCount(count + 1) を 2 回連続で書いても 1 しか増えない',cause:'state は非同期更新。同じ render 内で count はまだ古い値',fix:'関数型 setState: setCount(c => c + 1) を使う。前の値を引数で受け取れる。'},
+    {msg:'useEffect / setTimeout 内で古い state を参照してしまう (stale closure)',cause:'state はクロージャ内で固定。レンダリング時の値が捕まる',fix:'関数型 setState (setX(prev => ...)) を使うか、useRef で最新値を保持する。'},
+    {msg:'リスト追加で順番が入れ替わる / 削除でおかしくなる',cause:'<li key={index}> のように index を key に使っている',fix:'key には一意な ID を入れる (例: Date.now() / crypto.randomUUID())。index は並び替え・削除で破綻する。'},
+    {msg:'入力欄に文字を打っても画面に反映されない (controlled component が壊れる)',cause:'<input value={x} /> なのに onChange で setX を呼んでいない',fix:'<input value={x} onChange={e => setX(e.target.value)} /> の対で書く。読み取り専用にしたければ defaultValue を使う。'},
+    {msg:'Warning: Cannot update a component while rendering a different component',cause:'render 中に setState を直接呼んでいる (関数本体に setX(...) を書いた)',fix:'setState はイベントハンドラ / useEffect 内でだけ呼ぶ。render 中に必要なら派生値で計算する。'}
+  ],
+  quiz:[
+    {q:'なぜstateを直接変更してはいけないのですか？',a:'Reactは前回の state との参照同一性 (===) で再レンダリング要否を判定する。直接変更すると参照が同じままなので画面が更新されない。'},
+    {q:'setCount(count + 1) を 2 回連続で書いたのに 1 しか増えなかった。なぜ?',a:'state 更新は非同期 / バッチ処理。同じハンドラ内で count はまだ古い値。setCount(c => c + 1) の関数型を使えば前の値を引数で受け取れるので 2 増える。'},
+    {q:'リスト表示の <li key={index}> はなぜダメか?',a:'並び替え・削除時に key と要素の対応が崩れ、Reactが間違った要素を再利用する。データの一意な ID を key にする。'}
+  ],
+  miniTask:'カウンター（+/-/リセット）コンポーネントとタスク追加コンポーネントを作ってください。さらに、タスクに削除ボタンを付けて (key を index ではなく Date.now() にする)、削除しても順番が崩れないことを確認してください。',
   aiOk:['このuseStateの使い方は正しいですか：[コードを貼る]'],aiNg:['タスクリストコンポーネントを全部作ってください'],
   interviewQ:['useStateとは何ですか？再レンダリングはいつ起きますか？'],nextLesson:'l05-3-2'},
 
@@ -9237,13 +9308,19 @@ window.ASSIGNMENTS = [
   prereq:'Phase 5 全レッスン受講済み',
   build:'Reactタスク管理アプリ（CRUD + LocalStorage + フィルター）',
   requirements:['Vite + Reactで作成','タスクの追加・完了切替・削除が動作する','フィルター機能（全て/未完了/完了）が動作する','LocalStorage永続化','レスポンシブ対応','コンポーネント分割（最低App・TaskForm・TaskList・TaskItemの4コンポーネント）'],
+  optionalFeatures:['ダークモード切替 (useState + CSS変数)','検索機能 (タスク名 / タグでフィルタ)','タスクの優先度ラベル (低・中・高)','並び替え (作成日・優先度・完了状態)','カウントバッジ (未完了件数の表示)','確認モーダル (削除前の確認ダイアログ)'],
   deliverables:['GitHubリポジトリURL（publicリポジトリ）','デプロイURL（Vercelまたは GitHub Pages）','README.md（起動手順・使用技術・工夫した点）','AI-USAGE.md'],
+  readmeChecklist:['サービス概要 (1-2行)','スクリーンショット (1-3枚)','デプロイURL','技術スタック (React / Vite / 使ったライブラリ)','主な機能 (箇条書き)','セットアップ手順 (npm install → npm run dev)','工夫点 / 苦戦点 (自分の言葉で)','AI 利用ログへのリンク (AI-USAGE.md)'],
+  aiUsageLogTemplate:'# AI-USAGE.md\n\n## 使用したツール\n- Claude / ChatGPT / Hoku など\n\n## 使った場面\n1. [機能名] [使ったプロンプト要約] [AI出力の採用判断と理由]\n2. ...\n\n## 自分で書いた範囲\n- [どこを自力で書いたか]\n\n## AI に頼らなかった理由\n- [どこをあえて自力で書いたか / なぜ]\n',
   github:{ required: true, readme: true },
   hokiLog: true,
-  criteria:['全CRUD機能が動作する','デプロイURLでアクセスできる','コンポーネントが適切に分割されている','node_modulesがGitにコミットされていない'],
+  criteria:['全CRUD機能が動作する','デプロイURLでアクセスできる','コンポーネントが適切に分割されている','node_modulesがGitにコミットされていない','LocalStorage の値が JSON.stringify / JSON.parse で扱えている'],
+  scoringRubric:['機能完成度 40% (CRUD + フィルタ + 永続化が全て動く)','コード品質 25% (コンポーネント分割 / 命名 / 不要コード無し)','README品質 15% (構成・スクショ・起動手順)','AI利用ログ 10% (使用範囲・自分で書いた範囲が明確)','面談での説明力 10% (なぜ React か / 詰まった点)'],
   passCond:'全CRUD操作がデプロイURLで動作する',
-  resubmit:'—機能の追加・デプロイの設定修正',
-  reviewPoints:['propsとstateが適切に使い分けられているか','useEffectのクリーンアップが書かれているか','コールバックパターンを理解しているか']},
+  resubmit:'機能の追加・デプロイの設定修正・コンポーネント分割の見直し',
+  reviewPoints:['propsとstateが適切に使い分けられているか','useEffectのクリーンアップが書かれているか','コールバックパターンを理解しているか'],
+  instructorCheckPoints:['useStateの初期値が適切か (空配列・空文字列 等)','配列 state を直接 mutate していないか (.push() で更新していないか)','<li key={...}> が index ではなく一意 ID になっているか','LocalStorage 読み込みエラーが try-catch されているか','コンポーネント間の責務分担が明確か (TaskForm / TaskList / TaskItem)','console.log / コメントアウトコードが残っていないか'],
+  interviewPoints:['なぜ Vite + React を選んだか (CRA との違い)','state と props の使い分けを 1 分で説明できるか','LocalStorage を使った理由と限界 (容量・同期されない 等)','どこで一番詰まり、どう解決したか','AI をどの範囲で使ったか / 使わなかった範囲はどこか']},
 
 { phase:'p06', id:'a06', title:'Next.jsポートフォリオサイトのデプロイ',
   goal:'App RouterとServer Componentを使ったポートフォリオサイトをVercelで公開する。',
@@ -9289,13 +9366,19 @@ window.ASSIGNMENTS = [
   prereq:'Phase 9 全レッスン受講済み',
   build:'Spring Boot REST API（タスク管理）',
   requirements:['GET/POST/PUT/DELETE の全5エンドポイント実装','Entityクラス（JPA・MySQL接続）','DTOクラス（Request/Response分離）','@Validでバリデーション','@RestControllerAdviceでグローバルエラーハンドリング','CORS設定（localhost:3000 許可）','Renderデプロイ（またはローカルで動作確認）'],
-  deliverables:['GitHubリポジトリURL','Postman Collectionエクスポート（全エンドポイント）','README.md（API仕様・起動手順）'],
+  optionalFeatures:['ページネーション (Pageable)','ソート / 検索クエリ (例: GET /tasks?status=done&sort=created,desc)','タスクへのタグ機能 (多対多リレーション)','Spring Security の基本認証 (Basic Auth)','OpenAPI / Swagger UI でAPI仕様書を自動生成','単体テスト (JUnit + MockMvc で Controller テスト)'],
+  deliverables:['GitHubリポジトリURL','Postman Collectionエクスポート（全エンドポイント）','README.md（API仕様・起動手順）','application-example.properties (本物の application.properties は .gitignore)'],
+  readmeChecklist:['API 概要','技術スタック (Spring Boot バージョン / DB)','エンドポイント一覧 (メソッド・URL・パラメータ・レスポンス例)','起動手順 (mvn / gradle / DB セットアップ)','環境変数の設定方法','エラーレスポンスの形式','工夫点 / 苦戦点','AI 利用ログへのリンク'],
+  aiUsageLogTemplate:'# AI-USAGE.md (Spring Boot)\n\n## 使用したツール\n- Claude Code / ChatGPT / Hoku\n\n## 使った場面 (Issue 単位で記録)\n### Issue #1: TaskController.findById の実装\n- プロンプト: "Spring Boot で GET /tasks/{id}。存在しなければ 404 を返す"\n- AI 出力の採用判断: メソッドシグネチャは採用、例外処理は @ControllerAdvice 側で集約\n- 自分で書いた範囲: Service / Repository / テストケース\n\n## AI に頼らなかった範囲\n- DB 設計 / Entity リレーション\n- 例外設計\n',
   github:{ required: true, readme: true },
   hokiLog: true,
-  criteria:['全5エンドポイントがPostmanで動作する','バリデーションエラーが400で返る','404エラーが適切に返る','application.propertiesにDBの認証情報が直書きされていない'],
+  criteria:['全5エンドポイントがPostmanで動作する','バリデーションエラーが400で返る','404エラーが適切に返る','application.propertiesにDBの認証情報が直書きされていない','application.propertiesが.gitignoreに含まれている、または環境変数化されている'],
+  scoringRubric:['機能完成度 35% (CRUD + Validation + 例外処理が全て動く)','アーキテクチャ 25% (3層分離 / DTO-Entity 分離 / 責務明確)','API仕様書品質 15% (Postman Collection / README のエンドポイント表)','セキュリティ 10% (秘密情報のコミット無し / .gitignore 適切)','AI利用ログ 10% (Issue 単位の記録)','面談での説明力 5% (層構造の説明 / 詰まった点)'],
   passCond:'全エンドポイントがPostmanで正常動作する',
-  resubmit:'エラーのあるエンドポイントの修正',
-  reviewPoints:['3層構造が適切に分離されているか','DTOをEntityとして使っていないか','例外処理が網羅されているか']},
+  resubmit:'エラーのあるエンドポイントの修正・application.properties の環境変数化',
+  reviewPoints:['3層構造が適切に分離されているか','DTOをEntityとして使っていないか','例外処理が網羅されているか'],
+  instructorCheckPoints:['@RestController / @Service / @Repository アノテーションが正しい層に付いているか','EntityをそのままJSONとして返していないか (DTOで包んでいるか)','@Transactional が必要な箇所 (更新系) に付いているか','BindingResult / @Valid が漏れていないか','application.properties に DB パスワードを直書きしていないか (環境変数 ${...} になっているか)','@RestControllerAdvice で例外の集約ハンドリングをしているか','ロガー (Slf4j) を使って例外を最低限ログ出力しているか','GET 系で内部例外スタックを JSON に晒していないか'],
+  interviewPoints:['Controller / Service / Repository の責務を 1 分で説明できるか','DTO と Entity を分けた理由 (循環参照 / 過剰公開 / API 仕様の独立)','@Transactional がなぜ必要か (一貫性 / ロールバック)','どこで一番詰まり、どう解決したか (Caused by の読み方など)','CORS とは何か / なぜ必要か / どう許可したか']},
 
 { phase:'p10', id:'a10', title:'Pythonデータ処理・自動化スクリプト',
   goal:'CSV処理・API連携・レポート生成の3機能を含む業務自動化スクリプトを作成する。',
@@ -9328,13 +9411,20 @@ window.ASSIGNMENTS = [
   prereq:'Phase 12 全レッスン受講済み',
   build:'フルスタック Web アプリケーション',
   requirements:['Next.js (TypeScript) + Spring Boot 3.x + MySQL 8の構成','CRUD全操作が動作する','バリデーション・エラーハンドリング実装済み','レスポンシブ対応','Vercel（フロント）+ Render（バック）でデプロイ済み','README.md（ER図・API仕様・起動手順）','AI-USAGE.md（AI活用記録）','面談想定質問の準備（23問回答）'],
-  deliverables:['GitHubリポジトリURL（frontend/backend）','フロントデモURL（Vercel）','バックAPIURL（Render）','README.md','AI-USAGE.md','技術説明資料（Slides or Notion）'],
+  optionalFeatures:['認証機能 (NextAuth.js / Spring Security)','検索 / フィルタ / ページネーション','画像アップロード (Cloudinary / S3)','タグ / カテゴリ / 多対多リレーション','API レート制限 / キャッシュ','GitHub Actions による CI (ビルド・テスト自動化)','OpenAPI 自動生成 / 仕様書ホスティング'],
+  deliverables:['GitHubリポジトリURL（frontend/backend）','フロントデモURL（Vercel）','バックAPIURL（Render）','README.md','AI-USAGE.md','技術説明資料（Slides or Notion）','ER図','API仕様書 (Postman Collection or OpenAPI)','面談想定 23 問の回答シート'],
+  readmeChecklist:['プロダクト概要 (誰の何を解決するか)','スクリーンショット (主要画面 3-5 枚)','デモURL (フロント / バック)','技術スタック (フロント / バック / DB / インフラ)','アーキテクチャ図 or 3層構造図','機能一覧','ER図 (画像 or テキスト)','起動手順 (frontend / backend それぞれ)','環境変数の説明','工夫点 / 苦戦点 / 学んだこと','AI 利用ログへのリンク','今後の拡張案'],
+  aiUsageLogTemplate:'# AI-USAGE.md (Capstone)\n\n## 使用したツール\n- Claude Code (実装支援)\n- ChatGPT (要件整理・命名)\n- Hoku (エラー相談 / 設計レビュー)\n\n## フェーズ別 AI 活用\n### 1. 要件定義\n- どんなプロンプトで何を引き出したか\n\n### 2. 設計 (ER / API)\n- ER 図 / API 仕様のどこを AI と相談したか\n\n### 3. 実装\n- Issue / コミット単位で記録 (依頼 → 出力 → 採用判断)\n\n### 4. デバッグ\n- 詰まったエラーと AI への質問\n\n## 自分で書いた範囲\n- [どこを自力で]\n\n## AI に任せなかった理由\n- [自力で書いた箇所と理由]\n\n## 振り返り\n- AI を使って得たこと / 苦労したこと\n',
+  interviewQuestionsRef:'docs/13_instructor_manual.md / Phase 12 教材内の面談 23 問を参照。各問に 60-90 秒で答えられる回答を用意する。',
   github:{ required: true, readme: true },
   hokiLog: true,
-  criteria:['デモURLでCRUD操作が全て動作する','READMEに必要な情報が全て揃っている','AI-USAGE.mdが記録されている','スクリーンショットまたはデモ動画がある'],
+  criteria:['デモURLでCRUD操作が全て動作する','READMEに必要な情報が全て揃っている','AI-USAGE.mdが記録されている','スクリーンショットまたはデモ動画がある','面談 23 問への回答シートが用意されている'],
+  scoringRubric:['機能完成度 25% (フロント / バック / DB が連動して動く)','アーキテクチャ品質 20% (層分離 / 命名 / 不要コード無し)','UX / レスポンシブ 10%','README / API 仕様書 / ER 図品質 15%','AI 利用ログの粒度 10%','面談 23 問への回答精度 15% (自分の言葉で答えられているか)','プレゼン資料 5%'],
   passCond:'デプロイURLで全機能が動作して説明資料がある',
   resubmit:'未提出機能の実装・デプロイエラーの修正・資料の充実',
-  reviewPoints:['3層構造（Controller/Service/Repository）が適切か','DTOとEntityが分離されているか','セキュリティ上の問題がないか（APIキー・SQLインジェクション等）','面談で説明できる水準か']}
+  reviewPoints:['3層構造（Controller/Service/Repository）が適切か','DTOとEntityが分離されているか','セキュリティ上の問題がないか（APIキー・SQLインジェクション等）','面談で説明できる水準か'],
+  instructorCheckPoints:['フロント↔バックの API 通信が CORS 含めて成功しているか','秘密情報 (.env / application.properties) が公開リポジトリに混入していないか','Vercel / Render の環境変数設定が README で説明されているか','ER 図と実 DB スキーマが一致しているか','README の起動手順通りに新環境で動くか (再現性)','エラー時のレスポンスが JSON 形式に揃っているか','コンソールにエラーログ / デバッグログが残っていないか','GitHub Issue / コミットメッセージで開発の流れが追えるか'],
+  interviewPoints:['なぜこのテーマを選んだか / 誰の何を解決するか','技術選定の理由 (なぜ Next.js / なぜ Spring Boot / なぜ MySQL)','フロントとバックの責務分担を説明できるか','一番詰まった点と解決方法','DB 設計の根拠 (なぜそのテーブル / カラム / リレーション)','セキュリティで気を付けたこと','AI をどの範囲で使ったか / 使わなかった範囲はどこか','次に改善したいこと']}
 ];
 </script>
 <script data-src="data/skillchecks.js">
@@ -13912,9 +14002,34 @@ function _qsa(sel, root) { return Array.from((root || document).querySelectorAll
       html += '<details class="asn-detail"><summary>課題の詳細を見る</summary><div class="asn-body">';
       html += '<h4>作成するもの</h4><p>' + _esc(a.build) + '</p>';
       html += '<h4>必須要件</h4><ul>' + (a.requirements||[]).map(function(r){ return '<li>'+_esc(r)+'</li>'; }).join('') + '</ul>';
-      html += '<h4>📦 提出物</h4><ul>' + (a.deliverables||[]).map(function(r){ return '<li>'+_esc(r)+'</li>'; }).join('') + '</ul>';
+      if (a.optionalFeatures && a.optionalFeatures.length) {
+        html += '<h4>任意要件 (発展)</h4><ul>' + a.optionalFeatures.map(function(r){ return '<li>'+_esc(r)+'</li>'; }).join('') + '</ul>';
+      }
+      html += '<h4>提出物</h4><ul>' + (a.deliverables||[]).map(function(r){ return '<li>'+_esc(r)+'</li>'; }).join('') + '</ul>';
+      if (a.readmeChecklist && a.readmeChecklist.length) {
+        html += '<h4>README チェックリスト</h4><ul>' + a.readmeChecklist.map(function(r){ return '<li>'+_esc(r)+'</li>'; }).join('') + '</ul>';
+      }
+      if (a.aiUsageLogTemplate) {
+        html += '<h4>AI 利用ログ</h4><pre class="asn-ailog">' + _esc(a.aiUsageLogTemplate) + '</pre>';
+      }
       if (a.github && a.github.required) html += '<div class="callout">GitHubリポジトリへのpushが必須です。' + (a.github.readme ? 'README.mdも必須。' : '') + '</div>';
+      if (a.criteria && a.criteria.length) {
+        html += '<h4>評価基準</h4><ul>' + a.criteria.map(function(r){ return '<li>'+_esc(r)+'</li>'; }).join('') + '</ul>';
+      }
+      if (a.scoringRubric && a.scoringRubric.length) {
+        html += '<h4>採点配点</h4><ul>' + a.scoringRubric.map(function(r){ return '<li>'+_esc(r)+'</li>'; }).join('') + '</ul>';
+      }
       html += '<h4>合格条件</h4><p>' + _esc(a.passCond) + '</p>';
+      if (a.resubmit) html += '<h4>再提出条件</h4><p>' + _esc(a.resubmit) + '</p>';
+      if (a.reviewPoints && a.reviewPoints.length) {
+        html += '<h4>講師レビュー観点</h4><ul>' + a.reviewPoints.map(function(r){ return '<li>'+_esc(r)+'</li>'; }).join('') + '</ul>';
+      }
+      if (a.instructorCheckPoints && a.instructorCheckPoints.length) {
+        html += '<h4>講師チェックポイント</h4><ul>' + a.instructorCheckPoints.map(function(r){ return '<li>'+_esc(r)+'</li>'; }).join('') + '</ul>';
+      }
+      if (a.interviewPoints && a.interviewPoints.length) {
+        html += '<h4>面談で答えるべきポイント</h4><ul>' + a.interviewPoints.map(function(r){ return '<li>'+_esc(r)+'</li>'; }).join('') + '</ul>';
+      }
       html += '</div></details></div>';
     });
     root.innerHTML = html || '<p class="empty-msg">課題データを読み込み中です。</p>';
@@ -13926,14 +14041,26 @@ function _qsa(sel, root) { return Array.from((root || document).querySelectorAll
     if (!root || root.dataset.rendered) return;
     root.dataset.rendered = '1';
     var SC = window.SKILLCHECKS || {};
+    var ENH = window.SC_ENHANCEMENTS || {};
     var html = '';
     Object.values(SC).forEach(function(phase) {
       html += '<div class="sc-phase"><h2>Phase ' + _esc(phase.phase.replace('p','')) + ': ' + _esc(phase.title) + '</h2>';
       html += '<div class="sc-questions">';
       (phase.questions||[]).forEach(function(q, i) {
+        var enh = (q.id && ENH[q.id]) ? ENH[q.id] : null;
         html += '<details class="sc-item"><summary><span class="sc-num">Q'+(i+1)+'</span>' + _esc(q.q) + '</summary>';
         html += '<div class="sc-answer"><div class="sc-ans-label">模範解答</div><p>' + _esc(q.answer) + '</p>';
         if (q.explanation) html += '<p class="sc-explain">' + _esc(q.explanation) + '</p>';
+        if (enh && enh.commonMistakes && enh.commonMistakes.length) {
+          html += '<div class="sc-block sc-mistakes"><div class="sc-block-label">よくある間違い</div><ul>' +
+                  enh.commonMistakes.map(function(m){ return '<li>'+_esc(m)+'</li>'; }).join('') + '</ul></div>';
+        }
+        if (enh && enh.passLine) {
+          html += '<div class="sc-block sc-passline"><div class="sc-block-label">合格ライン</div><p>' + _esc(enh.passLine) + '</p></div>';
+        }
+        if (enh && enh.instructorCheckPoint) {
+          html += '<div class="sc-block sc-instructor"><div class="sc-block-label">講師チェックポイント</div><p>' + _esc(enh.instructorCheckPoint) + '</p></div>';
+        }
         html += '</div></details>';
       });
       html += '</div></div>';
@@ -16189,50 +16316,104 @@ function _qsa(sel, root) { return Array.from((root || document).querySelectorAll
     var ctx = payload.currentContext;
 
     var ctxStr = '';
-    if (ctx && ctx.phase) ctxStr = ctx.phase + (ctx.lesson ? ' / ' + ctx.lesson : '');
+    var phaseNum = null;
+    if (ctx && ctx.phase) {
+      ctxStr = ctx.phase + (ctx.lesson ? ' / ' + ctx.lesson : '');
+      var pm = ctx.phase.match(/(\d+)/);
+      if (pm) phaseNum = parseInt(pm[1], 10);
+    }
 
-    if (cat === 'error' || /エラー|error|Error/.test(msg)) {
+    /* ── 丸投げガード (全カテゴリ共通) ── */
+    if (/全部書いて|全部作って|丸ごと(書いて|作って|実装)|コード(全部|全て)書いて|完成形を(書いて|出して)/.test(msg)
+        && cat !== 'task' && cat !== 'interview' && cat !== 'vocab') {
+      return 'うーん、完成コードを丸ごと出すのはここでは控えるね。\n\n' +
+        '目的は「自分の言葉で説明できるようになること」だから、まず:\n' +
+        '・どこまで自分で書けたか\n' +
+        '・どこで詰まっているか\n' +
+        '・自分なりの仮説\n\n' +
+        'を送ってくれれば、考え方を一緒に整理するよ。' +
+        (ctxStr ? '\n\n今は ' + ctxStr + ' だね。' : '');
+    }
+
+    /* ── Phase 別エラー応答 (P03/P05/P07/P09/P10) ── */
+    function phaseSpecificErrorHint(p) {
+      if (p === 3) return '\n\nP03 (JavaScript) 頻出:\n・undefined / null へのプロパティアクセス\n・非同期の順番 (await 抜け / then の戻り値忘れ)\n・配列 forEach 内で return しても外側に返らない\n・CORS エラー (fetch 先の Access-Control-Allow-Origin)';
+      if (p === 5) return '\n\nP05 (React) 頻出:\n・state を直接 mutate (`arr.push()` / `obj.x = ...`) して再レンダリングされない\n・useEffect の依存配列に値を入れ忘れて stale closure になる\n・key 属性ミス (index を key にして並び替えで壊れる)\n・useState の更新は非同期。直後に参照しても古い値';
+      if (p === 6) return '\n\nP06 (Next.js) 頻出:\n・"use client" を忘れて useState が動かない\n・環境変数を NEXT_PUBLIC_ プレフィックス無しでクライアントから参照\n・Vercel ビルドエラーは型と環境変数を疑う\n・App Router の Server/Client 境界';
+      if (p === 7) return '\n\nP07 (Java) 頻出:\n・NullPointerException → 直前のオブジェクトが null\n・型変換ミス (Object → String キャスト)\n・コレクションのループ中に remove で ConcurrentModificationException\n・スタックトレースは下から読む (原因) → 上 (発生箇所)';
+      if (p === 8) return '\n\nP08 (SQL) 頻出:\n・WHERE 抜けで UPDATE / DELETE が全行に効く\n・JOIN の条件抜けで件数爆発\n・NULL 比較は = ではなく IS NULL\n・主キー / 外部キー制約違反';
+      if (p === 9) return '\n\nP09 (Spring Boot) 頻出:\n・スタックの一番下 "Caused by:" に本当の原因\n・BeanCreationException → @Service / @Repository / @Autowired の付け忘れ\n・application.properties の DB URL / user / password\n・CORS は @CrossOrigin or WebMvcConfigurer で許可\n・404 → @RequestMapping のパスを確認';
+      if (p === 10) return '\n\nP10 (Python) 頻出:\n・IndentationError → タブとスペース混在\n・ModuleNotFoundError → pip install / 仮想環境\n・KeyError / IndexError → 存在しないキー・範囲外参照\n・トレースバックは一番下 (最後の行) が実際のエラー';
+      return '';
+    }
+
+    if (cat === 'error' || /エラー|error|Error|Exception|Traceback/.test(msg)) {
       return 'OK、まず状況を整理しよ。\n\n' +
-        (hasImg ? 'スクリーンショットを確認した。' : '') +
-        'エラーが出る時は、だいたい以下のどれか：\n' +
-        '・typo（変数名・プロパティ名のミス）\n' +
-        '・import / export のミス\n' +
-        '・非同期処理の順番\n' +
-        '・undefinedへのアクセス\n\n' +
-        '確認する順番：\n1. Consoleログを全部確認\n2. エラーが出た行を見る\n3. 直前に変えたコードを確認\n\n' +
-        (hasImg ? '画像だけでは原因を断定できないので、エラー文とコードも一緒に送ってみて。' : 'Consoleのエラー文とコードも一緒に送ってくれると精度が上がる。') +
+        (hasImg ? 'スクリーンショットを確認した。\n' : '') +
+        'エラー対応の汎用ステップ:\n' +
+        '1. エラー文 (1 行目とスタック) を全部読む\n' +
+        '2. 直前に変えたコード行を確認\n' +
+        '3. 期待値と実際値を分けて整理\n' +
+        phaseSpecificErrorHint(phaseNum) +
+        '\n\n' +
+        (hasImg ? '画像だけでは断定できないので、エラー文 (テキスト) とコードも一緒に送って。' : 'エラー文とコードも一緒に送ってくれると精度が上がる。') +
         '\n\n講師にも状況を共有しておこう。';
     }
     if (cat === 'screenshot' || hasImg) {
       return 'スクショ確認した。\n\n' +
-        (msg ? 'やろうとしていたこと：' + msg.slice(0,60) + '\n\n' : '') +
-        '読み取れること：\n・画面の状態を確認中\n・表示崩れ or エラー状態の可能性\n\n' +
-        '追加で送ってほしいもの：\n' +
-        '・Consoleのエラー文\n・直前に変えたコードの該当部分\n・Terminal ログ（Next.js / Spring Boot の場合）\n\n' +
+        (msg ? 'やろうとしていたこと: ' + msg.slice(0,60) + '\n\n' : '') +
+        '読み取れること:\n・画面の状態を確認中\n・表示崩れ or エラー状態の可能性\n\n' +
+        '追加で送ってほしいもの:\n' +
+        '・Console のエラー文 (テキストで)\n・直前に変えたコードの該当部分\n・Terminal ログ (Next.js / Spring Boot の場合)\n\n' +
         '画像だけだと断定はできないので、補足情報を一緒に送ってみよう。';
     }
     if (cat === 'code') {
-      return 'コードを見るよ。\n\nコードを貼ってくれれば、1行ずつの意味・全体の流れ・改善できる点を整理するね。\n\n' +
+      var lens = '';
+      if (phaseNum === 5) lens = '\n\nP05 (React) の視点で:\n・このコンポーネントの props と state は何か\n・useEffect / useState の依存関係\n・親→子のデータの流れ';
+      else if (phaseNum === 6) lens = '\n\nP06 (Next.js) の視点で:\n・Server Component か Client Component か\n・データ取得はサーバ側かクライアント側か\n・App Router のルーティング構造';
+      else if (phaseNum === 7) lens = '\n\nP07 (Java) の視点で:\n・クラスの責務 / 継承関係\n・例外処理の流れ\n・コレクションの選択理由';
+      else if (phaseNum === 9) lens = '\n\nP09 (Spring Boot) の視点で:\n・Controller → Service → Repository のどの層か\n・DTO / Entity の使い分け\n・@Transactional / バリデーション';
+      else if (phaseNum === 10) lens = '\n\nP10 (Python) の視点で:\n・データ構造 (list / dict / set / tuple)\n・例外処理\n・ファイル I/O のパス処理';
+      return 'コードを見るよ。\n\nコードを貼ってくれれば、1 行ずつの意味・全体の流れ・改善できる点を整理するね。\n\n' +
         '面談で説明するための「自分の言葉バージョン」も一緒に作ろう。' +
-        (ctxStr ? '\n\n今は ' + ctxStr + ' を学習中なんだね。' : '');
+        lens +
+        (ctxStr ? '\n\n今は ' + ctxStr + ' を学習中。' : '');
     }
     if (cat === 'vocab') {
-      return '用語の説明ね。\n\n知りたい用語を送ってくれれば：\n・一言でいうと\n・現場ではどう使うか\n・具体例\n・面談でどう説明するか\n\nをまとめるよ。';
+      return '用語の説明ね。\n\n知りたい用語を送ってくれれば:\n・一言でいうと\n・現場ではどう使うか\n・具体例\n・面談でどう説明するか\n\nをまとめるよ。' +
+        (ctxStr ? '\n\n今は ' + ctxStr + ' の用語かな?' : '');
     }
     if (cat === 'task') {
-      return 'いいね、まず分解しよう。\n\n課題名と要件を送ってくれれば、進める順番を一緒に整理する。\n\n完成コードをそのまま出すのはやめておく。課題の目的は「自分の言葉で説明できるようになること」だから、進め方と考え方を一緒に整理しよう。';
+      return 'いいね、まず分解しよう。\n\n課題名と要件を送ってくれれば、進める順番を一緒に整理する。\n\n' +
+        '完成コードをそのまま出すのはやめておく。課題の目的は「自分の言葉で説明できるようになること」だから、進め方と考え方を一緒に整理しよう。\n\n' +
+        '最初に決めると楽:\n・最小要件 (MVP) は何か\n・データ構造はどうするか\n・どこからコードを書き始めるか';
     }
     if (cat === 'interview') {
-      return '面談練習やろう。\n\n制作物名・使用技術・実装した機能・苦戦した点を送ってくれれば、面談で聞かれそうな質問を出して、回答を一緒に磨いていく。';
+      return '面談練習やろう。\n\n制作物名・使用技術・実装した機能・苦戦した点を送ってくれれば、面談で聞かれそうな質問を出して、回答を一緒に磨いていく。\n\n' +
+        '特に磨くポイント:\n・なぜその技術を選んだか\n・どこで詰まって、どう解決したか\n・AI をどう使ったか (使った範囲を正直に)';
     }
     if (cat === 'readme') {
-      return 'README一緒に作ろう。\n\n制作物名・概要・使用技術・実装した機能・工夫した点・苦戦した点・AI使用箇所を送ってくれれば、READMEに入れるべき項目と文章案を整理するよ。';
+      return 'README 一緒に作ろう。\n\n制作物名・概要・使用技術・実装した機能・工夫した点・苦戦した点・AI 使用箇所を送ってくれれば、README に入れるべき項目と文章案を整理するよ。\n\n' +
+        '基本構成:\n・サービス概要 (1-2 行)\n・スクリーンショット or デモ URL\n・技術スタック\n・主な機能\n・セットアップ手順\n・工夫点 / 苦戦点\n・AI 利用ログ';
     }
     if (cat === 'github') {
-      return 'GitHub提出前チェックをしよう。\n\nリポジトリURL・README概要・AI使用箇所・環境変数の扱いを送ってくれれば、提出前の確認ポイントを整理する。APIキーやパスワードがコミットされていないかも確認しよう。';
+      return 'GitHub 提出前チェックをしよう。\n\n' +
+        '送ってほしい情報:\n・リポジトリ URL\n・README 概要\n・AI 使用箇所\n・環境変数の扱い\n\n' +
+        '確認ポイント:\n・APIキー / パスワード / .env がコミットされていないか (.gitignore で除外)\n・main ブランチが動く状態か\n・README に課題の趣旨が書かれているか\n・コミットメッセージが読めるか';
+    }
+    if (cat === 'claudecode') {
+      return 'Claude Code の指示文を一緒に磨こう。\n\n' +
+        '良いプロンプトの型:\n・何を作りたいか (1 行)\n・前提 (技術スタック / 既存コード)\n・期待する動作 (Input / Output)\n・触ってよい / ダメなファイル\n・確認手順\n\n' +
+        '丸投げプロンプト ("ToDo アプリ全部作って") は NG。\n機能単位 / メソッド単位に分けて指示するほど精度が上がる。\n\n' +
+        '指示文の例:\n「Spring Boot の TaskController に GET /tasks/{id} を追加してください。Service と Repository は既存の findById を使い、見つからない場合は 404 を返してください。テストも 1 件追加してください。」';
+    }
+    if (cat === 'report') {
+      return '日報 / 週報を一緒に整理しよう。\n\n' +
+        '送ってほしい情報:\n・今日 / 今週やったこと\n・詰まったこと\n・解決方法\n・明日 / 来週やること\n\n' +
+        '書き方のコツ:\n・「やったこと」は完了形で動詞から書く (例: "useState の挙動を理解した")\n・「詰まったこと」は事実 + 仮説 + 解決手段の 3 点セット\n・AI を使った箇所は明記 (どのプロンプトで何を出したか)\n・所要時間を書くと振り返りに使える';
     }
     return 'OK、詳しく教えてくれると一緒に整理できる。\n\n状況・エラー文・スクリーンショットがあるとかなり正確に見やすい。\n\n' +
-      (ctxStr ? '今は ' + ctxStr + ' を学習中なんだね。どこで詰まってる？' : '何で詰まってる？');
+      (ctxStr ? '今は ' + ctxStr + ' を学習中なんだね。どこで詰まってる?' : '何で詰まってる?');
   }
 
   /* ── sendToHoku: AI接続の抽象化レイヤー ── */
