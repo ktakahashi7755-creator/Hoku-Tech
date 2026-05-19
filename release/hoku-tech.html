@@ -14843,12 +14843,12 @@ function _qsa(sel, root) { return Array.from((root || document).querySelectorAll
         html += '</tbody></table></div>';
       }
       if(app.apiList && app.apiList.length) {
-        html += '<h4>🌐 API設計</h4><table class="data-table"><thead><tr><th>Method</th><th>Path</th><th>説明</th></tr></thead><tbody>';
+        html += '<div class="section-label">API設計</div><div class="table-wrap"><table class="data-table"><thead><tr><th>Method</th><th>Path</th><th>説明</th></tr></thead><tbody>';
         app.apiList.forEach(function(a){
           var cls = a.method==='GET'?'method-get':a.method==='POST'?'method-post':a.method==='PUT'?'method-put':'method-del';
           html += '<tr><td><span class="http-method '+cls+'">'+_esc(a.method)+'</span></td><td><code>'+_esc(a.path)+'</code></td><td>'+_esc(a.desc)+'</td></tr>';
         });
-        html += '</tbody></table>';
+        html += '</tbody></table></div>';
       }
       if(app.implementSteps && app.implementSteps.length) {
         html += '<div class="section-label">実装手順</div><ol class="learning-steps">';
