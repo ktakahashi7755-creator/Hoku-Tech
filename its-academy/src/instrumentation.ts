@@ -1,14 +1,8 @@
-import { checkEnvironment } from "@/lib/env-check";
-
 /** サーバー起動時に 1 回呼ばれる。必須の設定が不足していれば起動を止める */
-export function register() {
+export async function register() {
   if (process.env.NEXT_RUNTIME !== "nodejs") return;
-  if (process.env.NEXT_PHASE === "phase-production-build") return; // ビルド中は確認しない
-  const problems = checkEnvironment(process.env);
-  if (problems.length > 0) {
-    console.error(JSON.stringify({ level: "fatal", event: "config_invalid", problems }));
-    throw new Error(`設定に問題があります: ${problems.join(" / ")}`);
-  }
+  const { verifyConfiguration } = await import("./instrumentation-node");
+  verifyConfiguration();
 }
 
 /**

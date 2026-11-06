@@ -1,0 +1,72 @@
+# ITS ENGINEER ACADEMY — 1 台のサーバーで動かす構成 (手順は ../docs/deployment-guide.md §5)
+#
+#   cp .env.example .env   # POSTGRES_PASSWORD 等を設定
+#   docker compose up -d --build            … DB 起動 → マイグレーション → アプリ起動
+#   docker compose --profile demo run --rm seed   … 評価用のデモデータ投入 (本番では実行しない)
+#
+# アプリは 127.0.0.1:3000 で待ち受ける。インターネットへは HTTPS を終端するリバースプロキシ経由で公開する。
+
+services:
+  db:
+    image: ${POSTGRES_IMAGE:-postgres:16}
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: its
+      POSTGRES_DB: its_academy
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD を .env に設定してください}
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U its -d its_academy"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  migrate:
+    build:
+      context: .
+      target: tools
+      args:
+        NODE_IMAGE: ${NODE_IMAGE:-node:22-bookworm-slim}
+        COOKIE_SECURE: ${COOKIE_SECURE:-true}
+    image: its-academy-tools
+    environment:
+      DATABASE_URL: postgresql://its:${POSTGRES_PASSWORD}@db:5432/its_academy
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
+  app:
+    build:
+      context: .
+      target: runner
+      args:
+        NODE_IMAGE: ${NODE_IMAGE:-node:22-bookworm-slim}
+        COOKIE_SECURE: ${COOKIE_SECURE:-true}
+    image: its-academy
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://its:${POSTGRES_PASSWORD}@db:5432/its_academy
+      APP_ENV: ${APP_ENV:-production}
+      COOKIE_SECURE: ${COOKIE_SECURE:-true}
+    ports:
+      - "127.0.0.1:3000:3000"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+  # 評価用のデモデータ (prisma/seed.ts)。NODE_ENV=production では拒否されるため development で実行する
+  seed:
+    profiles: ["demo"]
+    image: its-academy-tools
+    command: ["npx", "prisma", "db", "seed"]
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: postgresql://its:${POSTGRES_PASSWORD}@db:5432/its_academy
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  db-data:

@@ -51,3 +51,6 @@ next-env.d.ts
 /content/code/**/app.log
 /content/code/**/body.txt
 /content/code/**/headers.txt
+
+# DB backups (scripts/backup.sh)
+/backups/
