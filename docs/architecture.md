@@ -102,7 +102,7 @@ PostgreSQL (Prisma)
 ## 6. 教材コードの検証
 
 `content/curriculum.ts` のサンプルコードは `content/code/` の実ファイルを参照し、
-`scripts/verify-code.ts` が JDK 21 / bash / PostgreSQL 16 (使い捨てスキーマ) で実行して、
+`scripts/verify-code.ts` が JDK 21 / bash / PostgreSQL 16 (使い捨てスキーマ) / Maven (runner スクリプトでビルド・起動・curl) で実行して、
 教材に載せた実行結果と行ごとに比較する (行末の空白のみ無視)。CI で毎回実行し、一致しなければ失敗する。
 CMS で編集したコードは自動検証の対象外のため、「自動実行検証済み」の印はコードと実行結果が変わらない場合だけ引き継ぎ、
 学習画面の説明文も検証済みかどうかで切り替える。

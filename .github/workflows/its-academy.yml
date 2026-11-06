@@ -39,6 +39,8 @@ jobs:
         with:
           distribution: temurin
           java-version: "21"
+          cache: maven
+          cache-dependency-path: its-academy/content/code/**/pom.xml
       - run: npm ci
       - run: npx prisma generate
       - name: Typecheck
@@ -47,8 +49,10 @@ jobs:
         run: npm run lint
       - name: Unit tests
         run: npm test
-      - name: Verify lesson code samples (run and compare output)
-        run: npm run verify:code
+      - name: Verify lesson code samples (Java / bash / SQL / Maven projects, compared with published output)
+        run: |
+          sudo apt-get install -y postgresql-client >/dev/null
+          npm run verify:code
       - name: Build
         run: npm run build
       - name: E2E tests

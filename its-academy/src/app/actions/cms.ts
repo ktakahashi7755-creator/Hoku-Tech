@@ -26,7 +26,7 @@ const DraftShape = z.object({
   code: z
     .array(
       z.object({
-        language: z.enum(["java", "bash", "sql", "html", "css", "javascript", "text"]),
+        language: z.enum(["java", "bash", "sql", "html", "css", "javascript", "xml", "properties", "text"]),
         filename: str(200),
         source: str(50000),
         output: str(20000),

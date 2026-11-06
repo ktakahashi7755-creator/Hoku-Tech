@@ -45,3 +45,9 @@ next-env.d.ts
 # Playwright
 /test-results/
 /playwright-report/
+
+# 教材サンプルのビルド成果物
+/content/code/**/target/
+/content/code/**/app.log
+/content/code/**/body.txt
+/content/code/**/headers.txt

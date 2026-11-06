@@ -22,7 +22,7 @@
 | 8 | 課題提出・レビュー | 完了 (選択・記述問題の専用 UI と GitHub OAuth は未実装) |
 | 9 | 管理者ダッシュボード | 完了 (ロール変更画面は未実装) |
 | 10 | 教材 CMS | 完了 (画像アップロードと課題の編集画面は未実装) |
-| 11 | 教材移行 | 進行中 (16 レッスン・課題 4 件。L0〜L3 の主要部分と L4 SQL。コード 15 件を実行検証済み) |
+| 11 | 教材移行 | 進行中 (21 レッスン・課題 5 件。L0〜L5 の主要部分。コード 20 件を実行検証済み) |
 | 12 | 総合テスト | 未着手 (STEP 4〜9 の単体・E2E は実施済み) |
 | 13 | 本番公開準備 | 未着手 (ホスティング契約は要承認) |
 
@@ -149,7 +149,24 @@ Hoku Tech 本体のファイル (index.html / assets / data) には一切変更�
 * 実装内容: L3 に 5 レッスン (継承・インターフェース・コレクション・例外・日付)、L4 に SQL 3 レッスン、課題 2 件 (図書の貸出管理クラス・店舗在庫の SQL) を追加。出典 URL は `content/sources.ts` (インベントリ CSV から生成) から引く
 * テスト結果: 15 サンプル (Java 10・bash 2・SQL 3) を実行して一致。「よくあるエラー」に載せたコンパイラ・PostgreSQL のエラーメッセージ 15 件を実際に発生させて文言を確認
 * 未解決課題: L1 環境構築 (WSL2・JDK・VS Code) の手順レッスン、L2 演算子・L3 static/final・パッケージ、L4 HTML/CSS/JavaScript・HTTP・JDBC、L5 Spring Boot、L6・L7 の全レッスン
-* 次のアクション: L4 JDBC (PreparedStatement 必須) と HTTP、L5 Spring Boot 3 の再構成
+* 次のアクション: L4 JDBC (PreparedStatement 必須) と HTTP、L5 Spring Boot の再構成 → T-11-02 で実施
+
+### T-11-02 教材移行 (第 3 弾: HTTP・JDBC・Spring Boot)
+
+* 開発フェーズ: PHASE 8 / STEP 11
+* ステータス: 完了 (この範囲)
+* 完了条件: L4 HTTP・JDBC と L5 Spring Boot の基本・REST API・テストを、現行のバージョンで実際にビルド・起動して検証する
+* 実装内容:
+  * L4: HTTP の仕組み (Java 標準の HttpServer / HttpClient で実際に通信)、JDBC (Maven でドライバ取得・PreparedStatement・SQL インジェクションの実演・try-with-resources・トランザクション・接続情報は環境変数)
+  * L5: Spring Boot の基本 (DI・@RestController)、REST API (Controller/Service/Repository・DTO + Bean Validation・ProblemDetail で 400/404/409)、テスト (JUnit 5・@WebMvcTest・MockMvc・@MockitoBean)
+  * 課題「掲示板 REST API」(元教材の Springboot 課題を、評価基準・テスト・README 要件付きで再設計)
+  * 教材のバージョンは Spring Boot 4.1.2 / Java 21 / PostgreSQL JDBC 42.7.14 (元教材の Spring Boot 3.5.0 は 1 世代前のため)
+  * 検証スクリプトに runner (Maven プロジェクトをビルド → アプリを起動 → curl で API を呼ぶ → 停止) を追加。DB は毎回使い捨てのスキーマ
+* 関連ファイル: `its-academy/content/lessons-l4-l5.ts`, `its-academy/content/code/l4-http/`, `its-academy/content/code/l4-jdbc/`, `its-academy/content/code/l5-book-api/`, `its-academy/scripts/verify-code.ts`
+* テスト結果: 20 サンプル一致 (うち Maven プロジェクト 4 件: JDBC 実行、Spring Boot の起動と API 呼び出し 2 件、mvn test 4 件成功)。Spring Boot 4 での import の場所・@MockBean の廃止・モック忘れのエラーメッセージを実際に確認
+* 検証中に見つけたこと: クエリ文字列の日本語をエンコードせずに送ると Tomcat が HTML の 400 を返す。初心者がつまずく点として REST API レッスンの「よくあるエラー」に追加
+* 未解決課題: L5 Spring Security (認証・認可・パスワードのハッシュ化)、L4 HTML/CSS/JavaScript、L1 環境構築の手順、L6・L7
+* 次のアクション: L5 Spring Security と、L7 卒業制作 (図書管理システム) の課題設計
 
 ### T-9-01 管理者・講師ダッシュボード
 

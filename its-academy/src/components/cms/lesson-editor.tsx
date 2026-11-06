@@ -6,7 +6,7 @@ import { saveDraft, type CmsState } from "@/app/actions/cms";
 import type { EditorDraft } from "@/lib/content/draft";
 import { Button, cx, inputStyles } from "@/components/ui";
 
-const LANGS = ["java", "bash", "sql", "html", "css", "javascript", "text"] as const;
+const LANGS = ["java", "bash", "sql", "html", "css", "javascript", "xml", "properties", "text"] as const;
 
 function Section({ n, title, hint, children }: { n: number; title: string; hint?: string; children: ReactNode }) {
   return (

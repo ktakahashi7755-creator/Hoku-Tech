@@ -7,13 +7,15 @@ import { z } from "zod";
  * 10 実務での利用場面 / 11 よくあるエラー / 12 復習ポイント / 13 次のレッスン (並び順から自動)
  */
 export const CodeSampleSchema = z.object({
-  language: z.enum(["java", "bash", "sql", "html", "css", "javascript", "text"]),
+  language: z.enum(["java", "bash", "sql", "html", "css", "javascript", "xml", "properties", "text"]),
   filename: z.string().optional(),
   source: z.string().min(1),
   /** 実行結果 (実際に実行して得た出力をそのまま記載) */
   output: z.string().optional(),
   /** content/ 配下の検証用ソースのパス (scripts/verify-code.ts が実行して output と照合する) */
   verifiedBy: z.string().optional(),
+  /** 複数ファイルのプロジェクトを検証するときの実行スクリプト (output がある場合に実行する) */
+  runner: z.string().optional(),
 });
 
 export const QuizQuestionSchema = z.object({

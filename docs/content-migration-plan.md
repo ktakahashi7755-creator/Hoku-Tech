@@ -2,7 +2,7 @@
 
 > 対象: REOrGA Engineer 公開カリキュラム 72 記事 (https://engineer.reorga.co.jp/curriculum/)
 > 根拠データ: [source-inventory.csv](source-inventory.csv) / [source-audit.md](source-audit.md) / [curriculum-gap-analysis.md](curriculum-gap-analysis.md)
-> 作成日: 2026-11-05 / 更新: 2026-11-06 / ステータス: 移行中 (16 レッスン・課題 4 件を移行済み。development-progress.md の T-11-01)
+> 作成日: 2026-11-05 / 更新: 2026-11-06 / ステータス: 移行中 (21 レッスン・課題 5 件を移行済み。development-progress.md の T-11-01 / T-11-02)
 
 ---
 
