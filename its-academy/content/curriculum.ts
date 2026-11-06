@@ -54,9 +54,9 @@ export const STANDARD_RUBRIC: { name: string; criteria: RubricCriteria } = {
     { key: "correctness", label: "正確性", weight: 20, description: "境界値や異常な入力でも正しく動くか" },
     { key: "readability", label: "可読性", weight: 15, description: "命名・インデント・コメントが読み手に優しいか" },
     { key: "maintainability", label: "保守性", weight: 10, description: "重複がなく、変更しやすい構造か" },
-    { key: "testing", label: "テスト", weight: 10, description: "動作確認の手順と結果が示されているか" },
+    { key: "testing", label: "テスト", weight: 10, description: "動作確認の手順と結果 (境界値を含む) が、README・備考欄・テストコードのいずれかで示されているか" },
     { key: "security", label: "セキュリティ", weight: 10, description: "秘密情報を含めていないか。入力を検証しているか" },
-    { key: "explanation", label: "説明能力", weight: 10, description: "README で目的・使い方・工夫を説明できているか" },
+    { key: "explanation", label: "説明能力", weight: 10, description: "README (リポジトリ提出) または備考欄 (コード提出) で、目的・使い方・工夫を説明できているか" },
   ],
 };
 
@@ -114,7 +114,7 @@ export const MODULES: ModuleDef[] = [
             {
               title: "悪い質問と良い質問",
               body:
-                "悪い例: 「Java が動きません」\n良い例: 「l2-variables のサンプルを動かそうとしています。java Main.java を実行すると『エラー: メイン・クラスMainを検出およびロードできませんでした』と表示されます。ファイル名は Main.java で、ターミナルは同じフォルダで開いています。Windows 11 + WSL2 (Ubuntu 24.04)、Java 21 です。」",
+                "悪い例: 「Java が動きません」\n良い例: 「l2-variables のサンプルを動かそうとしています。javac Main.java の後に java Main を実行すると『エラー: メイン・クラスMainを検出およびロードできませんでした』と表示されます。ファイル名は Main.java で、ターミナルは同じフォルダで開いています。Windows 11 + WSL2 (Ubuntu 24.04)、Java 21 です。」",
             },
           ],
           code: [],
@@ -285,9 +285,19 @@ export const MODULES: ModuleDef[] = [
                 "Git はフォルダ (リポジトリ) 全体の変更履歴を記録するツールです。いつ・誰が・何を・なぜ変えたかが残るので、問題が起きたときに原因の変更を探したり、前の状態に戻したりできます。GitHub は Git のリポジトリをインターネット上で共有するサービスです。",
             },
             {
+              heading: "リポジトリを作る",
+              body:
+                "git init -b main my-profile で、my-profile フォルダを作り、その中を Git で管理できるようにします (-b main は最初のブランチ名を main にする指定です)。以降のコマンドは cd my-profile でフォルダに入ってから実行します。GitHub で作ったリポジトリを使う場合は、次のレッスンで学ぶ git clone を使います。",
+            },
+            {
               heading: "3 つの場所",
               body:
                 "作業ツリー (編集中のファイル) → ステージ (次の commit に含める変更) → リポジトリ (記録済みの履歴)。\ngit add でステージに載せ、git commit で記録します。git status でいまどの状態かを確認します。",
+            },
+            {
+              heading: "履歴と差分を見る",
+              body:
+                "git log --oneline は commit の履歴を 1 行ずつ表示します (先頭の英数字は commit を見分ける ID です)。git diff は、まだ git add していない変更の中身を表示します。git diff --stat なら、どのファイルが何行変わったかの要約だけを表示します。commit の前に git diff で「意図した変更だけか」を確かめる習慣をつけましょう。",
             },
             {
               heading: "ブランチ",
@@ -320,7 +330,7 @@ export const MODULES: ModuleDef[] = [
               task:
                 "my-profile リポジトリを作り、README.md に名前を書いて 1 回目の commit をします。次に feature/goal ブランチを作り、README.md に「このコースの目標」を 1 行追記して 2 回目の commit をしてください。最後に git log --oneline で 2 件の履歴があることを確認します。",
               hint: "2 回目の commit の前にも git add が必要です。",
-              answer: "git switch -c feature/goal\necho \"目標: Spring Boot で Web アプリを作る\" >> README.md\ngit add README.md\ngit commit -m \"docs: add goal\"\ngit log --oneline",
+              answer: "git init -b main my-profile\ncd my-profile\necho \"# 山田花子\" > README.md\ngit add README.md\ngit commit -m \"docs: add README\"\ngit switch -c feature/goal\necho \"目標: Spring Boot で Web アプリを作る\" >> README.md\ngit diff\ngit add README.md\ngit commit -m \"docs: add goal\"\ngit log --oneline",
             },
           ],
           quiz: {
@@ -342,10 +352,10 @@ export const MODULES: ModuleDef[] = [
               },
               {
                 id: "q3",
-                question: "git rebase の説明として正しいものはどれですか。",
-                choices: ["直前のコミットを取り消す", "コミットを別の土台の上に付け替える", "リモートから変更を取得する"],
-                answerIndex: 1,
-                explanation: "rebase はコミットを付け替える操作です。取り消しは git revert (取り消しのコミットを作る) を使います。",
+                question: "git add README.md の役割として正しいものはどれですか。",
+                choices: ["README.md の変更を、次の commit に含める (ステージに載せる)", "README.md を GitHub に送る", "README.md の変更を取り消す"],
+                answerIndex: 0,
+                explanation: "git add はステージに載せるだけで、記録 (commit) も送信 (push) もしません。GitHub へ送るのは次のレッスンで学ぶ git push です。",
               },
             ],
           },
@@ -710,6 +720,10 @@ export const MODULES: ModuleDef[] = [
               heading: "static について",
               body: "このレッスンのメソッドには static が付いています。static は「オブジェクトを作らずに呼べる」という意味です。オブジェクトについては L3 で学びます。",
             },
+            {
+              heading: "小数の表示を整える (String.format)",
+              body: "double の計算結果は 19.531249999999996 のように桁が多く表示されることがあります。String.format(\"%.1f\", 値) を使うと、小数第 2 位を四捨五入して小数第 1 位までの文字列になります (例: String.format(\"%.1f\", 72.25) は \"72.3\")。%.2f なら小数第 2 位までです。計算そのものは double のまま行い、表示するときだけ整えます。",
+            },
           ],
           examples: [
             {
@@ -728,8 +742,8 @@ export const MODULES: ModuleDef[] = [
           exercises: [
             {
               title: "BMI を計算するメソッド",
-              task: "身長 (m, double) と体重 (kg, double) を受け取り、BMI (体重 ÷ 身長の 2 乗) を返すメソッド bmi を作り、1.6m・50kg で呼び出して表示してください。",
-              answer: "19.531249999999996 (double の誤差を含む値。表示を整える方法は L3 で扱う)",
+              task: "身長 (m, double) と体重 (kg, double) を受け取り、BMI (体重 ÷ (身長 × 身長)) を返すメソッド bmi を作り、1.6m・50kg で呼び出して表示してください。次に、String.format で小数第 1 位まで表示してください。",
+              answer: "weight / (height * height) で計算すると 19.531249999999996 と表示されます (double の誤差を含む値。weight / height / height と書くと 19.53125 になり、計算の順序で誤差が変わります)。String.format(\"%.1f\", bmi(1.6, 50)) は 19.5 です。",
             },
           ],
           quiz: {
@@ -806,7 +820,7 @@ export const MODULES: ModuleDef[] = [
             },
             {
               heading: "カプセル化",
-              body: "フィールドを private にすると、クラスの外から直接書き換えられなくなります。残高を変える方法を deposit / withdraw に限定し、その中で金額をチェックすれば「残高がマイナス」という不正な状態を防げます。final を付けたフィールドは一度設定したら変更できません。",
+              body: "フィールドを private にすると、クラスの外から直接書き換えられなくなります。残高を変える方法をコンストラクタと deposit / withdraw に限定し、そのすべてで金額をチェックすれば「残高がマイナス」という不正な状態を防げます (サンプルでは初期残高がマイナス・入出金額が 0 以下・残高を超える出金を、それぞれ例外にしています)。チェックが 1 か所でも抜けると、そこから不正な状態が入り込みます。final を付けたフィールドは一度設定したら変更できません。",
             },
             {
               heading: "例外で異常を知らせる",
@@ -882,7 +896,7 @@ export const MODULES: ModuleDef[] = [
       ...L3_LESSONS,
     ],
   },
-  { level: "L4", title: "Web 技術・SQL", description: "HTTP・HTML/CSS/JavaScript・SQL・JDBC を学び、Web アプリの仕組みを理解する", weeks: 2, lessons: [...L4_FRONTEND, L4_HTTP, ...L4_LESSONS, L4_JDBC] },
+  { level: "L4", title: "Web 技術・SQL", description: "HTTP・HTML/CSS/JavaScript・SQL・JDBC を学び、Web アプリの仕組みを理解する (HTTP から始め、JavaScript の通信で使う)", weeks: 2, lessons: [L4_HTTP, ...L4_FRONTEND, ...L4_LESSONS, L4_JDBC] },
   { level: "L5", title: "Spring Boot・API 開発", description: "Spring Boot で認証付きの Web アプリと REST API を作り、テストを書く", weeks: 2, lessons: [...L5_LESSONS, L5_SECURITY] },
   { level: "L6", title: "実践開発・チーム開発", description: "ブランチ・PR・コードレビュー・チケット駆動で、チームで開発する", weeks: 1.5, lessons: L6_LESSONS },
   { level: "L7", title: "卒業制作・実務能力評価", description: "要件定義から発表までを一人で行い、講師が実務能力を評価する", weeks: 1, lessons: [L7_GUIDE] },
@@ -893,7 +907,7 @@ export const ASSIGNMENTS: AssignmentDef[] = [
   {
     slug: "a1-github-profile",
     level: "L1",
-    afterLesson: "l1-git-basics",
+    afterLesson: "l1-github-setup",
     title: "GitHub に自己紹介リポジトリを公開する",
     type: "GITHUB_REPO",
     passScore: 70,
@@ -931,19 +945,19 @@ export const ASSIGNMENTS: AssignmentDef[] = [
       purpose: "条件分岐・配列・繰り返し・メソッドを組み合わせて、仕様どおりに動くプログラムを書く。",
       scenario: "研修担当者から「テストの点数一覧から、評価と統計を出すツールが欲しい」と依頼された想定です。",
       requirements: [
-        "int 配列の点数一覧から、合計・平均 (小数第 1 位まで)・最高点・最低点を表示する",
+        "int 配列の点数一覧から、合計・平均・最高点・最低点を表示する。平均は小数第 2 位を四捨五入して小数第 1 位まで表示する (String.format(\"%.1f\", 平均) を使う。例: 72.25 → 72.3)",
         "各点数に評価を付ける: 80 以上 A / 60 以上 B / それ未満 C",
         "0 未満または 100 より大きい値は「入力エラー」と表示し、統計から除外する",
         "評価を決める処理を String grade(int score) メソッドに分ける",
       ],
-      recommended: ["統計の計算もメソッドに分ける", "空の配列のときの動作を考えて README に書く"],
+      recommended: ["統計の計算もメソッドに分ける", "有効な点数が 1 つもないときの動作を考えて、備考欄に書く"],
       steps: [
         "仕様から境界値 (0, 59, 60, 79, 80, 100, -1, 101) を書き出す",
         "grade メソッドを書き、境界値で動作を確かめる",
         "統計を計算する処理を書く",
         "実行結果を貼り付けて提出する",
       ],
-      deliverables: ["Main.java の全文", "境界値を含む配列での実行結果 (備考欄)"],
+      deliverables: ["Main.java の全文", "境界値を含む配列での実行結果と、確認した境界値の一覧 (備考欄)", "工夫した点 (備考欄)"],
       readmeChecklist: [],
       resubmitCondition: "境界値で誤った評価が出る、または入力エラーの値が統計に含まれる場合は修正依頼になります。",
       interviewPoints: ["境界値をどう選んだか", "メソッドに分けた理由", "平均を小数で出すために何をしたか"],

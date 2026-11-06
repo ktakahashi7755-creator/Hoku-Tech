@@ -142,7 +142,7 @@ export const L4_FRONTEND: LessonDef[] = [
         },
         {
           heading: "fetch と async / await",
-          body: "fetch(URL) はサーバーにリクエストを送り、レスポンスが届くまで待つ処理です。await を付けると「結果が届くまで待ってから次へ進む」書き方になり、await は async を付けた関数の中で使えます。res.ok はステータスコードが 200 番台かどうか、res.json() は本文の JSON を JavaScript のオブジェクトに変換します。\nURL に入力値を入れるときは encodeURIComponent でエンコードします。サンプルでは「Java & SQL」がそのまま正しく届いています。",
+          body: "fetch(URL) はサーバーにリクエストを送り、結果を後で受け取るための Promise (「あとで結果が入る箱」) をすぐに返します。await を付けると「結果が届くまで待ってから次へ進む」書き方になり、await は async を付けた関数の中で使えます。fetch は 404 や 500 が返っても例外にならないため、res.ok (ステータスコードが 200 番台か) を必ず確認します。res.json() は本文の JSON を JavaScript のオブジェクトに変換する処理で、これにも await が必要です。\nURL に入力値を入れるときは encodeURIComponent でエンコードします。サンプルでは「Java & SQL」がそのまま正しく届いています。",
         },
         {
           heading: "XSS と textContent",
@@ -191,7 +191,7 @@ export const L4_FRONTEND: LessonDef[] = [
         },
         {
           title: "L5 の API とつなぐ",
-          task: "L5 で作った本の API (Spring Boot) を起動し、app.js の URL を /api/books?author=... に合わせて、著者で検索できるようにしてください。別のポートの API を呼ぶとき、ブラウザの開発者ツールに何のエラーが出るか確かめます。",
+          task: "(L5 を修了してから取り組む発展課題) L5 で作った本の API (Spring Boot) を起動し、app.js の URL を /api/books?author=... に合わせて、著者で検索できるようにしてください。別のポートの API を呼ぶとき、ブラウザの開発者ツールに何のエラーが出るか確かめます。",
           hint: "別のオリジン (ポート) への fetch は CORS の制限を受けます。Spring 側で許可する設定が必要です。",
         },
       ],
@@ -207,10 +207,10 @@ export const L4_FRONTEND: LessonDef[] = [
           },
           {
             id: "q2",
-            question: "フォームの送信でページが再読み込みされないようにするには、どうしますか。",
-            choices: ["event.preventDefault() を呼ぶ", "return false と HTML に書く", "button を div に変える"],
+            question: "addEventListener で登録した submit の処理の中で、ページの再読み込みを止めるにはどうしますか。",
+            choices: ["event.preventDefault() を呼ぶ", "関数の最後で return false する", "button を div に変える"],
             answerIndex: 0,
-            explanation: "submit イベントの既定の動作 (ページ遷移) を preventDefault で止めます。",
+            explanation: "submit イベントの既定の動作 (ページ遷移) を preventDefault で止めます。addEventListener の関数で return false しても止まりません (HTML の onsubmit 属性に書いた場合とは動きが違います)。",
           },
           {
             id: "q3",
@@ -231,7 +231,7 @@ export const L4_FRONTEND: LessonDef[] = [
         {
           error: "Access to fetch at 'http://localhost:8080/...' from origin 'http://localhost:5500' has been blocked by CORS policy",
           cause: "画面と API のオリジン (ホスト・ポート) が違い、API 側が許可していない",
-          fix: "API 側で許可するオリジンを設定します (Spring なら @CrossOrigin や CORS の設定)。すべてのオリジンを許可する設定は避けます。",
+          fix: "API 側で許可するオリジンを設定します (Spring なら @CrossOrigin や CORS の設定)。Spring Security を使っている場合は、SecurityConfig に http.cors(Customizer.withDefaults()) も必要です (ないと、ブラウザが事前に送る OPTIONS リクエストが 401 で拒否されます)。すべてのオリジンを許可する設定は避けます。",
         },
         {
           error: "Uncaught SyntaxError: await is only valid in async functions",
@@ -263,7 +263,7 @@ export const L6_LESSONS: LessonDef[] = [
         },
         {
           heading: "コンフリクトが起きる理由",
-          body: "2 人が同じファイルの同じ行を別々に変更し、それを合わせようとすると、Git はどちらを残すべきか判断できません。これがコンフリクトです。Git は「CONFLICT (content): Merge conflict in README.md」と表示し、ファイルに印を書き込みます。\n<<<<<<< HEAD から ======= までが今いるブランチ (自分) の内容、======= から >>>>>>> main までが取り込もうとしたブランチ (main) の内容です。",
+          body: "2 人が同じファイルの同じ行を別々に変更し、それを合わせようとすると、Git はどちらを残すべきか判断できません。これがコンフリクトです。Git は「CONFLICT (content): Merge conflict in README.md」と表示し、ファイルに印を書き込みます。\n<<<<<<< HEAD から ======= までが今いるブランチ (自分) の内容、======= から >>>>>>> main までが取り込もうとしたブランチ (main) の内容です。\n注意: これは git merge の場合です。git rebase の途中では逆になり、HEAD 側が取り込み先 (main)、もう一方が自分の commit になります。",
         },
         {
           heading: "解消の手順",
@@ -271,7 +271,7 @@ export const L6_LESSONS: LessonDef[] = [
         },
         {
           heading: "履歴を壊す操作に注意",
-          body: "git push --force は、リモートの履歴を自分の手元の内容で上書きします。他の人が使っているブランチ (特に main) で使うと、他の人の commit を消してしまいます。チームの共有ブランチでは使いません。",
+          body: "git push --force は、リモートの履歴を自分の手元の内容で上書きします。他の人が使っているブランチ (特に main) で使うと、他の人の commit を消してしまいます。チームの共有ブランチでは使いません。\n自分だけが使っている作業ブランチを rebase した後など、どうしても上書きが必要なときは git push --force-with-lease を使います。リモートに自分の知らない commit が増えていたら上書きを中止してくれるため、他の人の commit を消す事故を防げます。",
         },
       ],
       examples: [
@@ -396,7 +396,7 @@ export const L6_LESSONS: LessonDef[] = [
       examples: [
         {
           title: "PR の説明の例",
-          body: "## 目的\n延滞の判定を追加します (#12)\n## 変更内容\n- Lending.isOverdue を追加 (貸出から 14 日を超えたら延滞)\n- 境界値 (14 日・15 日) のテストを追加\n## 確認方法\nmvn test (12 件成功)\n## 相談したいこと\n返却日当日は延滞に含めない解釈にしています。仕様の確認をお願いします。",
+          body: "## 目的\n延滞の判定を追加します (#12)\n## 変更内容\n- Lending.isOverdue を追加 (貸出から 14 日を超えたら延滞)\n- 境界値 (14 日・15 日) のテストを追加\n## 確認方法\nmvn test (12 件成功)\n## 相談したいこと\n返却期限の当日は延滞に含めない解釈にしています。仕様の確認をお願いします。",
         },
       ],
       code: [
@@ -598,7 +598,7 @@ export const FE_L6_ASSIGNMENTS: AssignmentDef[] = [
     passScore: 70,
     body: {
       purpose: "チケット → ブランチ → PR → レビュー対応 → マージの流れと、報告・相談を、実際のリポジトリで一通り経験する。",
-      scenario: "講師 (または受講生 2〜3 名) が 1 つのリポジトリを共有するチームとして、掲示板 API (L5 の課題) に機能を追加する想定です。",
+      scenario: "講師が編成した受講生 2〜3 名のチームで 1 つのリポジトリを共有し、講師が用意した掲示板 API のリポジトリ (L5 の課題と同じ仕様) に機能を追加する想定です。受講生の人数が足りない場合は、講師がチームの一員として PR を作り、それをレビュー対象にします。",
       requirements: [
         "Issue を 2 件以上作る (不具合 1 件・機能追加 1 件。再現手順または完了の条件を書く)",
         "Issue ごとにブランチを作り、PR の説明に目的・変更内容・確認方法を書く",

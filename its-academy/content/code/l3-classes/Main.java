@@ -18,6 +18,9 @@ class BankAccount {
     private int balance;
 
     BankAccount(String owner, int initialBalance) {
+        if (initialBalance < 0) {
+            throw new IllegalArgumentException("初期残高は 0 円以上にしてください");
+        }
         this.owner = owner;
         this.balance = initialBalance;
     }
@@ -30,6 +33,9 @@ class BankAccount {
     }
 
     void withdraw(int amount) {
+        if (amount <= 0) {
+            throw new IllegalArgumentException("出金額は 1 円以上にしてください");
+        }
         if (amount > balance) {
             throw new IllegalArgumentException("残高不足です (残高 " + balance + "円)");
         }

@@ -35,6 +35,7 @@ public class BookService {
     @Transactional
     public BookResponse update(Long id, BookRequest request) {
         Book book = repository.findById(id).orElseThrow(() -> new BookNotFoundException(id));
+        // ISBN は登録後に変更できない仕様とし、PUT で送られても更新しない (本を識別する番号のため)
         book.update(request.title(), request.author()); // トランザクション終了時に UPDATE 文が実行される
         return BookResponse.from(book);
     }

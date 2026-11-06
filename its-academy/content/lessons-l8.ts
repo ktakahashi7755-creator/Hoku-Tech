@@ -24,7 +24,7 @@ const L8_LESSONS: LessonDef[] = [
         },
         {
           heading: "もっともらしい誤り (ハルシネーション)",
-          body: "存在しないメソッドやライブラリ、古いバージョンの書き方、仕様と違う条件 (「以下」と「未満」の取り違えなど) を、自信のある文章で出すことがあります。学習したデータには時点があり、新しいバージョンの変更を知らないこともあります。\nこのコースで Spring Boot 4 の import の場所や Spring Security 7 のエラー文を確かめたように、AI の説明も公式ドキュメントと実際の実行で確かめる必要があります。",
+          body: "存在しないメソッドやライブラリ、古いバージョンの書き方、仕様と違う条件 (「以下」と「未満」の取り違えなど) を、自信のある文章で出すことがあります。学習したデータには時点があり、新しいバージョンの変更を知らないこともあります。\nこのコースで Spring Boot 4 で変わった import の場所 (webmvc.test.autoconfigure) や、テストで使う @MockitoBean を実際に動かして確かめたように (古い記事や AI の回答には、以前の場所や以前の書き方が出てくることがあります)、AI の説明も公式ドキュメントと実際の実行で確かめる必要があります。",
         },
         {
           heading: "AI を使う前提",
@@ -327,7 +327,7 @@ const L8_LESSONS: LessonDef[] = [
         {
           title: "伏せ字の漏れを探す",
           task: "mask.sh が見つけられない秘密情報・個人情報の例を 3 つ考え、実際に試して確かめてください。",
-          answer: "例: 氏名や住所 / password ではなく pw= のような独自の名前のキー / 改行を含む秘密鍵 / URL の中に埋め込まれたパスワード (jdbc:postgresql://user:pass@host)",
+          answer: "例: 氏名や住所 / password ではなく pw= のような独自の名前のキー / 改行を含む秘密鍵 / URL の中に埋め込まれたパスワード (postgresql://user:pass@db/app のような URL 形式の接続文字列。DATABASE_URL などの環境変数の値)",
         },
         {
           title: "AI のコードのセキュリティレビュー",
@@ -401,7 +401,7 @@ const L8_LESSONS: LessonDef[] = [
       examples: [
         {
           title: "CLAUDE.md の例 (卒業制作のリポジトリ)",
-          body: "## 技術\nJava 21 / Spring Boot 4.1 / PostgreSQL 16\n## コマンド\nテスト: ./mvnw test\n## ルール\n- 利用者の入力を含む SQL は必ず PreparedStatement (JPA のメソッド名クエリを含む)\n- パスワードは BCrypt。接続情報は環境変数で、リポジトリに書かない\n- 権限の判定はサーバー側 (SecurityConfig と Service) で行う\n- 変更したら mvn test を実行し、結果を報告すること",
+          body: "## 技術\nJava 21 / Spring Boot 4.1 / PostgreSQL 16\n## コマンド\nテスト: ./mvnw test\n## ルール\n- 利用者の入力を SQL に文字列連結しない。JDBC は PreparedStatement、JPA はメソッド名クエリか @Query のパラメータ (:name) を使う\n- パスワードは BCrypt。接続情報は環境変数で、リポジトリに書かない\n- 権限の判定はサーバー側 (SecurityConfig と Service) で行う\n- 変更したら ./mvnw test を実行し、結果を報告すること",
         },
       ],
       code: [],

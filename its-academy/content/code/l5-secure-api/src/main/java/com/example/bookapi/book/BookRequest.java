@@ -8,5 +8,6 @@ import jakarta.validation.constraints.Size;
 public record BookRequest(
         @NotBlank(message = "タイトルは必須です") @Size(max = 100, message = "タイトルは 100 文字以内です") String title,
         @NotBlank(message = "著者は必須です") @Size(max = 50, message = "著者は 50 文字以内です") String author,
-        @Pattern(regexp = "\\d{13}", message = "ISBN は 13 桁の数字です") String isbn) {
+        // @Pattern は null (項目なし) を通すため、必須は @NotBlank で別に確かめる (ないと DB の NOT NULL 違反で 500 になる)
+        @NotBlank(message = "ISBN は必須です") @Pattern(regexp = "\\d{13}", message = "ISBN は 13 桁の数字です") String isbn) {
 }

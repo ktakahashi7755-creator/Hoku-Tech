@@ -360,7 +360,7 @@ export const L5_LESSONS: LessonDef[] = [
         },
         {
           heading: "DTO と入力チェック",
-          body: "受け取る値はエンティティではなく専用の record (DTO: BookRequest) で受け取ります。こうすると、id など利用者に変更させたくない項目を受け付けずに済みます。\n@NotBlank・@Size・@Pattern などで入力のルールを書き、コントローラの引数に @Valid を付けると、ルール違反の場合はメソッドが呼ばれる前に MethodArgumentNotValidException が発生します。",
+          body: "受け取る値はエンティティではなく専用の record (DTO: BookRequest) で受け取ります。こうすると、id など利用者に変更させたくない項目を受け付けずに済みます。\n@NotBlank・@Size・@Pattern などで入力のルールを書き、コントローラの引数に @Valid を付けると、ルール違反の場合はメソッドが呼ばれる前に MethodArgumentNotValidException が発生します。この教材では ISBN は登録後に変更できない仕様とし、PUT で送られても更新しません (BookService.update のコメント)。仕様として決めたことは、API の説明 (README) にも書きます。",
         },
         {
           heading: "エラー応答をそろえる",

@@ -163,7 +163,8 @@ export const L1_GITHUB: LessonDef = {
       },
       {
         title: "初めての push",
-        task: "GitHub で practice という空のリポジトリを作り、clone して README.md を追加し、feature/readme ブランチで commit して push してください。GitHub の画面にブランチが表示されることを確かめます。",
+        task: "GitHub で practice というリポジトリを「Add a README file」にチェックを入れて作り (main ブランチが作られます)、git clone します。feature/readme ブランチを作って README.md に 1 行追記し、commit して git push -u origin feature/readme で送ってください。GitHub の画面に feature/readme ブランチが表示され、main はそのまま残っていることを確かめます。",
+        hint: "空のリポジトリに最初に feature/readme を push すると、そのブランチが既定のブランチ (main の代わり) になってしまいます。README 付きで作れば main が先にできます。",
       },
     ],
     quiz: {
