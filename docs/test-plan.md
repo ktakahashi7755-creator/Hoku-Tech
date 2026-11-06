@@ -10,10 +10,10 @@
 |----|--------|----------|-------------------|------|
 | 型検査 | TypeScript | `npm run typecheck` | — | エラー 0 |
 | 静的解析 | ESLint (next) | `npm run lint` | — | エラー 0 |
-| 単体 | Vitest | `npm test` | 35 件 / 5 ファイル | 全件成功 |
-| 教材コード検証 | JDK 21 / bash | `npm run verify:code` | 7 サンプル | 全件一致 |
+| 単体 | Vitest | `npm test` | 43 件 / 6 ファイル | 全件成功 |
+| 教材コード検証 | JDK 21 / bash / PostgreSQL 16 | `npm run verify:code` | 15 サンプル (Java 10・bash 2・SQL 3) | 全件一致 |
 | ビルド | Next.js | `npm run build` | — | 成功 |
-| E2E | Playwright (Chromium) | `npm run test:e2e -- --trace off` | 8 シナリオ | 全件成功 |
+| E2E | Playwright (Chromium) | `npm run test:e2e -- --trace off` | 12 シナリオ (01-lms 8・02-cms 4) | 全件成功 (2 回連続) |
 
 E2E は専用の DB (`TEST_DATABASE_URL`、既定は `its_academy_test`) を `prisma migrate deploy` + seed で毎回作り直す。
 
@@ -25,9 +25,10 @@ E2E は専用の DB (`TEST_DATABASE_URL`、既定は `its_academy_test`) を `pr
 | `roles.test.ts` | 個人データのアクセス分離 (本人 / 担当講師 / 担当外講師 / 他の受講生 / 管理者)・ロール付与の制限・GitHub URL の検証 |
 | `token.test.ts` | セッショントークンの長さ・一意性・保存用ハッシュ |
 | `csv.test.ts` | エスケープ・CSV インジェクション対策・BOM |
+| `draft.test.ts` | CMS の入力の変換・必須チェック・正解番号の範囲・実行検証済みの印の引き継ぎ (コード変更で外れる・フォームからの偽装は無効)・往復変換 |
 | `guidance.test.ts` | 指導提案 (停滞を能力不足と表現しない・複数回提出で面談提案・遅れの閾値) |
 
-## 3. E2E シナリオ (`tests/e2e/lms.spec.ts`)
+## 3. E2E シナリオ (`tests/e2e/01-lms.spec.ts` #1〜8 / `02-cms.spec.ts` #9〜12)
 
 | # | シナリオ | 主な確認点 |
 |---|----------|------------|
@@ -39,6 +40,10 @@ E2E は専用の DB (`TEST_DATABASE_URL`、既定は `its_academy_test`) を `pr
 | 6 | 講師のアクセス分離 | 担当外の受講生は一覧に出ず、詳細 URL を直接開いても内容が出ない。担当講師には停滞 9 日の提案が出る |
 | 7 | 管理者 | 停滞の閾値を 10 日に変更すると停滞一覧から外れる。CSV の内容と監査ログ |
 | 8 | レスポンシブ | 375 / 390 / 768 / 1440px で受講生の主要 6 画面に横スクロールなし |
+| 9 | CMS: 編集と公開 | 公開中レッスンの編集は下書きになり受講生には旧版のまま → プレビュー → 公開で切り替わる。コード未変更なら「自動で確認」表示が残る |
+| 10 | CMS: 必須チェック | 本文が空の新規レッスンは公開できず、受講生のカリキュラムにも出ない |
+| 11 | CMS: 公開予約 | 予約時刻を過ぎると受講生に新しい版が表示される |
+| 12 | CMS: 権限 | 講師は教材管理を開けない |
 
 ## 4. 手動確認 (2026-11-06 実施)
 
