@@ -62,9 +62,15 @@ jobs:
         run: npm run test:e2e -- --trace off
 
   cross-browser:
-    # Firefox と WebKit (Safari のエンジン) で E2E を実行する
+    # Firefox と WebKit (Safari のエンジン) で E2E を実行する。
+    # ブラウザと必要な OS のライブラリが入った Playwright 公式イメージで動かす
+    # (playwright install --with-deps は Ubuntu のミラーが遅いと 10 分を超えて失敗したため)。
+    # イメージの版は package-lock.json の @playwright/test と揃える
     runs-on: ubuntu-24.04
     timeout-minutes: 25
+    container:
+      image: mcr.microsoft.com/playwright:v1.63.0-noble
+      options: --user 1001 --ipc=host
     strategy:
       fail-fast: false
       matrix:
@@ -79,12 +85,12 @@ jobs:
           POSTGRES_USER: its
           POSTGRES_PASSWORD: ci_only_password
           POSTGRES_DB: its_academy_test
-        ports: ["5432:5432"]
         options: >-
           --health-cmd "pg_isready -U its -d its_academy_test" --health-interval 5s --health-timeout 5s --health-retries 10
     env:
-      DATABASE_URL: postgresql://its:ci_only_password@localhost:5432/its_academy_test
-      TEST_DATABASE_URL: postgresql://its:ci_only_password@localhost:5432/its_academy_test
+      # ジョブをコンテナで動かすため、DB にはサービス名 (postgres) で接続する
+      DATABASE_URL: postgresql://its:ci_only_password@postgres:5432/its_academy_test
+      TEST_DATABASE_URL: postgresql://its:ci_only_password@postgres:5432/its_academy_test
       PW_BROWSERS: ${{ matrix.browser }}
     steps:
       - uses: actions/checkout@v4
@@ -96,8 +102,8 @@ jobs:
       - run: npm ci
       - run: npx prisma generate
       - run: npm run build
-      - run: npx playwright install --with-deps ${{ matrix.browser }}
-        timeout-minutes: 10
+      - name: Browser matches the installed Playwright
+        run: test "$(node -p 'require("@playwright/test/package.json").version')" = "1.63.0"
       - name: E2E (${{ matrix.browser }})
         run: npm run test:e2e -- --trace off
 
