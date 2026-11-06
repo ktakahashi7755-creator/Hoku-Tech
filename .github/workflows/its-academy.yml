@@ -24,7 +24,7 @@ jobs:
           POSTGRES_DB: its_academy_test
         ports: ["5432:5432"]
         options: >-
-          --health-cmd "pg_isready -U its" --health-interval 5s --health-timeout 5s --health-retries 10
+          --health-cmd "pg_isready -U its -d its_academy_test" --health-interval 5s --health-timeout 5s --health-retries 10
     env:
       DATABASE_URL: postgresql://its:ci_only_password@localhost:5432/its_academy_test
       TEST_DATABASE_URL: postgresql://its:ci_only_password@localhost:5432/its_academy_test

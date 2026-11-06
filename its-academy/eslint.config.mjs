@@ -12,7 +12,15 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // 教材サンプルのビルド成果物
+    "content/code/**/target/**",
   ]),
+  {
+    // 教材の検証用スクリプト (check.js) は Node.js でそのまま実行する CommonJS のため require を許可する
+    files: ["content/code/**/*.js"],
+    languageOptions: { sourceType: "commonjs" },
+    rules: { "@typescript-eslint/no-require-imports": "off" },
+  },
 ]);
 
 export default eslintConfig;
