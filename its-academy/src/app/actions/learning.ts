@@ -75,7 +75,7 @@ export async function submitQuiz(rawLessonId: string, rawVersionId: string, rawA
   const user = await requireUser(["STUDENT"]);
   const lessonId = LessonId.parse(rawLessonId);
   const answers = QuizAnswers.parse(rawAnswers);
-  const { version } = await loadLessonForStudent(user.id, lessonId);
+  const { lesson, version } = await loadLessonForStudent(user.id, lessonId);
   const content = LessonContentSchema.parse(version.content);
   // 画面を開いた後に新しい版が公開された場合、古い問題への回答を新しい版で採点しない
   if (z.cuid().parse(rawVersionId) !== version.id) {
@@ -88,7 +88,7 @@ export async function submitQuiz(rawLessonId: string, rawVersionId: string, rawA
   );
   const passed = score >= content.quiz.passScore;
   await db.quizAttempt.create({ data: { userId: user.id, lessonVersionId: version.id, answers, score, passed } });
-  revalidatePath(`/lessons/${(await db.lesson.findUniqueOrThrow({ where: { id: lessonId } })).slug}`);
+  revalidatePath(`/lessons/${lesson.slug}`);
   return {
     score,
     passScore: content.quiz.passScore,

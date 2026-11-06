@@ -1,4 +1,4 @@
-import type { SubmissionStatusValue } from "@/lib/progress/metrics";
+import type { AssignmentTypeValue, SubmissionStatusValue } from "@/lib/progress/metrics";
 
 export const SUBMISSION_STATUS_LABEL: Record<SubmissionStatusValue | "NOT_STARTED", string> = {
   NOT_STARTED: "未着手",
@@ -11,7 +11,10 @@ export const SUBMISSION_STATUS_LABEL: Record<SubmissionStatusValue | "NOT_STARTE
   FAILED: "不合格",
 };
 
-export const ASSIGNMENT_TYPE_LABEL: Record<string, string> = {
+/** 採点の判定 */
+export const DECISION_LABEL = { PASS: "合格", CHANGES_REQUESTED: "修正依頼", FAIL: "不合格" } as const;
+
+export const ASSIGNMENT_TYPE_LABEL: Record<AssignmentTypeValue, string> = {
   MULTIPLE_CHOICE: "選択問題",
   WRITTEN: "記述問題",
   CODE: "コード提出",

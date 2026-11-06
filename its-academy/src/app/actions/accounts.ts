@@ -1,19 +1,18 @@
 "use server";
 
-import { randomBytes } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import type { Role } from "@prisma/client";
+import { Role } from "@prisma/client";
 import { db } from "@/lib/db";
 import { audit } from "@/lib/audit";
 import { requireUser } from "@/lib/auth/dal";
-import { hashPassword } from "@/lib/auth/password";
+import { generateTempPassword, hashPassword } from "@/lib/auth/password";
 import { ADMIN_ROLES, canAssignRole, canManageAccount } from "@/lib/auth/roles";
 import { revokeAllSessions } from "@/lib/auth/session";
 
 export type AccountState = { ok?: string; error?: string; tempPassword?: string } | undefined;
 
-const RoleSchema = z.enum(["SUPER_ADMIN", "ADMIN", "INSTRUCTOR", "STUDENT"]);
+const RoleSchema = z.enum(Role);
 
 async function loadTarget(actor: { id: string; role: Role }, userId: string) {
   const target = await db.user.findUnique({ where: { id: z.cuid().parse(userId) }, select: { id: true, role: true, name: true } });
@@ -42,7 +41,7 @@ export async function issueTemporaryPassword(userId: string): Promise<AccountSta
   const actor = await requireUser(ADMIN_ROLES);
   const r = await loadTarget(actor, userId);
   if ("error" in r) return { error: r.error };
-  const tempPassword = randomBytes(12).toString("base64url");
+  const tempPassword = generateTempPassword();
   await db.user.update({ where: { id: r.target.id }, data: { passwordHash: await hashPassword(tempPassword), mustChangePassword: true } });
   await revokeAllSessions(r.target.id);
   await audit({ actorId: actor.id, action: "user.temporary_password", targetType: "user", targetId: r.target.id });

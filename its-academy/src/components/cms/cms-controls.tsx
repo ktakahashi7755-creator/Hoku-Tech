@@ -3,23 +3,9 @@
 import { useActionState, useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { cancelSchedule, createLesson, moveLesson, publishVersion, restoreVersionAsDraft, scheduleVersion, type CmsState } from "@/app/actions/cms";
-import { Button, inputStyles } from "@/components/ui";
+import { Button, Field, FormMessage, inputStyles } from "@/components/ui";
+import { ActionForm } from "@/components/action-form";
 import { hasUnsavedLessonEdits } from "./lesson-editor";
-
-function Msg({ state }: { state: CmsState }) {
-  if (!state) return null;
-  return (
-    <div aria-live="polite">
-      {state.ok && <p role="status" className="rounded-lg bg-success-soft p-3 text-sm text-success">{state.ok}</p>}
-      {state.error && <p role="alert" className="rounded-lg bg-danger-soft p-3 text-sm text-danger">{state.error}</p>}
-      {state.errors && state.errors.length > 0 && (
-        <ul role="alert" className="list-disc rounded-lg bg-danger-soft p-3 pl-7 text-sm text-danger">
-          {state.errors.map((e) => <li key={e}>{e}</li>)}
-        </ul>
-      )}
-    </div>
-  );
-}
 
 export function NewLessonForm({ moduleId, level }: { moduleId: string; level: string }) {
   const [state, action, pending] = useActionState(createLesson, undefined);
@@ -30,19 +16,17 @@ export function NewLessonForm({ moduleId, level }: { moduleId: string; level: st
   return (
     <details className="mt-3">
       <summary className="min-h-11 cursor-pointer content-center text-sm font-semibold text-accent">{level} にレッスンを追加</summary>
-      <form action={action} className="mt-2 grid gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
+      <ActionForm action={action} className="mt-2 grid gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
         <input type="hidden" name="moduleId" value={moduleId} />
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor={`t-${moduleId}`} className="text-sm font-semibold">タイトル</label>
+        <Field label="タイトル" htmlFor={`t-${moduleId}`}>
           <input id={`t-${moduleId}`} name="title" className={inputStyles} />
-        </div>
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor={`s-${moduleId}`} className="text-sm font-semibold">URL 名 (例: l2-strings)</label>
+        </Field>
+        <Field label="URL 名 (例: l2-strings)" htmlFor={`s-${moduleId}`}>
           <input id={`s-${moduleId}`} name="slug" className={inputStyles} autoCapitalize="off" />
-        </div>
+        </Field>
         <Button type="submit" disabled={pending}>作成</Button>
-        <div className="sm:col-span-3"><Msg state={state} /></div>
-      </form>
+        <div className="sm:col-span-3"><FormMessage state={state} /></div>
+      </ActionForm>
     </details>
   );
 }
@@ -79,7 +63,7 @@ export function PublishPanel({ lessonId, versionId, version, scheduled }: { less
           <Button type="button" variant="secondary" disabled={pending || !at} onClick={() => run(() => scheduleVersion(lessonId, versionId, at))}>予約する</Button>
         </div>
       )}
-      <Msg state={state} />
+      <FormMessage state={state} />
     </div>
   );
 }

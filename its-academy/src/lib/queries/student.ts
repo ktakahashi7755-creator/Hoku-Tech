@@ -12,12 +12,15 @@ import {
   learningStreak,
   nextAction,
   paceAgainstTarget,
+  jstDayStart,
+  reachableAssignments,
   type SubmissionStatusValue,
 } from "@/lib/progress/metrics";
+import { strugglingAssignments, weakLessons } from "@/lib/progress/guidance";
 import { getStagnationThreshold } from "./settings";
 import { applyScheduledPublishes } from "@/lib/content/publish";
 
-export type LessonStatus = "NOT_STARTED" | "IN_PROGRESS" | "COMPLETED";
+type LessonStatus = "NOT_STARTED" | "IN_PROGRESS" | "COMPLETED";
 
 /** 受講生データの閲覧権限を確認する。権限がなければ 404 */
 export async function assertCanViewStudent(viewer: SessionUser, studentId: string) {
@@ -55,7 +58,8 @@ export async function getPublishedCurriculum(courseId: string) {
   });
   return modules.map((m) => ({
     ...m,
-    lessons: m.lessons.filter((l) => l.currentVersion),
+    // 公開できる版のあるレッスンだけ (型の上でも currentVersion が null でないことを保証する)
+    lessons: m.lessons.filter((l): l is typeof l & { currentVersion: NonNullable<typeof l.currentVersion> } => l.currentVersion !== null),
   }));
 }
 
@@ -150,7 +154,6 @@ function buildOverview(studentId: string, data: OverviewData, now: Date) {
   const submissions = data.submissions.get(studentId) ?? [];
   const quizBestRows = data.quizBest.get(studentId) ?? [];
   const activityDays = data.activityDays.get(studentId) ?? [];
-  const dayStart = (day: string) => new Date(`${day}T00:00:00+09:00`); // 日本時間のその日の 0 時
   const skills = data.skills.get(studentId) ?? [];
   const comments = data.comments.get(studentId) ?? [];
   const threshold = data.threshold;
@@ -166,8 +169,8 @@ function buildOverview(studentId: string, data: OverviewData, now: Date) {
     m.lessons.map((l) => ({
       id: l.id,
       slug: l.slug,
-      title: l.currentVersion!.title,
-      minutes: l.currentVersion!.estimatedMinutes,
+      title: l.currentVersion.title,
+      minutes: l.currentVersion.estimatedMinutes,
       level: m.level,
       moduleTitle: m.title,
       optional: m.optional,
@@ -186,7 +189,7 @@ function buildOverview(studentId: string, data: OverviewData, now: Date) {
   // 前提レッスンが非公開の課題は、受講生が取り組めないため一覧と指標から外す
   const publishedLessonIds = new Set(lessons.map((l) => l.id));
   const assignments = modules.flatMap((m) =>
-    m.assignments.filter((a) => !a.lessonId || publishedLessonIds.has(a.lessonId)).map((a) => {
+    reachableAssignments(m.assignments, publishedLessonIds).map((a) => {
       const latest = latestByAssignment.get(a.id) ?? null;
       const latestReview = latest?.reviews[0] ?? null;
       return {
@@ -239,14 +242,12 @@ function buildOverview(studentId: string, data: OverviewData, now: Date) {
   const startDays = activityDays.filter((d) => d.kind === "start");
   const totalMinutes = Math.round(startDays.reduce((s, x) => s + x.seconds, 0) / 60);
   // 直近 7 日の集計用: 日ごとの分数を「その日に始めた 1 件の学習」として渡す (分数は学習ごとに丸めてから合計済み)
-  const sessionsByDay = startDays.map((d) => ({ startedAt: dayStart(d.day), durationSec: d.minutes * 60 }));
+  const sessionsByDay = startDays.map((d) => ({ startedAt: jstDayStart(d.day), durationSec: d.minutes * 60 }));
 
   // 苦手分野: 理解度チェックを受けたが一度も合格していない必修レッスン / 修正依頼・不合格の課題
   // (合格済みの課題は、何回目で合格しても対象にしない)
-  const weakLessons = lessons.filter((l) => !l.optional && bestQuiz.has(l.id) && !quizPassed.has(l.id));
-  const struggling = assignments.filter(
-    (a) => a.latestStatus !== "PASSED" && (a.latestStatus === "CHANGES_REQUESTED" || a.latestStatus === "FAILED" || a.attempts >= 2),
-  );
+  const weak = weakLessons(lessons, new Set(bestQuiz.keys()), quizPassed);
+  const struggling = strugglingAssignments(assignments);
 
   const current = lessons.find((l) => l.id === enrollment.currentLessonId) ?? lessons.find((l) => l.status !== "COMPLETED") ?? null;
 
@@ -271,7 +272,7 @@ function buildOverview(studentId: string, data: OverviewData, now: Date) {
     totalMinutes,
     pace: paceAgainstTarget(enrollment.startedAt, enrollment.targetEndDate, metrics.lessonCompletion, now),
     current,
-    weakLessons,
+    weakLessons: weak,
     struggling,
     next: nextAction({ lessons, currentLessonId: enrollment.currentLessonId, assignments }),
   } as const;

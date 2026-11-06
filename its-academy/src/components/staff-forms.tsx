@@ -3,18 +3,8 @@
 import { useActionState, useState, useTransition } from "react";
 import { cleanupStaleRecords } from "@/app/actions/accounts";
 import { addComment, addSkillAssessment, createStudent, updateEnrollment, updateSettings, type NewStudentState } from "@/app/actions/staff";
-import type { FormState } from "@/app/actions/auth";
 import { ActionForm } from "./action-form";
-import { Button, Field, inputStyles } from "./ui";
-
-function Feedback({ state }: { state: FormState }) {
-  return (
-    <div aria-live="polite">
-      {state?.error && <p role="alert" className="rounded-lg bg-danger-soft p-3 text-sm text-danger">{state.error}</p>}
-      {state?.ok && <p className="rounded-lg bg-success-soft p-3 text-sm text-success">{state.ok}</p>}
-    </div>
-  );
-}
+import { Button, Field, FormMessage, inputStyles } from "./ui";
 
 export function CommentForm({ studentId }: { studentId: string }) {
   const [state, action, pending] = useActionState(addComment, undefined);
@@ -24,12 +14,12 @@ export function CommentForm({ studentId }: { studentId: string }) {
       <Field label="コメント" htmlFor="body" error={state?.fieldErrors?.body}>
         <textarea id="body" name="body" rows={3} className={inputStyles} />
       </Field>
-      <fieldset className="flex flex-wrap gap-4 text-sm">
+      <fieldset className="flex min-w-0 flex-wrap gap-4 text-sm">
         <legend className="mb-1 font-semibold">公開範囲</legend>
         <label className="flex min-h-11 items-center gap-2"><input type="radio" name="visibility" value="INTERNAL" defaultChecked /> 講師・管理者のみ</label>
         <label className="flex min-h-11 items-center gap-2"><input type="radio" name="visibility" value="STUDENT" /> 受講生にも表示</label>
       </fieldset>
-      <Feedback state={state} />
+      <FormMessage state={state} />
       <Button type="submit" disabled={pending}>コメントを保存</Button>
     </ActionForm>
   );
@@ -55,7 +45,7 @@ export function SkillForm({ studentId, areas, levels }: { studentId: string; are
       <Field label="根拠・メモ" htmlFor="note" hint="どの課題・面談をもとに評価したかを書いてください。">
         <input id="note" name="note" className={inputStyles} />
       </Field>
-      <Feedback state={state} />
+      <FormMessage state={state} />
       <Button type="submit" disabled={pending}>評価を記録</Button>
     </ActionForm>
   );
@@ -94,7 +84,7 @@ export function EnrollmentForm({ enrollment, instructors }: { enrollment: { id: 
           <option value="WITHDRAWN">退校</option>
         </select>
       </Field>
-      <Feedback state={state} />
+      <FormMessage state={state} />
       <Button type="submit" disabled={pending}>受講設定を保存</Button>
     </ActionForm>
   );
@@ -117,7 +107,7 @@ export function NewStudentForm({ instructors }: { instructors: { id: string; nam
         </Field>
         <Field label="目標修了日" htmlFor="targetEndDate"><input id="targetEndDate" name="targetEndDate" type="date" className={inputStyles} /></Field>
       </div>
-      <Feedback state={state} />
+      <FormMessage state={state} />
       {state?.tempPassword && (
         <div className="rounded-lg border border-warning bg-warning-soft p-4 text-sm">
           <p className="font-semibold">初期パスワード (この画面を離れると再表示できません)</p>
@@ -137,7 +127,7 @@ export function SettingsForm({ threshold }: { threshold: number }) {
       <Field label="学習停滞とみなす日数" htmlFor="stagnationThresholdDays" hint="最終学習日からこの日数以上経過した受講生をダッシュボードに表示します (1〜60 日)。" error={state?.fieldErrors?.stagnationThresholdDays}>
         <input id="stagnationThresholdDays" name="stagnationThresholdDays" type="number" min={1} max={60} defaultValue={threshold} className={`${inputStyles} max-w-40`} />
       </Field>
-      <Feedback state={state} />
+      <FormMessage state={state} />
       <Button type="submit" disabled={pending} className="self-start">保存</Button>
     </ActionForm>
   );

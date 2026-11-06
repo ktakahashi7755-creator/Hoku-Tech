@@ -91,3 +91,11 @@ export function validateRubric(criteria: { key: string; label: string; weight: n
   if (errors.length) return { ok: false, errors };
   return { ok: true, criteria: RubricCriteriaSchema.parse(cleaned) };
 }
+
+/** 新しく作る課題の本文 (空)。CMS で内容を入力してから公開する */
+export function emptyAssignmentBody() {
+  return { purpose: "", scenario: "", requirements: [], recommended: [], steps: [], deliverables: [], readmeChecklist: [], resubmitCondition: "", interviewPoints: [] };
+}
+
+/** 新しく作る課題の合格点の初期値 */
+export const DEFAULT_PASS_SCORE = 70;

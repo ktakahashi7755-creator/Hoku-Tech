@@ -83,7 +83,7 @@ const LABELS: Record<string, string> = {
   videoUrl: "動画 URL",
 };
 
-export type DraftResult =
+type DraftResult =
   | { ok: true; title: string; estimatedMinutes: number; changeNote: string | null; content: LessonContent }
   | { ok: false; errors: string[] };
 

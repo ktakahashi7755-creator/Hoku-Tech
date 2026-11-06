@@ -151,7 +151,7 @@ export function LessonSections({ content, quizSlot, children }: { content: Lesso
             <div className="mt-3 flex flex-col gap-3">
               {content.commonErrors.map((e) => (
                 <Card key={e.error}>
-                  <p className="font-mono text-sm font-semibold text-danger">{e.error}</p>
+                  <p className="font-mono text-sm font-semibold break-all text-danger">{e.error}</p>
                   <dl className="mt-2 grid gap-1 text-sm sm:grid-cols-[4rem_1fr]">
                     <dt className="text-muted">原因</dt>
                     <dd>{e.cause}</dd>

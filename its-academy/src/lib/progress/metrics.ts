@@ -121,6 +121,16 @@ export function jstDayKey(d: Date): string {
   return new Date(d.getTime() + JST_OFFSET_MS).toISOString().slice(0, 10);
 }
 
+/** 日本時間の日付 (YYYY-MM-DD) のその日の 0 時 */
+export function jstDayStart(day: string): Date {
+  return new Date(`${day}T00:00:00+09:00`);
+}
+
+/** 日時の入力欄の値 (YYYY-MM-DDTHH:mm[:ss]) を日本時間として解釈する */
+export function parseJstLocal(value: string): Date {
+  return new Date(`${value.length === 16 ? value + ":00" : value}+09:00`);
+}
+
 /** 連続学習日数。今日または昨日まで途切れずに学習した日数 (日本時間) */
 export function learningStreak(activity: readonly Date[], now: Date): number {
   const days = new Set(activity.map(jstDayKey));
@@ -182,7 +192,7 @@ export function paceAgainstTarget(
 ): { expected: number; diff: number } | null {
   if (!targetEnd) return null;
   // 目標修了日は日付だけを持つ (UTC 0 時 = 日本時間 9 時)。その日の終わり (日本時間 24 時) までを期間とする
-  const end = Date.parse(`${jstDayKey(targetEnd)}T00:00:00+09:00`) + DAY_MS;
+  const end = jstDayStart(jstDayKey(targetEnd)).getTime() + DAY_MS;
   const total = end - startedAt.getTime();
   if (total <= 0) return null;
   const elapsed = Math.min(Math.max(now.getTime() - startedAt.getTime(), 0), total);
@@ -241,4 +251,9 @@ export function statusFromDecision(decision: "PASS" | "CHANGES_REQUESTED" | "FAI
 /** ルーブリックの採点を合計する。各観点 0〜weight 点 */
 export function totalRubricScore(scores: readonly { weight: number; score: number }[]): number {
   return scores.reduce((sum, s) => sum + Math.min(Math.max(Math.round(s.score), 0), s.weight), 0);
+}
+
+/** 受講生が取り組める課題: 前提レッスンがないか、前提レッスンが公開中のもの (非公開なら一覧と指標から外す) */
+export function reachableAssignments<T extends { lessonId: string | null }>(assignments: readonly T[], publishedLessonIds: ReadonlySet<string>): T[] {
+  return assignments.filter((a) => !a.lessonId || publishedLessonIds.has(a.lessonId));
 }

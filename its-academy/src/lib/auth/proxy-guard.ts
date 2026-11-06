@@ -8,7 +8,7 @@ import { db } from "@/lib/db-core";
 import { hashSessionToken } from "./token";
 import { requiredRoles } from "./proxy-rules";
 
-export type GuardResult = "allow" | "login" | "not_found";
+type GuardResult = "allow" | "login" | "not_found";
 
 export async function guard(pathname: string, token: string | undefined): Promise<GuardResult> {
   const roles = requiredRoles(pathname);

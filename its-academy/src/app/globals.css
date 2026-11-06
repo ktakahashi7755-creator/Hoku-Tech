@@ -76,3 +76,11 @@ body {
 .prose-lesson p + p {
   margin-top: 0.75rem;
 }
+
+/*
+ * 長い英数字 (ファイルパス・URL・エラーメッセージ) で横にはみ出さないよう、本文は必要なら単語の途中でも折り返す。
+ * コード (pre) は横スクロールの領域で表示するため対象外。
+ */
+main :where(p, li, dd, dt, td, th, h1, h2, h3, figcaption, label, legend, summary) {
+  overflow-wrap: anywhere;
+}

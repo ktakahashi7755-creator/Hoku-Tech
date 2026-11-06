@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { setLessonStatus } from "@/app/actions/staff";
+import { setLessonStatus } from "@/app/actions/cms";
 import { Button } from "@/components/ui";
 
 export function LessonStatusToggle({ lessonId, published }: { lessonId: string; published: boolean }) {
@@ -17,10 +17,9 @@ export function LessonStatusToggle({ lessonId, published }: { lessonId: string; 
           start(async () => {
             setMessage(null);
             try {
-              await setLessonStatus(lessonId, published ? "DRAFT" : "PUBLISHED");
-              setMessage({ ok: published ? "非公開にしました。" : "公開しました。" });
+              setMessage((await setLessonStatus(lessonId, published ? "DRAFT" : "PUBLISHED")) ?? null);
             } catch {
-              setMessage({ error: "変更できませんでした。公開できる版があるか確認してください。" });
+              setMessage({ error: "変更できませんでした。ページを再読み込みしてください。" });
             }
           });
         }}

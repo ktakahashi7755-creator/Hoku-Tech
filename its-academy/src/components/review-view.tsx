@@ -1,4 +1,5 @@
-import { formatDateTime } from "@/lib/labels";
+import { DECISION_LABEL, formatDateTime } from "@/lib/labels";
+import { ReviewScoresSchema } from "@/lib/content/schema";
 
 type ReviewLike = {
   totalScore: number;
@@ -10,11 +11,12 @@ type ReviewLike = {
   reviewer: { name: string };
 };
 
-const DECISION_LABEL = { PASS: "合格", CHANGES_REQUESTED: "修正依頼", FAIL: "不合格" } as const;
 
 /** 採点結果 (採点時点のルーブリックのスナップショットを表示する) */
 export function ReviewView({ review }: { review: ReviewLike }) {
-  const scores = Array.isArray(review.scores) ? (review.scores as { key: string; label: string; weight: number; score: number }[]) : [];
+  // 採点時点のスナップショット。形式が崩れていれば内訳は出さない (合計点と判定は表示する)
+  const parsed = ReviewScoresSchema.safeParse(review.scores);
+  const scores = parsed.success ? parsed.data : [];
   return (
     <div className="flex flex-col gap-3 text-sm">
       <p>

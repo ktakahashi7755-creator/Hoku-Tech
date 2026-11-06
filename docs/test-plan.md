@@ -10,13 +10,13 @@
 |----|--------|----------|-------------------|------|
 | 型検査 | TypeScript | `npm run typecheck` | — | エラー 0 |
 | 静的解析 | ESLint (next) | `npm run lint` | — | エラー 0 |
-| 単体 | Vitest | `npm test` | 76 件 / 9 ファイル | 全件成功 |
+| 単体 | Vitest | `npm test` | 81 件 / 10 ファイル | 全件成功 |
 | 教材コード検証 | JDK 21 / bash / Git / PostgreSQL 16 / Maven / Chromium | `npm run verify:code` | 30 サンプル (Java・bash・Git・SQL・Maven で起動する Spring Boot・Chromium でのブラウザ確認。L8 の 2 件を含む) | 全件一致 |
 | ビルド | Next.js | `npm run build` | — | 成功 |
-| E2E | Playwright (Chromium) | `npm run test:e2e -- --trace off` | 28 (01-lms 8・02-cms 4・03-a11y 5・04-accounts 3・05-cms-assignments 4・06-hardening 4) | 全件成功 |
-| E2E (他ブラウザ) | Playwright (Firefox / WebKit) | CI の `cross-browser` ジョブ (`PW_BROWSERS`) | 上と同じ 28 件 × 2 | 全件成功 (CI) |
+| E2E | Playwright (Chromium) | `npm run test:e2e -- --trace off` | 34 (01-lms 8・02-cms 4・03-a11y 5・04-accounts 3・05-cms-assignments 4・06-hardening 4・07-rules 6) | 全件成功 |
+| E2E (他ブラウザ) | Playwright (Firefox / WebKit) | CI の `cross-browser` ジョブ (`PW_BROWSERS`) | 上と同じ 34 件 × 2 | 全件成功 (CI) |
 | コンテナ | Docker / Compose | CI の `container` ジョブ | 起動・ヘルスチェック・ヘッダー・危険な設定での起動拒否・バックアップと復元 | 成功 (ローカルと CI) |
-| アクセシビリティ | axe-core 4.14 (WCAG 2.2 A/AA) | 03-a11y.spec.ts | 26 画面 (受講生画面は 375px と 1280px) + キーボード操作 | 違反 0 件 |
+| アクセシビリティ | axe-core 4.14 (WCAG 2.2 A/AA) | 03-a11y.spec.ts | 20 画面 (ログイン 1・受講生 9 画面は 375px と 1280px の両方・講師と管理者 10 画面。計 29 回の検査) + キーボード操作 | 違反 0 件 |
 
 E2E は専用の DB (`TEST_DATABASE_URL`、既定は `its_academy_test`) を `prisma migrate deploy` + seed で毎回作り直す。
 
@@ -28,6 +28,7 @@ E2E は専用の DB (`TEST_DATABASE_URL`、既定は `its_academy_test`) を `pr
 | `roles.test.ts` | 個人データのアクセス分離 (本人 / 担当講師 / 担当外講師 / 他の受講生 / 管理者)・ロール付与の制限・アカウント操作の範囲 (自分自身・上位ロールは不可)・proxy のロール判定・GitHub URL の検証 |
 | `token.test.ts` | セッショントークンの長さ・一意性・保存用ハッシュ |
 | `csv.test.ts` | エスケープ・CSV インジェクション対策 (先頭の空白・全角の記号・改行も対象)・BOM |
+| `rules.test.ts` | 下書き保存で上書きしてよい版 (公開済み・公開中・予約中は不可)・指導提案の対象 (合格済みの課題・合格済みの理解度チェックは除く)・前提レッスンが非公開の課題を指標から除く |
 | `client-ip.test.ts` | 利用者の IP の選び方 (信頼するプロキシの段数・偽の先頭の値を使わない・未設定なら記録しない・不自然な値を記録しない) |
 | `draft.test.ts` | CMS の入力の変換・必須チェック・正解番号の範囲・実行検証済みの印と実行スクリプトの引き継ぎ (コード変更で外れる・フォームからの偽装は無効)・往復変換 |
 | `guidance.test.ts` | 指導提案 (停滞を能力不足と表現しない・複数回提出で面談提案・遅れの閾値) |
@@ -62,6 +63,12 @@ E2E は専用の DB (`TEST_DATABASE_URL`、既定は `its_academy_test`) を `pr
 | 26 | 講師・管理者画面の 375px | 11 画面で横スクロールなし |
 | 27 | 死活監視とヘッダー | /api/health がログインなしで `{"status":"ok"}`・no-store。CSP・X-Frame-Options・nosniff・Referrer-Policy があり X-Powered-By がない |
 | 28 | ページ名 | レッスン・課題のページ名にレッスン名・課題名が入る |
+| 29 | robots.txt (07-rules) | ログインなしで返り、全ページの登録を拒否する |
+| 30 | 仮パスワードの講師 | 仮パスワードのままでは、ダッシュボード・受講生一覧・レビュー・CSV を使えない |
+| 31 | 担当外の受講生 | 講師は担当外の受講生の採点画面を開けず (404 の画面)、レビュー一覧と CSV にも出ない |
+| 32 | セッションの最長期間 | ログインから 30 日を過ぎたセッションではログイン画面に戻る |
+| 33 | 休止中の受講生 | 教材は読めるが、課題は提出できない (提出の記録も作られない) |
+| 34 | 理解度チェックの版 | 解いている間に新しい版が公開されたら、古い問題への回答では採点しない |
 
 ## 4. 負荷試験 (2026-11-06)
 
@@ -95,7 +102,7 @@ E2E は専用の DB (`TEST_DATABASE_URL`、既定は `its_academy_test`) を `pr
 
 * Docker イメージ (standalone・非 root) と docker compose を本番と同じ設定 (APP_ENV=production, COOKIE_SECURE=true) で起動し、
   ヘルスチェック 200・HEALTHCHECK healthy・Chromium で受講生と管理者がログイン (Secure / HttpOnly Cookie、コンソールエラー 0 件)
-* 開発用パスワードの接続文字列・COOKIE_SECURE なしでは終了コード 1 で起動しない
+* 開発用パスワードの接続文字列・COOKIE_SECURE なし・TRUSTED_PROXY_HOPS なしでは終了コード 1 で起動しない
 * バックアップ → 別 DB に復元して主要 6 テーブルの件数が一致、同じファイルの再復元も成功、保持期間を過ぎたバックアップだけ削除
 * 上記のうち起動・ヘッダー・起動拒否・バックアップと復元は CI の `container` ジョブで毎回実行
 

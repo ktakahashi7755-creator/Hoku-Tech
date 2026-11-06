@@ -14,10 +14,10 @@ export function LoginForm() {
         </p>
       )}
       <Field label="メールアドレス" htmlFor="email" error={state?.fieldErrors?.email}>
-        <input id="email" name="email" type="email" autoComplete="email" required defaultValue={state?.values?.email} className={inputStyles} aria-invalid={!!state?.fieldErrors?.email} />
+        <input id="email" name="email" type="email" autoComplete="email" required defaultValue={state?.values?.email} className={inputStyles} />
       </Field>
       <Field label="パスワード" htmlFor="password" error={state?.fieldErrors?.password}>
-        <input id="password" name="password" type="password" autoComplete="current-password" required className={inputStyles} aria-invalid={!!state?.fieldErrors?.password} />
+        <input id="password" name="password" type="password" autoComplete="current-password" required className={inputStyles} />
       </Field>
       <Button type="submit" disabled={pending}>
         {pending ? "確認しています…" : "ログイン"}

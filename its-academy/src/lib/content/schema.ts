@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { CODE_LANGUAGES } from "./languages";
 
 /**
  * レッスン本文の標準フォーマット (13 項目)。
@@ -7,7 +8,7 @@ import { z } from "zod";
  * 10 実務での利用場面 / 11 よくあるエラー / 12 復習ポイント / 13 次のレッスン (並び順から自動)
  */
 const CodeSampleSchema = z.object({
-  language: z.enum(["java", "bash", "sql", "html", "css", "javascript", "xml", "properties", "text"]),
+  language: z.enum(CODE_LANGUAGES),
   filename: z.string().optional(),
   source: z.string().min(1),
   /** 実行結果 (実際に実行して得た出力をそのまま記載) */
@@ -72,3 +73,8 @@ export const AssignmentBodySchema = z.object({
 });
 
 export type AssignmentBody = z.infer<typeof AssignmentBodySchema>;
+
+/** 採点の内訳 (reviews.scores)。採点時点のルーブリックの観点と点数 */
+export const ReviewScoresSchema = z.array(z.object({ key: z.string(), label: z.string(), weight: z.number(), score: z.number() }));
+
+export { CODE_LANGUAGES };

@@ -22,7 +22,7 @@ export function PasswordForm({ homeHref }: { homeHref: string }) {
       <div aria-live="polite">
         {state?.error && <p role="alert" className="rounded-lg bg-danger-soft p-3 text-sm text-danger">{state.error}</p>}
         {state?.ok && (
-          <p className="rounded-lg bg-success-soft p-3 text-sm text-success">
+          <p role="status" className="rounded-lg bg-success-soft p-3 text-sm text-success">
             {state.ok}{" "}
             <Link href={homeHref} className="font-semibold underline">
               ホームへ進む

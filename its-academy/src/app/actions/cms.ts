@@ -7,8 +7,11 @@ import { db } from "@/lib/db";
 import { audit } from "@/lib/audit";
 import { requireUser } from "@/lib/auth/dal";
 import { ADMIN_ROLES } from "@/lib/auth/roles";
-import { LessonContentSchema } from "@/lib/content/schema";
+import { CODE_LANGUAGES, LessonContentSchema } from "@/lib/content/schema";
 import { editorStateOf, emptyDraft, fromEditorDraft, type EditorDraft } from "@/lib/content/draft";
+import { isEditableDraft } from "@/lib/content/versions";
+import { slugSchema } from "@/lib/content/slug";
+import { parseJstLocal } from "@/lib/progress/metrics";
 
 const Id = z.cuid();
 
@@ -27,7 +30,7 @@ const DraftShape = z.object({
   code: z
     .array(
       z.object({
-        language: z.enum(["java", "bash", "sql", "html", "css", "javascript", "xml", "properties", "text"]),
+        language: z.enum(CODE_LANGUAGES),
         filename: str(200),
         source: str(50000),
         output: str(20000),
@@ -74,11 +77,7 @@ function revalidateLesson(lessonId: string, slug?: string) {
 const NewLesson = z.object({
   moduleId: z.cuid(),
   title: z.string().trim().min(1, "タイトルを入力してください").max(120),
-  slug: z
-    .string()
-    .trim()
-    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "URL 名は半角英小文字・数字・ハイフンで入力してください (例: l2-strings)")
-    .max(60),
+  slug: slugSchema("l2-strings"),
 });
 
 export type CmsState = { error?: string; errors?: string[]; ok?: string; lessonId?: string } | undefined;
@@ -154,25 +153,21 @@ export async function saveDraft(lessonId: string, rawDraft: EditorDraft): Promis
   };
 }
 
-/** 上書きしてよい下書きか (未公開で、公開中・予約中の版でない) */
-function isEditableDraft(version: { id: string; publishedAt: Date | null }, lesson: { currentVersionId: string | null; scheduledVersionId: string | null }): boolean {
-  return !version.publishedAt && version.id !== lesson.currentVersionId && version.id !== lesson.scheduledVersionId;
-}
-
 /** 過去の版を元に新しい下書きを作る (差し戻し) */
 export async function restoreVersionAsDraft(lessonId: string, versionId: string): Promise<void> {
   const user = await requireUser(ADMIN_ROLES);
-  const source = await db.lessonVersion.findFirstOrThrow({ where: { id: Id.parse(versionId), lessonId: Id.parse(lessonId) } });
+  const id = Id.parse(lessonId);
+  const source = await db.lessonVersion.findFirstOrThrow({ where: { id: Id.parse(versionId), lessonId: id } });
   const editorDraft = { ...editorStateOf(source), changeNote: `版 ${source.version} から復元` };
   const data = { title: source.title, estimatedMinutes: source.estimatedMinutes, content: { editorDraft }, changeNote: editorDraft.changeNote, authorId: user.id };
   await serially(async (tx) => {
-    const lesson = await tx.lesson.findUniqueOrThrow({ where: { id: lessonId } });
-    const latest = await tx.lessonVersion.findFirstOrThrow({ where: { lessonId }, orderBy: { version: "desc" } });
+    const lesson = await tx.lesson.findUniqueOrThrow({ where: { id } });
+    const latest = await tx.lessonVersion.findFirstOrThrow({ where: { lessonId: id }, orderBy: { version: "desc" } });
     if (isEditableDraft(latest, lesson)) await tx.lessonVersion.update({ where: { id: latest.id }, data });
-    else await tx.lessonVersion.create({ data: { ...data, lessonId, version: latest.version + 1 } });
+    else await tx.lessonVersion.create({ data: { ...data, lessonId: id, version: latest.version + 1 } });
   });
-  await audit({ actorId: user.id, action: "lesson.restore_version", targetType: "lesson", targetId: lessonId, metadata: { from: source.version } });
-  revalidateLesson(lessonId);
+  await audit({ actorId: user.id, action: "lesson.restore_version", targetType: "lesson", targetId: id, metadata: { from: source.version } });
+  revalidateLesson(id);
 }
 
 // ---------------------------------------------------------------- 公開
@@ -222,7 +217,7 @@ export async function scheduleVersion(lessonId: string, versionId: string, atLoc
   const parsed = Schedule.safeParse({ at: atLocal });
   if (!parsed.success) return { error: "公開日時を入力してください" };
   // 入力は日本時間として扱う
-  const at = new Date(`${parsed.data.at.length === 16 ? parsed.data.at + ":00" : parsed.data.at}+09:00`);
+  const at = parseJstLocal(parsed.data.at);
   if (at.getTime() <= Date.now()) return { error: "公開日時は現在より後にしてください" };
   const fin = await serially(async (tx) => {
     const f = await finalizeVersion(tx, lessonId, versionId);
@@ -243,4 +238,17 @@ export async function cancelSchedule(lessonId: string): Promise<void> {
   await db.lesson.update({ where: { id: Id.parse(lessonId) }, data: { scheduledVersionId: null, publishAt: null } });
   await audit({ actorId: user.id, action: "lesson.schedule_cancel", targetType: "lesson", targetId: lessonId });
   revalidateLesson(lessonId);
+}
+
+/** レッスンを公開・非公開にする。非公開にするときは予約公開も取り消す (予約時刻に勝手に公開されないように) */
+export async function setLessonStatus(lessonId: string, status: "PUBLISHED" | "DRAFT"): Promise<CmsState> {
+  const user = await requireUser(ADMIN_ROLES);
+  const id = Id.parse(lessonId);
+  const next = z.enum(["PUBLISHED", "DRAFT"]).parse(status);
+  const lesson = await db.lesson.findUniqueOrThrow({ where: { id } });
+  if (next === "PUBLISHED" && !lesson.currentVersionId) return { error: "公開できる版がありません。先に版を公開してください。" };
+  await db.lesson.update({ where: { id }, data: next === "DRAFT" ? { status: next, scheduledVersionId: null, publishAt: null } : { status: next } });
+  await audit({ actorId: user.id, action: "lesson.status", targetType: "lesson", targetId: id, metadata: { status: next } });
+  revalidateLesson(id, lesson.slug);
+  return { ok: next === "DRAFT" ? "非公開にしました。" : "公開しました。" };
 }

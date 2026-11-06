@@ -1,7 +1,7 @@
 /**
  * 行単位の差分 (最長共通部分列)。CMS で版どうしの変更点を表示するために使う。純粋関数。
  */
-export type DiffLine = { type: "same" | "added" | "removed"; text: string };
+type DiffLine = { type: "same" | "added" | "removed"; text: string };
 
 export function lineDiff(before: string[], after: string[]): DiffLine[] {
   const n = before.length;

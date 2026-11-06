@@ -1,21 +1,21 @@
 "use server";
 
-import { randomBytes } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import type { SubmissionStatus } from "@prisma/client";
+import { CommentVisibility, EnrollmentStatus, ReviewDecision, type SubmissionStatus } from "@prisma/client";
 import { db } from "@/lib/db";
 import { audit } from "@/lib/audit";
 import { requireUser } from "@/lib/auth/dal";
-import { hashPassword } from "@/lib/auth/password";
+import { generateTempPassword, hashPassword } from "@/lib/auth/password";
 import { ADMIN_ROLES, STAFF_ROLES } from "@/lib/auth/roles";
 import { RubricCriteriaSchema } from "@/lib/content/schema";
 import { statusFromDecision, totalRubricScore } from "@/lib/progress/metrics";
 import { SKILL_AREAS } from "@/lib/progress/skills";
 import { assertCanActOnStudent } from "@/lib/queries/student";
-import type { FormState } from "./auth";
+import { fieldErrors, type FormState } from "@/lib/form-state";
+import { DECISION_LABEL } from "@/lib/labels";
 
-const issues = (e: z.ZodError) => ({ fieldErrors: Object.fromEntries(e.issues.map((i) => [String(i.path[0]), i.message])) });
+const issues = (e: z.ZodError) => ({ fieldErrors: fieldErrors(e) });
 
 // ---------------------------------------------------------------- レビュー
 
@@ -31,7 +31,7 @@ export async function startReview(submissionId: string): Promise<void> {
 
 const ReviewInput = z.object({
   submissionId: z.cuid(),
-  decision: z.enum(["PASS", "CHANGES_REQUESTED", "FAIL"]),
+  decision: z.enum(ReviewDecision),
   comment: z.string().trim().min(10, "受講生が次に何をすればよいか分かるよう、10 文字以上で書いてください").max(5000),
 });
 
@@ -81,7 +81,7 @@ export async function submitReview(_prev: FormState, formData: FormData): Promis
       data: {
         userId: sub.userId,
         title: `レビュー結果: ${sub.assignment.title}`,
-        body: `${{ PASS: "合格", CHANGES_REQUESTED: "修正依頼", FAIL: "不合格" }[input.decision]} (${total} 点)。コメントを確認してください。`,
+        body: `${DECISION_LABEL[input.decision]} (${total} 点)。コメントを確認してください。`,
         link: `/assignments/${sub.assignment.slug}`,
       },
     });
@@ -99,7 +99,7 @@ export async function submitReview(_prev: FormState, formData: FormData): Promis
 const CommentInput = z.object({
   studentId: z.cuid(),
   body: z.string().trim().min(1, "コメントを入力してください").max(5000),
-  visibility: z.enum(["INTERNAL", "STUDENT"]),
+  visibility: z.enum(CommentVisibility),
 });
 
 export async function addComment(_prev: FormState, formData: FormData): Promise<FormState> {
@@ -129,7 +129,7 @@ export async function addSkillAssessment(_prev: FormState, formData: FormData): 
     studentId: formData.get("studentId"),
     skill: formData.get("skill"),
     level: formData.get("level"),
-    note: (formData.get("note") as string | null) || undefined,
+    note: formData.get("note") || undefined,
   });
   if (!parsed.success) return issues(parsed.error);
   await assertCanActOnStudent(viewer, parsed.data.studentId);
@@ -143,11 +143,16 @@ export async function addSkillAssessment(_prev: FormState, formData: FormData): 
 
 // ---------------------------------------------------------------- 管理者のみ
 
+/** 担当講師に設定できる人か (利用中の講師) */
+async function isActiveInstructor(id: string): Promise<boolean> {
+  return !!(await db.user.findFirst({ where: { id, role: "INSTRUCTOR", isActive: true }, select: { id: true } }));
+}
+
 const EnrollmentInput = z.object({
   enrollmentId: z.cuid(),
   instructorId: z.union([z.cuid(), z.literal("")]),
   targetEndDate: z.union([z.iso.date(), z.literal("")]),
-  status: z.enum(["ACTIVE", "PAUSED", "COMPLETED", "WITHDRAWN"]),
+  status: z.enum(EnrollmentStatus),
 });
 
 export async function updateEnrollment(_prev: FormState, formData: FormData): Promise<FormState> {
@@ -161,8 +166,7 @@ export async function updateEnrollment(_prev: FormState, formData: FormData): Pr
   if (!parsed.success) return issues(parsed.error);
   const { enrollmentId, instructorId, targetEndDate, status } = parsed.data;
   if (instructorId) {
-    const ok = await db.user.findFirst({ where: { id: instructorId, role: "INSTRUCTOR", isActive: true } });
-    if (!ok) return { fieldErrors: { instructorId: "講師を選択してください" } };
+    if (!(await isActiveInstructor(instructorId))) return { fieldErrors: { instructorId: "講師を選択してください" } };
   }
   const before = await db.enrollment.findUniqueOrThrow({ where: { id: enrollmentId } });
   await db.enrollment.update({
@@ -196,7 +200,7 @@ export async function createStudent(_prev: NewStudentState, formData: FormData):
   const parsed = NewStudentInput.safeParse({
     name: formData.get("name"),
     email: formData.get("email"),
-    affiliation: (formData.get("affiliation") as string | null) || undefined,
+    affiliation: formData.get("affiliation") || undefined,
     joinedAt: formData.get("joinedAt") ?? "",
     instructorId: formData.get("instructorId") ?? "",
     targetEndDate: formData.get("targetEndDate") ?? "",
@@ -204,13 +208,13 @@ export async function createStudent(_prev: NewStudentState, formData: FormData):
   if (!parsed.success) return issues(parsed.error);
   const input = parsed.data;
   if (await db.user.findUnique({ where: { email: input.email } })) return { fieldErrors: { email: "このメールアドレスはすでに登録されています" } };
-  if (input.instructorId && !(await db.user.findFirst({ where: { id: input.instructorId, role: "INSTRUCTOR", isActive: true } }))) {
+  if (input.instructorId && !(await isActiveInstructor(input.instructorId))) {
     return { fieldErrors: { instructorId: "講師を選択してください" } };
   }
   const course = await db.course.findFirst({ where: { status: "PUBLISHED" }, orderBy: { createdAt: "asc" } });
   if (!course) return { error: "公開中のコースがありません。" };
 
-  const tempPassword = randomBytes(12).toString("base64url");
+  const tempPassword = generateTempPassword();
   const user = await db.user.create({
     data: {
       name: input.name,
@@ -247,17 +251,4 @@ export async function updateSettings(_prev: FormState, formData: FormData): Prom
   await audit({ actorId: viewer.id, action: "settings.update", metadata: parsed.data });
   revalidatePath("/admin");
   return { ok: "設定を保存しました。" };
-}
-
-export async function setLessonStatus(lessonId: string, status: "PUBLISHED" | "DRAFT"): Promise<void> {
-  const viewer = await requireUser(ADMIN_ROLES);
-  const id = z.cuid().parse(lessonId);
-  const s = z.enum(["PUBLISHED", "DRAFT"]).parse(status);
-  const lesson = await db.lesson.findUniqueOrThrow({ where: { id } });
-  if (s === "PUBLISHED" && !lesson.currentVersionId) throw new Error("公開できる版がありません");
-  // 下書きに戻すときは予約公開も取り消す (予約時刻に勝手に公開されないように)
-  await db.lesson.update({ where: { id }, data: s === "DRAFT" ? { status: s, scheduledVersionId: null, publishAt: null } : { status: s } });
-  await audit({ actorId: viewer.id, action: "lesson.status", targetType: "lesson", targetId: id, metadata: { status: s } });
-  revalidatePath("/admin/content");
-  revalidatePath("/curriculum");
 }

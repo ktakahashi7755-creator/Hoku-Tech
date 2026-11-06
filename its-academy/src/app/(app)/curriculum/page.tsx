@@ -53,10 +53,10 @@ export default async function CurriculumPage() {
                     {m.lessons.map((l) => (
                       <li key={l.id} className="flex flex-wrap items-center justify-between gap-2 py-3">
                         <Link href={`/lessons/${l.slug}`} className="text-accent underline-offset-2 hover:underline">
-                          {l.currentVersion!.title}
+                          {l.currentVersion.title}
                         </Link>
                         <span className="flex items-center gap-3 text-sm text-muted">
-                          {l.currentVersion!.estimatedMinutes} 分
+                          {l.currentVersion.estimatedMinutes} 分
                           {!staff && <LessonBadge status={status.get(l.id) ?? "NOT_STARTED"} />}
                         </span>
                       </li>

@@ -8,12 +8,12 @@
 
 | 依頼書のエンティティ | テーブル | 役割 |
 |----------------------|----------|------|
-| users | `users` | 氏名・メール・パスワードハッシュ・ロール・所属・入校日・有効/無効 |
+| users | `users` | 氏名・メール・パスワードハッシュ・ロール・所属・入校日・有効/無効・仮パスワードのままか (`must_change_password`)・最終ログイン日時 |
 | roles | `users.role` (enum `Role`) | 4 ロール固定のため列挙型で表現。複数ロールが必要になったら中間テーブルへ移行 |
 | — | `sessions` | ログインセッション (トークンの SHA-256 のみ保存) |
 | — | `login_attempts` | ログイン試行 (試行制限用) |
 | courses | `courses` | コース |
-| modules | `modules` | レベル (L0〜L8) |
+| modules | `modules` | レベル (L0〜L8)・選択モジュールの印 (`optional`。指標 A〜E に含めない) |
 | lessons | `lessons` | レッスンの識別子・並び順・公開状態・公開予約日時・現在の版 |
 | lesson_versions | `lesson_versions` | レッスン本文の版 (13 項目 JSON)・出典 URL・作成者 |
 | enrollments | `enrollments` | 受講登録・担当講師・学習開始日・目標修了日・最終閲覧レッスン |
@@ -43,7 +43,7 @@
 | 学習時間 / 最終学習日時 / 連続学習日数 | `learning_sessions` + 各種記録の最新日時から算出 |
 | 苦手分野 | 未合格の理解度チェック・修正依頼/不合格の課題・スキル評価 2 以下から算出 |
 | 講師コメント | `instructor_comments` |
-| 卒業制作状況 | `assignments.type = FINAL_PROJECT` の提出状態 (課題データは L7 移行時に作成) |
+| 卒業制作状況 | `assignments.type = FINAL_PROJECT` の提出状態 (課題 a6-final-library-system) |
 | 実務能力評価 | `skill_assessments` |
 
 ## 3. 整合性のルール
@@ -67,7 +67,7 @@
 
 ## 5. バックアップと復元
 
-[deployment-guide.md §5](deployment-guide.md#5-バックアップと復元) を参照。
+[deployment-guide.md §6](deployment-guide.md#6-バックアップと復元) を参照。
 
 ## 6. マイグレーション
 

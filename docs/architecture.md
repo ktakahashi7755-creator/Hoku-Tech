@@ -54,6 +54,33 @@ Next.js (Node.js)
 PostgreSQL (Prisma)
 ```
 
+### 画面一覧
+
+| URL | 画面 | 利用できるロール |
+|-----|------|------------------|
+| `/login` | ログイン | 全員 (未ログイン) |
+| `/home` | ホーム (次にやること・進捗の要約) | 受講生 |
+| `/curriculum` | カリキュラム (レベル別のレッスン・課題) | 全員 |
+| `/lessons/[slug]` | レッスン (本文・サンプルコード・演習・理解度チェック) | 全員 (学習記録は受講生のみ) |
+| `/assignments`, `/assignments/[slug]` | 課題の一覧・提出 | 受講生 |
+| `/progress` | 学習進捗 (指標 A〜E・レベル別の履修状況) | 受講生 |
+| `/reviews` | 質問・レビュー (採点結果・講師コメント・お知らせ) | 受講生 |
+| `/me` | マイページ (登録情報・パスワード変更) | 全員 |
+| `/admin` | ダッシュボード (停滞・レビュー待ち・お知らせ) | 講師・管理者 |
+| `/admin/students`, `/admin/students/[id]` | 受講生の一覧・詳細 (コメント・スキル評価・受講設定) | 講師 (担当の受講生のみ)・管理者 |
+| `/admin/students/new` | 受講生の追加 | 管理者 |
+| `/admin/reviews`, `/admin/reviews/[id]` | レビュー (提出の一覧・採点) | 講師 (担当の受講生のみ)・管理者 |
+| `/admin/export/students` | 受講生の状況の CSV | 講師 (担当の受講生のみ)・管理者 |
+| `/admin/content` | 教材の一覧 (レッスン・課題の追加と並べ替え・公開) | 管理者 |
+| `/admin/content/lessons/[id]` | レッスンの編集・公開・予約・版の履歴 | 管理者 |
+| `/admin/content/lessons/[id]/preview/[versionId]` | 版のプレビュー | 管理者 |
+| `/admin/content/lessons/[id]/diff/[versionId]` | 版の差分 | 管理者 |
+| `/admin/content/assignments`, `/admin/content/assignments/[id]` | 課題の一覧・編集 | 管理者 |
+| `/admin/content/rubrics/[id]` | ルーブリックの編集 | 管理者 |
+| `/admin/users` | アカウント (ロール変更・仮パスワード発行・利用停止) | 管理者 (ADMIN は講師・受講生のみ操作可) |
+| `/admin/settings` | 設定 (停滞の基準日数・古い記録の削除) | 管理者 |
+| `/api/health` | 死活監視 | 全員 (ログイン不要) |
+
 ### レンダリング
 
 * `cacheComponents: true`。認証が必要な画面は `(app)/layout.tsx` の `<Suspense>` 内で描画し、
@@ -83,7 +110,7 @@ PostgreSQL (Prisma)
 | CSV インジェクション | `= + - @` 等で始まるセルに `'` を付与 | `src/lib/csv.ts` |
 | 監査ログ | ログイン成功/失敗・ログアウト・パスワード変更・提出・採点・コメント・スキル評価・受講設定・設定変更・教材公開・課題とルーブリックの編集・ロール変更・仮パスワード発行・利用停止と再開・古い記録の削除・CSV 出力 | `src/lib/audit.ts` |
 | セキュリティヘッダー | CSP (`frame-ancestors 'none'` など)、HSTS (HTTPS 時)、X-Frame-Options、nosniff、Referrer-Policy、Permissions-Policy。Partial Prerender と nonce が両立しないため `script-src` は `'unsafe-inline'` を含む | `src/lib/security-headers.ts` |
-| 起動時の設定確認 | 本番・検証環境で COOKIE_SECURE なし・開発用パスワードの接続文字列なら終了コード 1 で終了 | `src/lib/env-check.ts`, `src/instrumentation-node.ts` |
+| 起動時の設定確認 | 本番・検証環境で COOKIE_SECURE=true がない・TRUSTED_PROXY_HOPS がない・開発用パスワードの接続文字列なら終了コード 1 で終了。どの環境でも APP_ENV の値・接続文字列の形式・TRUSTED_PROXY_HOPS の形式を確認 | `src/lib/env-check.ts`, `src/instrumentation-node.ts` |
 
 ### 権限不足時の応答
 

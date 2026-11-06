@@ -35,7 +35,7 @@ export function Quiz({ lessonId, versionId, questions, passScore, alreadyPassed 
         const r = result?.results[qi];
         const answer = answers[qi];
         return (
-          <fieldset key={q.id} className="rounded-xl border border-border p-4">
+          <fieldset key={q.id} className="min-w-0 rounded-xl border border-border p-4">
             <legend className="px-1 font-semibold">
               問 {qi + 1}. {q.question}
             </legend>

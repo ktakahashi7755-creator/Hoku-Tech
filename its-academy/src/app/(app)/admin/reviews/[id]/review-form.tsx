@@ -3,7 +3,7 @@
 import { useActionState, useState, useTransition } from "react";
 import { startReview, submitReview } from "@/app/actions/staff";
 import { ActionForm } from "@/components/action-form";
-import { Button, Field, inputStyles } from "@/components/ui";
+import { Button, Field, FormMessage, inputStyles } from "@/components/ui";
 
 type Criterion = { key: string; label: string; weight: number; description: string };
 
@@ -68,10 +68,7 @@ export function ReviewForm({ submissionId, criteria, passScore }: { submissionId
       <Field label="コメント (受講生に表示されます)" htmlFor="comment" hint="良かった点と、次に何を直せばよいかを具体的に書いてください。" error={state?.fieldErrors?.comment}>
         <textarea id="comment" name="comment" rows={6} className={inputStyles} />
       </Field>
-      <div aria-live="polite">
-        {state?.error && <p role="alert" className="rounded-lg bg-danger-soft p-3 text-sm text-danger">{state.error}</p>}
-        {state?.ok && <p className="rounded-lg bg-success-soft p-3 text-sm text-success">{state.ok}</p>}
-      </div>
+      <FormMessage state={state} />
       <Button type="submit" disabled={pending}>{pending ? "保存しています…" : "採点を確定する"}</Button>
     </ActionForm>
   );

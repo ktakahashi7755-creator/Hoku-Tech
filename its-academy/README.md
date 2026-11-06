@@ -11,7 +11,7 @@ ITS 合同会社のエンジニア育成プラットフォーム (LMS)。受講�
 ## すぐに動かす
 
 ```bash
-cp .env.example .env     # DATABASE_URL を設定 (PostgreSQL 16)
+cp .env.example .env     # DATABASE_URL を設定し、ローカルでは APP_ENV=local・COOKIE_SECURE=false にする
 npm ci
 npm run db:migrate
 npm run db:seed          # 開発用データ。本番では実行できない

@@ -49,3 +49,18 @@ export function suggestGuidance(i: GuidanceInput): Guidance[] {
   }
   return out;
 }
+
+/**
+ * 指導提案の対象にする課題: 合格していないもので、修正依頼・不合格、または 2 回以上提出したもの
+ * (何回目でも合格した課題は対象にしない)。
+ */
+export function strugglingAssignments<T extends { latestStatus: string | null; attempts: number }>(assignments: readonly T[]): T[] {
+  return assignments.filter(
+    (a) => a.latestStatus !== "PASSED" && (a.latestStatus === "CHANGES_REQUESTED" || a.latestStatus === "FAILED" || a.attempts >= 2),
+  );
+}
+
+/** 理解度チェックを受けたが一度も合格していない必修レッスン (選択モジュールは対象にしない) */
+export function weakLessons<T extends { id: string; optional: boolean }>(lessons: readonly T[], attempted: ReadonlySet<string>, passed: ReadonlySet<string>): T[] {
+  return lessons.filter((l) => !l.optional && attempted.has(l.id) && !passed.has(l.id));
+}

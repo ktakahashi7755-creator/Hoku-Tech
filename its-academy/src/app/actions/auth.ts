@@ -9,9 +9,8 @@ import { isLoginThrottled, recordLoginAttempt } from "@/lib/auth/rate-limit";
 import { createSession, deleteCurrentSession, revokeAllSessions } from "@/lib/auth/session";
 import { requireUser } from "@/lib/auth/dal";
 import { isStaff } from "@/lib/auth/roles";
+import { fieldErrors, type FormState } from "@/lib/form-state";
 
-/** values: エラー時に入力欄へ戻す値 (パスワードは含めない) */
-export type FormState = { error?: string; fieldErrors?: Record<string, string>; ok?: string; values?: Record<string, string> } | undefined;
 
 const LoginSchema = z.object({
   email: z.string().trim().toLowerCase().email("メールアドレスの形式で入力してください").max(254),
@@ -27,7 +26,7 @@ export async function login(_prev: FormState, formData: FormData): Promise<FormS
   const typedEmail = String(formData.get("email") ?? "").slice(0, 254);
   const values = { email: typedEmail };
   if (!parsed.success) {
-    return { values, fieldErrors: Object.fromEntries(parsed.error.issues.map((i) => [String(i.path[0]), i.message])) };
+    return { values, fieldErrors: fieldErrors(parsed.error) };
   }
   const { email, password } = parsed.data;
   const ip = await clientIp();
@@ -76,7 +75,7 @@ export async function changePassword(_prev: FormState, formData: FormData): Prom
   const me = await requireUser(undefined, { allowPendingPasswordChange: true });
   const parsed = PasswordSchema.safeParse({ current: formData.get("current"), next: formData.get("next"), confirm: formData.get("confirm") });
   if (!parsed.success) {
-    return { fieldErrors: Object.fromEntries(parsed.error.issues.map((i) => [String(i.path[0]), i.message])) };
+    return { fieldErrors: fieldErrors(parsed.error) };
   }
   // 盗まれたセッションで現在のパスワードを総当たりされないよう、ログインと同じ回数制限をかける
   const ip = await clientIp();

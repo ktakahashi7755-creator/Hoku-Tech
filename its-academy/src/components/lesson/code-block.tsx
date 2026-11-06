@@ -8,14 +8,15 @@ export function CodeBlock({ code, language, filename, label = "サンプルコ�
   return (
     <figure className="overflow-hidden rounded-xl border border-border">
       <figcaption className="flex items-center justify-between gap-2 border-b border-border bg-surface px-4 py-2 text-sm">
-        <span>
+        {/* 長いファイル名でもコピーボタンが画面外に出ないよう、名前の側を折り返す */}
+        <span className="min-w-0 break-all">
           <span className="font-semibold">{label}</span>
           {filename && <span className="ml-2 font-mono text-muted">{filename}</span>}
           <span className="ml-2 text-xs text-muted">{language}</span>
         </span>
         <button
           type="button"
-          className="min-h-9 rounded-md px-2 text-accent hover:bg-accent-soft"
+          className="min-h-9 shrink-0 rounded-md px-2 text-accent hover:bg-accent-soft"
           onClick={async () => {
             try {
               await navigator.clipboard.writeText(code);

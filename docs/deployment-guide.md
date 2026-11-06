@@ -61,6 +61,7 @@ CI (`.github/workflows/its-academy.yml`) は上記に加えて Firefox / WebKit 
 |-----------|----------|
 | production / staging | `DATABASE_URL` があること、`COOKIE_SECURE=true`、`TRUSTED_PROXY_HOPS` があること、開発用・初期値のパスワード (`its_dev_only` など) を使っていないこと |
 | test / local | `DATABASE_URL` があること |
+| どの環境でも | `DATABASE_URL` が `postgresql://` で始まること、`APP_ENV` が上の 4 つのいずれか、`TRUSTED_PROXY_HOPS` は設定する場合 1 以上の整数 |
 
 ## 4. 監視・ログ (確認済み)
 
@@ -79,7 +80,7 @@ CSP は `script-src 'unsafe-inline'` を含む。Next.js の Partial Prerender (
 | ファイル | 内容 |
 |----------|------|
 | `its-academy/Dockerfile` | `runner` (既定): Next.js の standalone 出力のみ・`node` ユーザーで実行・HEALTHCHECK 付き (約 440MB)。`tools`: マイグレーションと seed 用 (開発用の依存関係を含むため常駐させない) |
-| `its-academy/docker-compose.yml` | `db` (PostgreSQL 16) → `migrate` (`prisma migrate deploy`、完了まで待つ) → `app` (127.0.0.1:3000)。`seed` は `demo` プロファイルのときだけ |
+| `its-academy/docker-compose.yml` | `db` (PostgreSQL 16) → `migrate` (`prisma migrate deploy`、完了まで待つ) → `app` (127.0.0.1:3000)。`seed` は `demo` プロファイル、`bootstrap` (本番の初期設定) は `setup` プロファイルのときだけ |
 
 ```bash
 cd its-academy
@@ -156,7 +157,7 @@ Google Cloud の場合の具体的なコマンドは [deploy-gcp.md](deploy-gcp.
 
 
 1. ホスティングと DB の選定・契約 (承認後、D-03)。候補: コンテナ実行環境 + マネージド PostgreSQL (日本リージョン、自動バックアップと PITR がある製品)
-2. シークレットの登録: `DATABASE_URL`、`NEXT_SERVER_ACTIONS_ENCRYPTION_KEY` (複数台の場合)。`APP_ENV=production`、`COOKIE_SECURE=true`
+2. シークレットの登録: `DATABASE_URL`、`NEXT_SERVER_ACTIONS_ENCRYPTION_KEY` (複数台の場合)。環境変数: `APP_ENV=production`、`COOKIE_SECURE=true`、`TRUSTED_PROXY_HOPS` (HTTPS を終端するプロキシの段数)
 3. イメージのビルド: `docker build -t its-academy .` と `docker build --target tools -t its-academy-tools .`
 4. リリースごとに `its-academy-tools` で `npx prisma migrate deploy` を実行してから `its-academy` を入れ替える
 5. HTTPS 終端 (TLS 1.2 以上)。リバースプロキシ配下なら `X-Forwarded-For` を信頼する範囲を限定する

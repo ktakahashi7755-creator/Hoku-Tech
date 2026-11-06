@@ -164,7 +164,7 @@ gcloud run deploy its-academy --image=$REPO/app:$TAG --region=$REGION \
 2. ログ: 標準エラーの JSON ログは Cloud Logging に集まる。`jsonPayload.event="request_error"` でエラーを絞り込める (要確認)
 3. 復元訓練を 1 回行う: Cloud SQL のバックアップから別インスタンスに復元し、件数を比べる (deployment-guide.md §6)
 4. test-plan.md の公開前チェックを本番のアドレスで実施する
-5. 講師・受講生のアカウントを管理画面 (アカウント) から作成する
+5. 受講生のアカウントを管理画面の「受講生 → 受講生を追加」で作成する。講師は、同じ画面で作成した後に「アカウント」でロールを講師に変更する
 
 ## 9. リリースの手順 (2 回目以降)
 

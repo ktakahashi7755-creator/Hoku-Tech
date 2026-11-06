@@ -4,6 +4,7 @@ import { useEffect, useState, useTransition, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { saveDraft, type CmsState } from "@/app/actions/cms";
 import type { EditorDraft } from "@/lib/content/draft";
+import { CODE_LANGUAGES } from "@/lib/content/languages";
 import { Button, cx, inputStyles } from "@/components/ui";
 
 /** 同じ画面のほかの操作 (版から下書きを作る など) が、保存していない編集を消さないかを確認するため */
@@ -12,11 +13,12 @@ export function hasUnsavedLessonEdits(): boolean {
   return editorDirty;
 }
 
-const LANGS = ["java", "bash", "sql", "html", "css", "javascript", "xml", "properties", "text"] as const;
+const LANGS = CODE_LANGUAGES;
 
 function Section({ n, title, hint, children }: { n: number; title: string; hint?: string; children: ReactNode }) {
   return (
-    <fieldset className="rounded-xl border border-border p-4 sm:p-5">
+    // fieldset は既定で中身の幅より狭くならないため、min-w-0 でスマホの幅に収める
+    <fieldset className="min-w-0 rounded-xl border border-border p-4 sm:p-5">
       <legend className="px-1 font-bold">
         <span className="mr-2 text-accent">{String(n).padStart(2, "0")}</span>
         {title}

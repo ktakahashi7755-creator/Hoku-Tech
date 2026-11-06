@@ -2,7 +2,7 @@ import Link from "next/link";
 import { db } from "@/lib/db";
 import { requireUser } from "@/lib/auth/dal";
 import { STAFF_ROLES } from "@/lib/auth/roles";
-import { assertCanViewStudent } from "@/lib/queries/student";
+import { assertCanActOnStudent } from "@/lib/queries/student";
 import { AssignmentBodySchema, RubricCriteriaSchema } from "@/lib/content/schema";
 import { Card, PageHeader } from "@/components/ui";
 import { SubmissionBadge } from "@/components/status-badge";
@@ -20,7 +20,8 @@ export default async function ReviewDetail({ params }: { params: Promise<{ id: s
     include: { user: { select: { id: true, name: true } }, assignment: { include: { rubric: true } }, reviews: { orderBy: { createdAt: "desc" }, include: { reviewer: { select: { name: true } } } } },
   });
   if (!sub || sub.status === "DRAFT") notFound();
-  await assertCanViewStudent(viewer, sub.userId);
+  // 採点画面は、採点できる相手 (自分以外の受講生) の提出だけを開ける
+  await assertCanActOnStudent(viewer, sub.userId);
 
   const history = await db.submission.findMany({
     where: { assignmentId: sub.assignmentId, userId: sub.userId, status: { not: "DRAFT" } },
@@ -43,8 +44,8 @@ export default async function ReviewDetail({ params }: { params: Promise<{ id: s
           </span>
         }
       />
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
-        <div className="flex flex-col gap-6">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
+        <div className="flex min-w-0 flex-col gap-6">
           <Card>
             <h2 className="font-bold">提出内容</h2>
             <div className="mt-3 flex flex-col gap-3">

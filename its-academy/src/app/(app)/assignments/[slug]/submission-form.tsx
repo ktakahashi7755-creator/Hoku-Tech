@@ -3,7 +3,7 @@
 import { useActionState } from "react";
 import { saveSubmission } from "@/app/actions/submissions";
 import { ActionForm } from "@/components/action-form";
-import { Button, Field, inputStyles } from "@/components/ui";
+import { Button, Field, FormMessage, inputStyles } from "@/components/ui";
 import { submitsRepository } from "@/lib/validation";
 
 export function SubmissionForm({ assignmentId, type, defaults }: { assignmentId: string; type: string; defaults: { text: string; repoUrl: string; note: string } }) {
@@ -30,10 +30,7 @@ export function SubmissionForm({ assignmentId, type, defaults }: { assignmentId:
       <Field label="備考" htmlFor="note" hint="実行結果、工夫した点、AI を使った場合はどこで使ったかを書いてください。パスワードや API キーは書かないでください。" error={state?.fieldErrors?.note}>
         <textarea id="note" name="note" defaultValue={defaults.note} rows={4} className={inputStyles} />
       </Field>
-      <div aria-live="polite">
-        {state?.error && <p className="rounded-lg bg-danger-soft p-3 text-sm text-danger" role="alert">{state.error}</p>}
-        {state?.ok && <p className="rounded-lg bg-success-soft p-3 text-sm text-success">{state.ok}</p>}
-      </div>
+      <FormMessage state={state} />
       <div className="flex flex-wrap gap-3">
         <Button type="submit" name="intent" value="submit" disabled={pending}>
           {pending ? "保存しています…" : "提出する"}

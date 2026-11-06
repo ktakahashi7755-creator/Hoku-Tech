@@ -7,7 +7,7 @@ import { db } from "@/lib/db";
 import { audit } from "@/lib/audit";
 import { requireUser } from "@/lib/auth/dal";
 import { GITHUB_REPO_URL, submitsRepository } from "@/lib/validation";
-import type { FormState } from "./auth";
+import { fieldErrors, type FormState } from "@/lib/form-state";
 
 const PENDING = ["SUBMITTED", "IN_REVIEW", "RESUBMITTED"] as const;
 
@@ -19,17 +19,19 @@ const Input = z.object({
   note: z.string().max(2000, "2,000 文字以内にしてください").optional(),
 });
 
+const REPO_URL_MESSAGE = "https://github.com/ユーザー名/リポジトリ名 の形式で入力してください";
+
 export async function saveSubmission(_prev: FormState, formData: FormData): Promise<FormState> {
   const user = await requireUser(["STUDENT"]);
   const parsed = Input.safeParse({
     assignmentId: formData.get("assignmentId"),
     intent: formData.get("intent"),
-    text: (formData.get("text") as string | null) ?? undefined,
-    repoUrl: (formData.get("repoUrl") as string | null) ?? undefined,
-    note: (formData.get("note") as string | null) ?? undefined,
+    text: formData.get("text") ?? undefined,
+    repoUrl: formData.get("repoUrl") ?? undefined,
+    note: formData.get("note") ?? undefined,
   });
   if (!parsed.success) {
-    return { fieldErrors: Object.fromEntries(parsed.error.issues.map((i) => [String(i.path[0]), i.message])) };
+    return { fieldErrors: fieldErrors(parsed.error) };
   }
   const input = parsed.data;
 
@@ -39,8 +41,8 @@ export async function saveSubmission(_prev: FormState, formData: FormData): Prom
   });
   if (!assignment) return { error: "課題が見つかりません。" };
   // 休学中・退校した受講生は提出できない (教材の閲覧は続けられる)。復帰は管理者が受講設定で行う
-  const enrollmentStatus = await db.enrollment.findFirst({ where: { userId: user.id, courseId: assignment.module.courseId }, select: { status: true } });
-  if (enrollmentStatus && (enrollmentStatus.status === "PAUSED" || enrollmentStatus.status === "WITHDRAWN")) {
+  const enrollment = await db.enrollment.findFirst({ where: { userId: user.id, courseId: assignment.module.courseId }, select: { status: true, instructorId: true } });
+  if (enrollment && (enrollment.status === "PAUSED" || enrollment.status === "WITHDRAWN")) {
     return { error: "受講が一時停止または終了しているため提出できません。再開したい場合は担当講師または管理者に連絡してください。" };
   }
 
@@ -51,16 +53,12 @@ export async function saveSubmission(_prev: FormState, formData: FormData): Prom
 
   const text = input.text?.trim() || null;
   const repoUrl = input.repoUrl || null;
-  if (input.intent === "submit") {
-    if (submitsRepository(assignment.type) && (!repoUrl || !GITHUB_REPO_URL.test(repoUrl))) {
-      return { fieldErrors: { repoUrl: "https://github.com/ユーザー名/リポジトリ名 の形式で入力してください" } };
-    }
-    if (!submitsRepository(assignment.type) && !text) {
-      return { fieldErrors: { text: "提出内容を入力してください" } };
-    }
+  // 下書きでも、入力された URL は形式を確かめる。提出時は必須
+  if ((repoUrl && !GITHUB_REPO_URL.test(repoUrl)) || (input.intent === "submit" && submitsRepository(assignment.type) && !repoUrl)) {
+    return { fieldErrors: { repoUrl: REPO_URL_MESSAGE } };
   }
-  if (repoUrl && !GITHUB_REPO_URL.test(repoUrl)) {
-    return { fieldErrors: { repoUrl: "https://github.com/ユーザー名/リポジトリ名 の形式で入力してください" } };
+  if (input.intent === "submit" && !submitsRepository(assignment.type) && !text) {
+    return { fieldErrors: { text: "提出内容を入力してください" } };
   }
 
   const latest = await db.submission.findFirst({ where: { assignmentId: assignment.id, userId: user.id }, orderBy: { attemptNo: "desc" } });
@@ -71,11 +69,12 @@ export async function saveSubmission(_prev: FormState, formData: FormData): Prom
     where: { assignmentId: assignment.id, userId: user.id, status: { in: ["CHANGES_REQUESTED", "FAILED"] } },
   });
   const submitStatus: SubmissionStatus = hadFeedback > 0 ? "RESUBMITTED" : "SUBMITTED";
+  const status: SubmissionStatus = input.intent === "submit" ? submitStatus : "DRAFT";
   const data = {
     text,
     repoUrl,
     note: input.note?.trim() || null,
-    status: (input.intent === "submit" ? submitStatus : "DRAFT") as SubmissionStatus,
+    status,
     submittedAt: input.intent === "submit" ? new Date() : null,
   };
 
@@ -94,7 +93,6 @@ export async function saveSubmission(_prev: FormState, formData: FormData): Prom
   }
 
   if (input.intent === "submit") {
-    const enrollment = await db.enrollment.findFirst({ where: { userId: user.id, courseId: assignment.module.courseId } });
     if (enrollment?.instructorId) {
       await db.notification.create({
         data: {

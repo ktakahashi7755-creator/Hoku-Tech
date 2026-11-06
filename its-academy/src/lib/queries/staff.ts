@@ -16,7 +16,7 @@ export async function visibleStudentIds(viewer: SessionUser): Promise<string[]> 
   ).map((e) => e.userId);
 }
 
-export type StudentRow = StudentOverview & { pendingReviews: number };
+type StudentRow = StudentOverview & { pendingReviews: number };
 
 export async function listStudentOverviews(viewer: SessionUser): Promise<StudentRow[]> {
   const ids = await visibleStudentIds(viewer);

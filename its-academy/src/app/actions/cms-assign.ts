@@ -2,11 +2,13 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
+import { AssignmentType } from "@prisma/client";
+import { slugSchema } from "@/lib/content/slug";
 import { db } from "@/lib/db";
 import { audit } from "@/lib/audit";
 import { requireUser } from "@/lib/auth/dal";
 import { ADMIN_ROLES } from "@/lib/auth/roles";
-import { fromAssignmentForm, validateRubric, type AssignmentForm } from "@/lib/content/assignment-form";
+import { DEFAULT_PASS_SCORE, emptyAssignmentBody, fromAssignmentForm, type AssignmentForm, validateRubric } from "@/lib/content/assignment-form";
 
 export type AssignState = { ok?: string; errors?: string[]; id?: string } | undefined;
 
@@ -38,8 +40,8 @@ const NewAssignment = z.object({
   moduleId: z.cuid(),
   lessonId: z.union([z.cuid(), z.literal("")]),
   title: z.string().trim().min(1, "タイトルを入力してください").max(120),
-  slug: z.string().trim().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "URL 名は半角英小文字・数字・ハイフンで入力してください").max(60),
-  type: z.enum(["MULTIPLE_CHOICE", "WRITTEN", "CODE", "GITHUB_REPO", "PROJECT", "FINAL_PROJECT"]),
+  slug: slugSchema("a2-grade-calculator"),
+  type: z.enum(AssignmentType),
 });
 
 /** 課題を下書きとして作る。本文を入力して「公開」にするまで受講生には表示されない */
@@ -54,8 +56,8 @@ export async function createAssignment(_prev: AssignState, formData: FormData): 
   const created = await db.assignment.create({
     data: {
       slug: p.data.slug, moduleId: p.data.moduleId, lessonId: p.data.lessonId || null, title: p.data.title, type: p.data.type,
-      status: "DRAFT", passScore: 70, rubricId: rubric.id, position: (last?.position ?? -1) + 1,
-      body: { purpose: "", scenario: "", requirements: [], recommended: [], steps: [], deliverables: [], readmeChecklist: [], resubmitCondition: "", interviewPoints: [] },
+      status: "DRAFT", passScore: DEFAULT_PASS_SCORE, rubricId: rubric.id, position: (last?.position ?? -1) + 1,
+      body: emptyAssignmentBody(),
     },
   });
   await audit({ actorId: user.id, action: "assignment.create", targetType: "assignment", targetId: created.id });

@@ -41,7 +41,7 @@ export default async function LessonPage({ params }: { params: Promise<{ slug: s
   const content = LessonContentSchema.parse(version.content);
   const overview = staff ? null : await getStudentOverview(user.id);
   const modules = await getPublishedCurriculum(lesson.module.courseId);
-  const flat = modules.flatMap((m) => m.lessons.map((l) => ({ slug: l.slug, title: l.currentVersion!.title, level: m.level })));
+  const flat = modules.flatMap((m) => m.lessons.map((l) => ({ slug: l.slug, title: l.currentVersion.title, level: m.level })));
   const index = flat.findIndex((l) => l.slug === slug);
   const prev = index > 0 ? flat[index - 1] : null;
   const next = index >= 0 && index < flat.length - 1 ? flat[index + 1] : null;
@@ -76,7 +76,7 @@ export default async function LessonPage({ params }: { params: Promise<{ slug: s
                       )}
                     >
                       <span aria-hidden className={cx("size-2 shrink-0 rounded-full", st === "COMPLETED" ? "bg-success" : st === "IN_PROGRESS" ? "bg-accent" : "bg-border")} />
-                      <span className="min-w-0">{l.currentVersion!.title}</span>
+                      <span className="min-w-0">{l.currentVersion.title}</span>
                       {st === "COMPLETED" && <span className="sr-only">(完了)</span>}
                       {st === "IN_PROGRESS" && <span className="sr-only">(学習中)</span>}
                     </Link>
