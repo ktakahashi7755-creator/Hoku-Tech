@@ -105,7 +105,8 @@ test("管理者: 公開予約した版は予約時刻を過ぎると公開され
 test("講師は教材管理を開けない", async ({ page }) => {
   await login(page, "instructor@its.example");
   await page.waitForURL(/\/admin$/);
-  await page.goto("/admin/content");
+  const res = await page.goto("/admin/content");
+  expect(res?.status()).toBe(404);
   await expect(page.getByRole("heading", { name: "ページが見つかりません" })).toBeVisible();
   await expect(page.getByRole("link", { name: "教材管理" })).toHaveCount(0);
 });

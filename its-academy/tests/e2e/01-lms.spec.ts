@@ -68,10 +68,11 @@ test("受講生: 前回の続きから再開し、理解度チェック合格後
 test("受講生は管理画面・他人のデータを開けない", async ({ page }) => {
   await login(page, "student@its.example");
   await page.waitForURL(/\/home$/);
-  // ストリーミング描画のため HTTP ステータスは 200 になる場合がある。
-  // 重要なのは「他人のデータが HTML に一切含まれない」こと (docs/architecture.md 参照)
+  // 管理者・講師のエリアは描画前 (proxy) にロールを確認し、本当の 404 を返す。
+  // あわせて「他人のデータが HTML に一切含まれない」ことも確かめる (docs/architecture.md 参照)
   for (const path of ["/admin", "/admin/students", "/admin/reviews", "/admin/settings", "/admin/students/not-a-real-id"]) {
     const res = await page.goto(path);
+    expect(res?.status(), path).toBe(404);
     await expect(page.getByRole("heading", { name: "ページが見つかりません" }), path).toBeVisible();
     const html = (await res?.text()) ?? "";
     expect(html, path).not.toMatch(/佐藤 健|鈴木 美咲|student2@its\.example|監査ログ/);

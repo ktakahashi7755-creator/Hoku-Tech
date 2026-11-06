@@ -1,20 +1,31 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { guard } from "@/lib/auth/proxy-guard";
 
 /**
- * 楽観的なリダイレクトのみを行う (Cookie の有無だけを見る)。
- * 本当の認証・認可は各ページとサーバーアクションの requireUser() で必ず行う。
+ * ページの描画前に行う確認。
+ * 1. Cookie がなければログイン画面へ (楽観的な確認)
+ * 2. 管理者・講師のエリアは、セッションとロールを DB で確かめ、権限がなければ 404 を返す
+ * 認証・認可の本体は各ページとサーバーアクションの requireUser() でも必ず行う。
  */
 const PUBLIC_PATHS = ["/login"];
+const SESSION_COOKIE = "its_session";
 
-export function proxy(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const hasSession = request.cookies.has("its_session");
+  const token = request.cookies.get(SESSION_COOKIE)?.value;
 
   if (pathname === "/") {
-    return NextResponse.redirect(new URL(hasSession ? "/home" : "/login", request.url));
+    return NextResponse.redirect(new URL(token ? "/home" : "/login", request.url));
   }
-  if (!hasSession && !PUBLIC_PATHS.includes(pathname)) {
+  if (!token && !PUBLIC_PATHS.includes(pathname)) {
     return NextResponse.redirect(new URL("/login", request.url));
+  }
+
+  const result = await guard(pathname, token);
+  if (result === "login") return NextResponse.redirect(new URL("/login", request.url));
+  if (result === "not_found") {
+    // 存在しないパスに書き換えると、Next.js の 404 画面が本当の 404 ステータスで返る (画面の存在も明かさない)
+    return NextResponse.rewrite(new URL("/_not-found-guard", request.url));
   }
   return NextResponse.next();
 }

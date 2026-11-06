@@ -45,3 +45,22 @@ describe("submitsRepository", () => {
     expect(submitsRepository("WRITTEN")).toBe(false);
   });
 });
+
+import { requiredRoles } from "@/lib/auth/proxy-rules";
+
+describe("requiredRoles (描画前のロール確認)", () => {
+  it("教材管理・設定・受講生追加は管理者のみ", () => {
+    expect(requiredRoles("/admin/content")).toEqual(["SUPER_ADMIN", "ADMIN"]);
+    expect(requiredRoles("/admin/content/lessons/abc")).toEqual(["SUPER_ADMIN", "ADMIN"]);
+    expect(requiredRoles("/admin/settings")).toEqual(["SUPER_ADMIN", "ADMIN"]);
+    expect(requiredRoles("/admin/students/new")).toEqual(["SUPER_ADMIN", "ADMIN"]);
+  });
+  it("それ以外の /admin は講師以上", () => {
+    expect(requiredRoles("/admin")).toEqual(["SUPER_ADMIN", "ADMIN", "INSTRUCTOR"]);
+    expect(requiredRoles("/admin/students/abc")).toEqual(["SUPER_ADMIN", "ADMIN", "INSTRUCTOR"]);
+  });
+  it("前方一致の取り違えをしない (/administrator は対象外)", () => {
+    expect(requiredRoles("/administrator")).toBeNull();
+    expect(requiredRoles("/home")).toBeNull();
+  });
+});
