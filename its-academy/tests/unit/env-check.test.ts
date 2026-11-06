@@ -20,6 +20,12 @@ describe("checkEnvironment", () => {
     expect(checkEnvironment({ NODE_ENV: "production", APP_ENV: "test", DATABASE_URL: "postgresql://its:its_dev_only@localhost/its" })).toEqual([]);
     expect(checkEnvironment({ APP_ENV: "prod", DATABASE_URL: "postgresql://x" })[0]).toMatch(/APP_ENV/);
   });
+  it("Cloud SQL の Unix ソケット形式の接続文字列を受け付け、TRUSTED_PROXY_HOPS は 1 以上の整数だけ", () => {
+    const base = { NODE_ENV: "production", COOKIE_SECURE: "true", DATABASE_URL: "postgresql://app:Strong-Random-1@localhost/its?host=/cloudsql/proj:asia-northeast1:its-db" };
+    expect(checkEnvironment(base)).toEqual([]);
+    expect(checkEnvironment({ ...base, TRUSTED_PROXY_HOPS: "1" })).toEqual([]);
+    expect(checkEnvironment({ ...base, TRUSTED_PROXY_HOPS: "0" })[0]).toMatch(/TRUSTED_PROXY_HOPS/);
+  });
   it("メッセージに接続文字列 (パスワード) を含めない", () => {
     const p = checkEnvironment({ NODE_ENV: "production", DATABASE_URL: "postgresql://its:its_dev_only@db/its" });
     expect(p.join(" ")).not.toContain("its_dev_only");

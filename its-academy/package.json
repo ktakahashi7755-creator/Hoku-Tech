@@ -10,6 +10,7 @@
     "test": "vitest run",
     "test:e2e": "playwright test",
     "verify:code": "tsx scripts/verify-code.ts",
+    "db:bootstrap": "tsx scripts/bootstrap.ts",
     "db:migrate": "prisma migrate deploy",
     "db:seed": "prisma db seed",
     "typecheck": "tsc --noEmit"

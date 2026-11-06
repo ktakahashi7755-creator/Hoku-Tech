@@ -10,7 +10,8 @@ import { createSession, deleteCurrentSession, revokeAllSessions } from "@/lib/au
 import { requireUser } from "@/lib/auth/dal";
 import { isStaff } from "@/lib/auth/roles";
 
-export type FormState = { error?: string; fieldErrors?: Record<string, string>; ok?: string } | undefined;
+/** values: エラー時に入力欄へ戻す値 (パスワードは含めない) */
+export type FormState = { error?: string; fieldErrors?: Record<string, string>; ok?: string; values?: Record<string, string> } | undefined;
 
 const LoginSchema = z.object({
   email: z.string().trim().toLowerCase().email("メールアドレスの形式で入力してください").max(254),
@@ -22,14 +23,17 @@ let dummyHash: Promise<string> | null = null;
 
 export async function login(_prev: FormState, formData: FormData): Promise<FormState> {
   const parsed = LoginSchema.safeParse({ email: formData.get("email"), password: formData.get("password") });
+  // 失敗したときにメールアドレスを入れ直さなくて済むよう、入力された値を返す
+  const typedEmail = String(formData.get("email") ?? "").slice(0, 254);
+  const values = { email: typedEmail };
   if (!parsed.success) {
-    return { fieldErrors: Object.fromEntries(parsed.error.issues.map((i) => [String(i.path[0]), i.message])) };
+    return { values, fieldErrors: Object.fromEntries(parsed.error.issues.map((i) => [String(i.path[0]), i.message])) };
   }
   const { email, password } = parsed.data;
   const ip = await clientIp();
 
   if (await isLoginThrottled(email, ip)) {
-    return { error: "ログインの試行回数が上限に達しました。15 分ほど待ってから再度お試しください。" };
+    return { values, error: "ログインの試行回数が上限に達しました。15 分ほど待ってから再度お試しください。" };
   }
 
   const user = await db.user.findUnique({ where: { email } });
@@ -40,7 +44,7 @@ export async function login(_prev: FormState, formData: FormData): Promise<FormS
     await recordLoginAttempt(email, ip, false);
     await audit({ actorId: user?.id ?? null, action: "auth.login_failed" });
     // どちらが間違っているかは伝えない (アカウントの存在を推測されないため)
-    return { error: "メールアドレスまたはパスワードが正しくありません。" };
+    return { values, error: "メールアドレスまたはパスワードが正しくありません。" };
   }
 
   await recordLoginAttempt(email, ip, true);

@@ -15,6 +15,7 @@ cp .env.example .env     # DATABASE_URL を設定 (PostgreSQL 16)
 npm ci
 npm run db:migrate
 npm run db:seed          # 開発用データ。本番では実行できない
+# 本番・検証環境では seed の代わりに npm run db:bootstrap (教材の登録と最初の管理者。BOOTSTRAP_ADMIN_EMAIL が必要)
 npm run dev
 ```
 

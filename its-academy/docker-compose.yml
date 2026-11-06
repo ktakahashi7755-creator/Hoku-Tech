@@ -56,6 +56,21 @@ services:
       migrate:
         condition: service_completed_successfully
 
+  # 本番の初期設定 (scripts/bootstrap.ts): 教材の登録と最初のシステム管理者の作成。1 回だけ実行する
+  #   BOOTSTRAP_ADMIN_EMAIL=you@example.co.jp docker compose --profile setup run --rm bootstrap
+  bootstrap:
+    profiles: ["setup"]
+    image: its-academy-tools
+    command: ["npm", "run", "-s", "db:bootstrap"]
+    environment:
+      DATABASE_URL: postgresql://its:${POSTGRES_PASSWORD}@db:5432/its_academy
+      BOOTSTRAP_ADMIN_EMAIL: ${BOOTSTRAP_ADMIN_EMAIL:-}
+      BOOTSTRAP_ADMIN_NAME: ${BOOTSTRAP_ADMIN_NAME:-}
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
   # 評価用のデモデータ (prisma/seed.ts)。NODE_ENV=production では拒否されるため development で実行する
   seed:
     profiles: ["demo"]

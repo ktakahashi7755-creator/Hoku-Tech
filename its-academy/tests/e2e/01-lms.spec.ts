@@ -6,6 +6,9 @@ test.describe.configure({ mode: "serial" });
 test("ログイン失敗時は、どちらが誤りかを明かさないメッセージを出す", async ({ page }) => {
   await login(page, "student@its.example", "wrong-password");
   await expect(page.getByRole("alert").filter({ hasText: "正しくありません" })).toHaveText("メールアドレスまたはパスワードが正しくありません。");
+  // 入れ直さなくて済むようメールアドレスは残し、パスワードは消す
+  await expect(page.getByLabel("メールアドレス")).toHaveValue("student@its.example");
+  await expect(page.getByLabel("パスワード")).toHaveValue("");
   await login(page, "nobody@its.example", "wrong-password");
   await expect(page.getByRole("alert").filter({ hasText: "正しくありません" })).toHaveText("メールアドレスまたはパスワードが正しくありません。");
 });

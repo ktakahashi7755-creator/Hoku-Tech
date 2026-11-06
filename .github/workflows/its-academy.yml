@@ -131,6 +131,16 @@ jobs:
           code=$?
           set -e
           test "$code" = 1
+      - name: Production bootstrap
+        # 出力に初回パスワードが含まれるため、ログには出さない
+        run: |
+          BOOTSTRAP_ADMIN_EMAIL=owner@its.example docker compose --profile setup run --rm -T bootstrap > bootstrap1.log
+          grep -q "教材を登録しました" bootstrap1.log && grep -q "システム管理者を作成しました" bootstrap1.log
+          docker compose --profile setup run --rm -T bootstrap > bootstrap2.log
+          grep -q "教材は登録済み" bootstrap2.log && grep -q "システム管理者は作成済み" bootstrap2.log
+          rm -f bootstrap1.log bootstrap2.log
+          test "$(docker compose exec -T db psql -U its -d its_academy -Atc 'SELECT count(*) FROM lessons')" = 35
+          test "$(docker compose exec -T db psql -U its -d its_academy -Atc 'SELECT count(*) FROM enrollments')" = 0
       - name: Backup and restore
         run: |
           . ./.env
