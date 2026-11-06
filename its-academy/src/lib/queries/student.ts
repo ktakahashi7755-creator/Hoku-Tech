@@ -26,6 +26,18 @@ export async function assertCanViewStudent(viewer: SessionUser, studentId: strin
   if (!canViewStudent(viewer, studentId, instructors)) notFound();
 }
 
+/**
+ * 講師・管理者が受講生に対して記録を残す (採点・コメント・スキル評価) ときの確認。
+ * 閲覧できることに加えて、相手が受講生であること・自分自身でないことを求める
+ * (受講生から講師に変更された人が、自分の提出を採点できないようにする)。
+ */
+export async function assertCanActOnStudent(viewer: SessionUser, studentId: string) {
+  if (viewer.id === studentId) notFound();
+  const target = await db.user.findUnique({ where: { id: studentId }, select: { role: true } });
+  if (target?.role !== "STUDENT") notFound();
+  await assertCanViewStudent(viewer, studentId);
+}
+
 /** 公開中のカリキュラム (モジュール → レッスン) を順番どおりに返す */
 export async function getPublishedCurriculum(courseId: string) {
   await applyScheduledPublishes();
@@ -78,8 +90,8 @@ async function loadOverviewData(studentIds: string[]) {
       include: { reviews: { orderBy: { createdAt: "desc" }, include: { reviewer: { select: { name: true } } } } },
     }),
     // 理解度チェックと学習時間は行数が多いので、データベース側で集計してから受け取る
-    db.$queryRaw<{ userId: string; lessonId: string; best: number }[]>`
-      SELECT qa."userId", lv."lessonId", MAX(qa.score)::int AS best
+    db.$queryRaw<{ userId: string; lessonId: string; best: number; passed: boolean }[]>`
+      SELECT qa."userId", lv."lessonId", MAX(qa.score)::int AS best, BOOL_OR(qa.passed) AS passed
       FROM quiz_attempts qa JOIN lesson_versions lv ON lv.id = qa."lessonVersionId"
       WHERE qa."userId" = ANY(${ids}) GROUP BY 1, 2`,
     // 日本時間の日付ごとの活動 (kind: quiz = 理解度チェックを受けた日, ping = 学習画面を開いていた日, start = その日に始めた学習の分数)
@@ -171,8 +183,10 @@ function buildOverview(studentId: string, data: OverviewData, now: Date) {
     if (s.status !== "DRAFT") attemptsByAssignment.set(s.assignmentId, (attemptsByAssignment.get(s.assignmentId) ?? 0) + 1);
   }
 
+  // 前提レッスンが非公開の課題は、受講生が取り組めないため一覧と指標から外す
+  const publishedLessonIds = new Set(lessons.map((l) => l.id));
   const assignments = modules.flatMap((m) =>
-    m.assignments.map((a) => {
+    m.assignments.filter((a) => !a.lessonId || publishedLessonIds.has(a.lessonId)).map((a) => {
       const latest = latestByAssignment.get(a.id) ?? null;
       const latestReview = latest?.reviews[0] ?? null;
       return {
@@ -195,7 +209,11 @@ function buildOverview(studentId: string, data: OverviewData, now: Date) {
 
   // 理解度: レッスンごとの最高得点 (公開中のレッスンのみ)
   const bestQuiz = new Map<string, number>();
-  for (const q of quizBestRows) bestQuiz.set(q.lessonId, Math.max(bestQuiz.get(q.lessonId) ?? 0, q.best));
+  const quizPassed = new Set<string>();
+  for (const q of quizBestRows) {
+    bestQuiz.set(q.lessonId, Math.max(bestQuiz.get(q.lessonId) ?? 0, q.best));
+    if (q.passed) quizPassed.add(q.lessonId);
+  }
 
   // スキル評価: 観点ごとに最新のもの
   const latestSkill = new Map<string, (typeof skills)[number]>();
@@ -223,9 +241,12 @@ function buildOverview(studentId: string, data: OverviewData, now: Date) {
   // 直近 7 日の集計用: 日ごとの分数を「その日に始めた 1 件の学習」として渡す (分数は学習ごとに丸めてから合計済み)
   const sessionsByDay = startDays.map((d) => ({ startedAt: dayStart(d.day), durationSec: d.minutes * 60 }));
 
-  // 苦手分野: 理解度チェックの最高点が合格点未満のレッスン / 修正依頼・不合格の課題
-  const weakLessons = lessons.filter((l) => bestQuiz.has(l.id) && l.status !== "COMPLETED");
-  const struggling = assignments.filter((a) => a.latestStatus === "CHANGES_REQUESTED" || a.latestStatus === "FAILED" || a.attempts >= 2);
+  // 苦手分野: 理解度チェックを受けたが一度も合格していない必修レッスン / 修正依頼・不合格の課題
+  // (合格済みの課題は、何回目で合格しても対象にしない)
+  const weakLessons = lessons.filter((l) => !l.optional && bestQuiz.has(l.id) && !quizPassed.has(l.id));
+  const struggling = assignments.filter(
+    (a) => a.latestStatus !== "PASSED" && (a.latestStatus === "CHANGES_REQUESTED" || a.latestStatus === "FAILED" || a.attempts >= 2),
+  );
 
   const current = lessons.find((l) => l.id === enrollment.currentLessonId) ?? lessons.find((l) => l.status !== "COMPLETED") ?? null;
 

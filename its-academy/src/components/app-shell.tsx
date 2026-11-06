@@ -15,7 +15,7 @@ const STUDENT_NAV: NavItem[] = [
 ];
 
 export async function AppShell({ children }: { children: React.ReactNode }) {
-  const user = await requireUser();
+  const user = await requireUser(undefined, { allowPendingPasswordChange: true });
   const nav: NavItem[] = isStaff(user.role)
     ? [
         { href: "/admin", label: "ダッシュボード", exact: true },
@@ -57,7 +57,7 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
       <main id="main" className="mx-auto max-w-6xl px-4 py-8">
         {user.mustChangePassword && (
           <p role="alert" className="mb-6 rounded-lg border border-warning bg-warning-soft p-4 text-warning">
-            仮パスワードでログインしています。<Link href="/me" className="font-semibold underline">マイページ</Link>でパスワードを変更してください。
+            仮パスワードでログインしています。<Link href="/me#password" className="font-semibold underline">パスワードを変更</Link>すると、すべての画面を使えるようになります。
           </p>
         )}
         {children}

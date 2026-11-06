@@ -6,7 +6,7 @@ import { Button, cx } from "@/components/ui";
 
 type Question = { id: string; question: string; choices: string[] };
 
-export function Quiz({ lessonId, questions, passScore, alreadyPassed }: { lessonId: string; questions: Question[]; passScore: number; alreadyPassed: boolean }) {
+export function Quiz({ lessonId, versionId, questions, passScore, alreadyPassed }: { lessonId: string; versionId: string; questions: Question[]; passScore: number; alreadyPassed: boolean }) {
   const [answers, setAnswers] = useState<(number | null)[]>(questions.map(() => null));
   const [result, setResult] = useState<QuizResult | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -20,7 +20,7 @@ export function Quiz({ lessonId, questions, passScore, alreadyPassed }: { lesson
         setError(null);
         start(async () => {
           try {
-            setResult(await submitQuiz(lessonId, answers));
+            setResult(await submitQuiz(lessonId, versionId, answers));
           } catch {
             setError("採点に失敗しました。時間をおいて再度お試しください。");
           }
@@ -33,6 +33,7 @@ export function Quiz({ lessonId, questions, passScore, alreadyPassed }: { lesson
       </p>
       {questions.map((q, qi) => {
         const r = result?.results[qi];
+        const answer = answers[qi];
         return (
           <fieldset key={q.id} className="rounded-xl border border-border p-4">
             <legend className="px-1 font-semibold">
@@ -45,7 +46,7 @@ export function Quiz({ lessonId, questions, passScore, alreadyPassed }: { lesson
                   className={cx(
                     "flex min-h-11 cursor-pointer items-center gap-3 rounded-lg border px-3 py-2",
                     r && ci === r.answerIndex ? "border-success bg-success-soft" : "border-border",
-                    r && answers[qi] === ci && !r.correct && "border-danger bg-danger-soft",
+                    r && answer === ci && !r.correct && "border-danger bg-danger-soft",
                   )}
                 >
                   <input
@@ -59,22 +60,34 @@ export function Quiz({ lessonId, questions, passScore, alreadyPassed }: { lesson
                     }}
                     className="size-4 accent-[var(--accent)]"
                   />
-                  <span>{c}</span>
+                  <span className="flex-1">{c}</span>
+                  {/* 色だけに頼らず、文字でも示す */}
+                  {r && ci === r.answerIndex && <span className="shrink-0 text-xs font-semibold text-success">正解</span>}
+                  {r && answer === ci && !r.correct && <span className="shrink-0 text-xs font-semibold text-danger">あなたの回答</span>}
                 </label>
               ))}
             </div>
             {r && (
-              <p className={cx("mt-3 text-sm", r.correct ? "text-success" : "text-danger")}>
-                {r.correct ? "正解" : "不正解"}: <span className="text-text">{r.explanation}</span>
+              <p className={cx("mt-3 text-sm font-semibold", r.correct ? "text-success" : "text-danger")}>
+                {r.correct ? "正解" : "不正解"}
+                {r.explanation && <span className="font-normal text-text">: {r.explanation}</span>}
               </p>
             )}
           </fieldset>
         );
       })}
       <div aria-live="polite">
-        {result && (
+        {result?.outdated && (
+          <p role="alert" className="rounded-lg bg-warning-soft p-3 font-semibold text-warning">
+            このレッスンの内容が更新されました。ページを再読み込みして、新しい問題で解き直してください。
+          </p>
+        )}
+        {result && !result.outdated && (
           <p className={cx("rounded-lg p-3 font-semibold", result.passed ? "bg-success-soft text-success" : "bg-warning-soft text-warning")}>
-            {result.score} 点 — {result.passed ? "合格です。下の「学習完了にする」を押せるようになりました。" : "合格ラインに届きませんでした。解説を読んでもう一度挑戦しましょう。"}
+            {result.score} 点 —{" "}
+            {result.passed
+              ? "合格です。各問の解説を確認し、下の「学習完了にする」を押しましょう。"
+              : "合格ラインに届きませんでした。不正解の問題に関係する本文を読み直して、もう一度挑戦しましょう (正解と解説は合格すると表示されます)。"}
           </p>
         )}
         {error && <p className="text-danger" role="alert">{error}</p>}

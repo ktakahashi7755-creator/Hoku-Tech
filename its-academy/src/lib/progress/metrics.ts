@@ -151,9 +151,14 @@ export function last7Days(
   return result;
 }
 
+/**
+ * 何日前か。日本時間の暦日で数える (画面の「最終学習日」の表示と一致させるため)。
+ * 例: 11/01 23:50 → 11/08 10:00 は 7 日前 (経過時間は 6 日 10 時間でも)
+ */
 export function daysSince(date: Date | null, now: Date): number | null {
   if (!date) return null;
-  return Math.floor((now.getTime() - date.getTime()) / DAY_MS);
+  const day = (d: Date) => Date.parse(`${jstDayKey(d)}T00:00:00Z`);
+  return Math.round((day(now) - day(date)) / DAY_MS);
 }
 
 /**
@@ -176,7 +181,9 @@ export function paceAgainstTarget(
   now: Date,
 ): { expected: number; diff: number } | null {
   if (!targetEnd) return null;
-  const total = targetEnd.getTime() - startedAt.getTime();
+  // 目標修了日は日付だけを持つ (UTC 0 時 = 日本時間 9 時)。その日の終わり (日本時間 24 時) までを期間とする
+  const end = Date.parse(`${jstDayKey(targetEnd)}T00:00:00+09:00`) + DAY_MS;
+  const total = end - startedAt.getTime();
   if (total <= 0) return null;
   const elapsed = Math.min(Math.max(now.getTime() - startedAt.getTime(), 0), total);
   const expected = Math.round((elapsed / total) * 100);

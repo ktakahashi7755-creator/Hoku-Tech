@@ -85,15 +85,26 @@ describe("isStagnant", () => {
     expect(isStagnant(d("2026-11-03T00:00:00Z"), d("2026-10-01T00:00:00Z"), now, 7)).toBe(true);
     expect(isStagnant(d("2026-11-04T00:00:00Z"), d("2026-10-01T00:00:00Z"), now, 7)).toBe(false);
   });
+  it("日本時間の暦日で数える (表示する最終学習日と一致させる)", () => {
+    // 11/01 23:50 JST → 11/08 10:00 JST: 経過は 6 日 10 時間だが、暦日では 7 日前
+    expect(isStagnant(d("2026-11-01T14:50:00Z"), d("2026-10-01T00:00:00Z"), d("2026-11-08T01:00:00Z"), 7)).toBe(true);
+    // 11/02 00:10 JST → 11/08 10:00 JST は 6 日前
+    expect(isStagnant(d("2026-11-01T15:10:00Z"), d("2026-10-01T00:00:00Z"), d("2026-11-08T01:00:00Z"), 7)).toBe(false);
+  });
   it("一度も学習していなければ開始日から数える", () => {
     expect(isStagnant(null, d("2026-11-09T00:00:00Z"), d("2026-11-10T00:00:00Z"), 7)).toBe(false);
   });
 });
 
 describe("paceAgainstTarget", () => {
-  it("経過割合と履修率の差", () => {
+  it("経過割合と履修率の差 (目標修了日は日本時間のその日の終わりまで)", () => {
+    // 11/01 9:00 JST 開始 → 11/11 24:00 JST 終了 (10 日 15 時間)。11/06 9:00 JST 時点で 5 日経過 = 47%
     const r = paceAgainstTarget(d("2026-11-01"), d("2026-11-11"), 30, d("2026-11-06"));
-    expect(r).toEqual({ expected: 50, diff: -20 });
+    expect(r).toEqual({ expected: 47, diff: -17 });
+  });
+  it("目標修了日の朝の時点ではまだ 100% にならない", () => {
+    const r = paceAgainstTarget(d("2026-11-01T00:00:00+09:00"), d("2026-11-11"), 90, d("2026-11-11T09:00:00+09:00"));
+    expect(r!.expected).toBeLessThan(100);
   });
   it("目標日がなければ null", () => {
     expect(paceAgainstTarget(d("2026-11-01"), null, 30, d("2026-11-06"))).toBeNull();

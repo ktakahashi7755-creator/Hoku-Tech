@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import { login, logout } from "./helpers";
 
 test.describe.configure({ mode: "serial" });
@@ -46,6 +46,9 @@ test("受講生: 前回の続きから再開し、理解度チェック合格後
   await page.getByRole("button", { name: "採点する" }).click();
   await expect(page.getByText("0 点 — 合格ラインに届きませんでした")).toBeVisible();
   await expect(complete).toBeDisabled();
+  // 不合格のときは、どれが正解かと解説を見せない (答えを写して合格できないように)
+  await expect(page.getByText("不正解", { exact: true })).toHaveCount(3);
+  await expect(page.getByText("正解", { exact: true })).toHaveCount(0);
 
   // 正解 → 合格 → 完了
   await q(1).getByLabel("ArrayIndexOutOfBoundsException が発生する").check();
@@ -53,6 +56,8 @@ test("受講生: 前回の続きから再開し、理解度チェック合格後
   await q(3).getByLabel("最後に範囲外の添え字を参照する").check();
   await page.getByRole("button", { name: "採点する" }).click();
   await expect(page.getByText("100 点 — 合格です")).toBeVisible();
+  // 合格すると、正解と解説が表示される
+  await expect(page.getByText("正解", { exact: true })).toHaveCount(3);
   await page.reload();
   await page.getByRole("button", { name: "学習完了にする" }).click();
   await expect(page.getByText("このレッスンは学習完了です。")).toBeVisible();

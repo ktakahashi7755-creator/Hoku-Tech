@@ -4,7 +4,7 @@ import { useState } from "react";
 import { ScrollRegion } from "@/components/ui";
 
 export function CodeBlock({ code, language, filename, label = "サンプルコード" }: { code: string; language: string; filename?: string; label?: string }) {
-  const [copied, setCopied] = useState(false);
+  const [copied, setCopied] = useState<"ok" | "failed" | null>(null);
   return (
     <figure className="overflow-hidden rounded-xl border border-border">
       <figcaption className="flex items-center justify-between gap-2 border-b border-border bg-surface px-4 py-2 text-sm">
@@ -17,12 +17,17 @@ export function CodeBlock({ code, language, filename, label = "サンプルコ�
           type="button"
           className="min-h-9 rounded-md px-2 text-accent hover:bg-accent-soft"
           onClick={async () => {
-            await navigator.clipboard.writeText(code);
-            setCopied(true);
-            setTimeout(() => setCopied(false), 2000);
+            try {
+              await navigator.clipboard.writeText(code);
+              setCopied("ok");
+            } catch {
+              // HTTP 接続やブラウザの設定でクリップボードが使えない場合
+              setCopied("failed");
+            }
+            setTimeout(() => setCopied(null), 3000);
           }}
         >
-          {copied ? "コピーしました" : "コピー"}
+          <span aria-live="polite">{copied === "ok" ? "コピーしました" : copied === "failed" ? "コピーできません。選択してコピーしてください" : "コピー"}</span>
         </button>
       </figcaption>
       <ScrollRegion label={`${label}${filename ? ` ${filename}` : ""}`} className="bg-code">

@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import type { SubmissionStatus } from "@prisma/client";
+import { Prisma, type SubmissionStatus } from "@prisma/client";
 import { db } from "@/lib/db";
 import { audit } from "@/lib/audit";
 import { requireUser } from "@/lib/auth/dal";
@@ -38,6 +38,11 @@ export async function saveSubmission(_prev: FormState, formData: FormData): Prom
     include: { module: { select: { courseId: true } } },
   });
   if (!assignment) return { error: "課題が見つかりません。" };
+  // 休学中・退校した受講生は提出できない (教材の閲覧は続けられる)。復帰は管理者が受講設定で行う
+  const enrollmentStatus = await db.enrollment.findFirst({ where: { userId: user.id, courseId: assignment.module.courseId }, select: { status: true } });
+  if (enrollmentStatus && (enrollmentStatus.status === "PAUSED" || enrollmentStatus.status === "WITHDRAWN")) {
+    return { error: "受講が一時停止または終了しているため提出できません。再開したい場合は担当講師または管理者に連絡してください。" };
+  }
 
   if (assignment.lessonId) {
     const done = await db.lessonProgress.findFirst({ where: { userId: user.id, lessonId: assignment.lessonId, status: "COMPLETED" } });
@@ -74,10 +79,19 @@ export async function saveSubmission(_prev: FormState, formData: FormData): Prom
     submittedAt: input.intent === "submit" ? new Date() : null,
   };
 
-  const submission =
-    latest?.status === "DRAFT"
-      ? await db.submission.update({ where: { id: latest.id }, data })
-      : await db.submission.create({ data: { ...data, assignmentId: assignment.id, userId: user.id, attemptNo: (latest?.attemptNo ?? 0) + 1 } });
+  let submission;
+  try {
+    submission =
+      latest?.status === "DRAFT"
+        ? await db.submission.update({ where: { id: latest.id }, data })
+        : await db.submission.create({ data: { ...data, assignmentId: assignment.id, userId: user.id, attemptNo: (latest?.attemptNo ?? 0) + 1 } });
+  } catch (e) {
+    // 連続で押された場合など、同じ回数の提出が先に作られていたとき (一意制約違反)
+    if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
+      return { error: "同じ提出がすでに保存されています。ページを再読み込みして状態を確認してください。" };
+    }
+    throw e;
+  }
 
   if (input.intent === "submit") {
     const enrollment = await db.enrollment.findFirst({ where: { userId: user.id, courseId: assignment.module.courseId } });

@@ -56,21 +56,31 @@ export async function pingLearning(rawLessonId: string): Promise<void> {
   }
 }
 
+/**
+ * 採点結果。正解の選択肢と解説は合格したときだけ返す
+ * (不合格のたびに正解を返すと、答えを写して合格でき、理解度 C と学習完了の条件が意味を失うため)。
+ */
 export type QuizResult = {
   score: number;
   passScore: number;
   passed: boolean;
-  results: { id: string; correct: boolean; answerIndex: number; explanation: string }[];
+  /** 解いている間に教材が更新された場合 true。採点せず、再読み込みを求める */
+  outdated?: boolean;
+  results: { id: string; correct: boolean; answerIndex: number | null; explanation: string | null }[];
 };
 
 const QuizAnswers = z.array(z.number().int().min(0).nullable()).max(50);
 
-export async function submitQuiz(rawLessonId: string, rawAnswers: unknown): Promise<QuizResult> {
+export async function submitQuiz(rawLessonId: string, rawVersionId: string, rawAnswers: unknown): Promise<QuizResult> {
   const user = await requireUser(["STUDENT"]);
   const lessonId = LessonId.parse(rawLessonId);
   const answers = QuizAnswers.parse(rawAnswers);
   const { version } = await loadLessonForStudent(user.id, lessonId);
   const content = LessonContentSchema.parse(version.content);
+  // 画面を開いた後に新しい版が公開された場合、古い問題への回答を新しい版で採点しない
+  if (z.cuid().parse(rawVersionId) !== version.id) {
+    return { score: 0, passScore: content.quiz.passScore, passed: false, outdated: true, results: [] };
+  }
   const questions = content.quiz.questions;
   const score = scoreQuiz(
     questions.map((q) => q.answerIndex),
@@ -83,7 +93,12 @@ export async function submitQuiz(rawLessonId: string, rawAnswers: unknown): Prom
     score,
     passScore: content.quiz.passScore,
     passed,
-    results: questions.map((q, i) => ({ id: q.id, correct: answers[i] === q.answerIndex, answerIndex: q.answerIndex, explanation: q.explanation })),
+    results: questions.map((q, i) => ({
+      id: q.id,
+      correct: answers[i] === q.answerIndex,
+      answerIndex: passed ? q.answerIndex : null,
+      explanation: passed ? q.explanation : null,
+    })),
   };
 }
 

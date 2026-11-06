@@ -12,6 +12,8 @@
 set -euo pipefail
 
 : "${DATABASE_URL:?DATABASE_URL を設定してください}"
+. "$(dirname "$0")/pg-env.sh"
+pg_url_without_password "$DATABASE_URL"
 dir="${BACKUP_DIR:-./backups}"
 days="${BACKUP_RETENTION_DAYS:-14}"
 case "$days" in ''|*[!0-9]*) echo "BACKUP_RETENTION_DAYS は 0 以上の整数で指定してください" >&2; exit 2 ;; esac
@@ -24,7 +26,7 @@ tmp="$out.partial"
 
 # 途中で失敗したときに壊れたファイルを残さない
 trap 'rm -f "$tmp"' EXIT
-pg_dump --format=custom --no-owner --no-privileges --dbname="$DATABASE_URL" --file="$tmp"
+pg_dump --format=custom --no-owner --no-privileges --dbname="$PG_URL" --file="$tmp"
 # 読み戻せることを確認してから正式な名前にする
 pg_restore --list "$tmp" > /dev/null
 mv "$tmp" "$out"

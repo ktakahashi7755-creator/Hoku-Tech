@@ -64,7 +64,7 @@ export default async function StudentsPage({ searchParams }: { searchParams: Pro
           <table className="w-full min-w-[960px] text-left text-sm">
             <thead className="bg-surface text-muted">
               <tr>
-                {["氏名", "所属", "現在の学習領域", "A 履修率", "B 課題完了", "C 理解度", "D 実装能力", "E 実務準備", "最終学習", "状態"].map((h) => (
+                {["氏名", "所属", "現在の学習領域", "A 履修率", "B 課題完了", "C 理解度 (点)", "D 実装能力 (点)", "E 実務準備 (点)", "最終学習", "状態"].map((h) => (
                   <th key={h} scope="col" className="px-3 py-3 font-semibold">{h}</th>
                 ))}
               </tr>

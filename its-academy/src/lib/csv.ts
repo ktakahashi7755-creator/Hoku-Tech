@@ -1,10 +1,10 @@
 /**
  * CSV の 1 セル。Excel で開いたときの数式実行 (CSV インジェクション) を防ぐため、
- * = + - @ タブ CR で始まる値は先頭に ' を付ける。
+ * 先頭の空白を除いた最初の文字が = + - @ (全角を含む)、またはタブ・改行で始まる値は先頭に ' を付ける。
  */
 export function csvCell(value: unknown): string {
   let s = value === null || value === undefined ? "" : String(value);
-  if (/^[=+\-@\t\r]/.test(s)) s = `'${s}`;
+  if (/^[\t\r\n]/.test(s) || /^[\s\u3000]*[=+\-@＝＋－＠]/.test(s)) s = `'${s}`;
   return /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
 }
 

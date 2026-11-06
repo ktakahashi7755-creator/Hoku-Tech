@@ -8,11 +8,13 @@
 set -euo pipefail
 
 : "${DATABASE_URL:?DATABASE_URL を設定してください (復元先)}"
+. "$(dirname "$0")/pg-env.sh"
+pg_url_without_password "$DATABASE_URL"
 file="${1:?復元するバックアップファイルを指定してください}"
 [ -f "$file" ] || { echo "ファイルがありません: $file" >&2; exit 2; }
 
 pg_restore --list "$file" > /dev/null
-target="$(psql "$DATABASE_URL" -Atc 'SELECT current_database()')"
+target="$(psql "$PG_URL" -Atc 'SELECT current_database()')"
 
 if [ "${RESTORE_CONFIRM:-}" != "yes" ]; then
   printf 'データベース "%s" の内容を %s で置き換えます。続けるには yes と入力: ' "$target" "$file"
@@ -21,5 +23,5 @@ if [ "${RESTORE_CONFIRM:-}" != "yes" ]; then
 fi
 
 pg_restore --clean --if-exists --no-owner --no-privileges --single-transaction --exit-on-error \
-  --dbname="$DATABASE_URL" "$file"
+  --dbname="$PG_URL" "$file"
 echo "復元しました: $target"

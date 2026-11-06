@@ -14,16 +14,16 @@ describe("checkEnvironment", () => {
     const p = checkEnvironment({ NODE_ENV: "production", DATABASE_URL: "postgresql://its:its_dev_only@db:5432/its" });
     expect(p.some((m) => m.includes("COOKIE_SECURE"))).toBe(true);
     expect(p.some((m) => m.includes("開発用"))).toBe(true);
-    expect(checkEnvironment({ NODE_ENV: "production", COOKIE_SECURE: "true", DATABASE_URL: "postgresql://app:Strong-Random-1@db:5432/its" })).toEqual([]);
+    expect(checkEnvironment({ NODE_ENV: "production", COOKIE_SECURE: "true", TRUSTED_PROXY_HOPS: "1", DATABASE_URL: "postgresql://app:Strong-Random-1@db:5432/its" })).toEqual([]);
+    expect(checkEnvironment({ NODE_ENV: "production", COOKIE_SECURE: "true", DATABASE_URL: "postgresql://app:Strong-Random-1@db:5432/its" })[0]).toMatch(/TRUSTED_PROXY_HOPS/);
   });
   it("E2E など本番ビルドの試験は APP_ENV=test を明示したときだけ緩める", () => {
     expect(checkEnvironment({ NODE_ENV: "production", APP_ENV: "test", DATABASE_URL: "postgresql://its:its_dev_only@localhost/its" })).toEqual([]);
     expect(checkEnvironment({ APP_ENV: "prod", DATABASE_URL: "postgresql://x" })[0]).toMatch(/APP_ENV/);
   });
   it("Cloud SQL の Unix ソケット形式の接続文字列を受け付け、TRUSTED_PROXY_HOPS は 1 以上の整数だけ", () => {
-    const base = { NODE_ENV: "production", COOKIE_SECURE: "true", DATABASE_URL: "postgresql://app:Strong-Random-1@localhost/its?host=/cloudsql/proj:asia-northeast1:its-db" };
+    const base = { NODE_ENV: "production", COOKIE_SECURE: "true", TRUSTED_PROXY_HOPS: "1", DATABASE_URL: "postgresql://app:Strong-Random-1@localhost/its?host=/cloudsql/proj:asia-northeast1:its-db" };
     expect(checkEnvironment(base)).toEqual([]);
-    expect(checkEnvironment({ ...base, TRUSTED_PROXY_HOPS: "1" })).toEqual([]);
     expect(checkEnvironment({ ...base, TRUSTED_PROXY_HOPS: "0" })[0]).toMatch(/TRUSTED_PROXY_HOPS/);
   });
   it("メッセージに接続文字列 (パスワード) を含めない", () => {

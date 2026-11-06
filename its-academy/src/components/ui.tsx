@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { ComponentProps, ReactNode } from "react";
+import { cloneElement, isValidElement, type ComponentProps, type ReactNode } from "react";
 
 export function cx(...c: (string | false | null | undefined)[]) {
   return c.filter(Boolean).join(" ");
@@ -86,16 +86,30 @@ export function EmptyState({ children }: { children: ReactNode }) {
   return <p className="rounded-xl border border-dashed border-border p-6 text-center text-muted">{children}</p>;
 }
 
+/**
+ * ラベル・補足・エラーつきの入力欄。補足とエラーを aria-describedby で入力欄に結び付け、
+ * スクリーンリーダーでも「何を入力するか」「どこが間違っているか」が読み上げられるようにする。
+ */
 export function Field({ label, htmlFor, hint, error, children }: { label: string; htmlFor: string; hint?: string; error?: string; children: ReactNode }) {
+  const hintId = hint ? `${htmlFor}-hint` : undefined;
+  const errorId = error ? `${htmlFor}-error` : undefined;
+  const describedBy = [errorId, hintId].filter(Boolean).join(" ") || undefined;
+  const control = isValidElement<{ "aria-describedby"?: string; "aria-invalid"?: boolean }>(children)
+    ? cloneElement(children, { "aria-describedby": describedBy, "aria-invalid": error ? true : undefined })
+    : children;
   return (
     <div className="flex flex-col gap-1.5">
       <label htmlFor={htmlFor} className="text-sm font-semibold">
         {label}
       </label>
-      {children}
-      {hint && !error && <p className="text-xs text-muted">{hint}</p>}
+      {control}
+      {hint && (
+        <p id={hintId} className="text-xs text-muted">
+          {hint}
+        </p>
+      )}
       {error && (
-        <p className="text-sm text-danger" role="alert">
+        <p id={errorId} className="text-sm text-danger" role="alert">
           {error}
         </p>
       )}

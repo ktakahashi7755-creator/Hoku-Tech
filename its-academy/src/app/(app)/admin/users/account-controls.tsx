@@ -24,15 +24,25 @@ export function AccountControls({ user, roles }: { user: { id: string; name: str
         <select id={`role-${user.id}`} value={role} onChange={(e) => setRole(e.target.value)} className={`${inputStyles} min-h-10 py-1`}>
           {roles.map((r) => <option key={r.value} value={r.value}>{r.label}</option>)}
         </select>
-        <Button type="button" variant="secondary" disabled={pending || role === user.role} onClick={() => run(() => changeRole(user.id, role))}>
+        <Button type="button" variant="secondary" disabled={pending || role === user.role} onClick={() => {
+            const label = roles.find((r) => r.value === role)?.label ?? role;
+            if (window.confirm(`${user.name} さんの権限を「${label}」に変更します。変更すると、その人はすべての端末でログアウトされます。よろしいですか?`)) run(() => changeRole(user.id, role));
+          }}>
           変更
         </Button>
       </div>
       <div className="flex flex-wrap gap-2">
-        <Button type="button" variant="secondary" disabled={pending} onClick={() => run(() => issueTemporaryPassword(user.id))}>
+        <Button type="button" variant="secondary" disabled={pending} onClick={() => {
+          if (window.confirm(`${user.name} さんの仮パスワードを発行します。今のパスワードは使えなくなり、すべての端末でログアウトされます。よろしいですか?`)) run(() => issueTemporaryPassword(user.id));
+        }}>
           仮パスワードを発行
         </Button>
-        <Button type="button" variant={user.isActive ? "danger" : "secondary"} disabled={pending} onClick={() => run(() => setActive(user.id, !user.isActive))}>
+        <Button type="button" variant={user.isActive ? "danger" : "secondary"} disabled={pending} onClick={() => {
+          const message = user.isActive
+            ? `${user.name} さんの利用を停止します。ログインできなくなり、すべての端末でログアウトされます。よろしいですか?`
+            : `${user.name} さんの利用を再開します。よろしいですか?`;
+          if (window.confirm(message)) run(() => setActive(user.id, !user.isActive));
+        }}>
           {user.isActive ? "利用を停止" : "利用を再開"}
         </Button>
       </div>

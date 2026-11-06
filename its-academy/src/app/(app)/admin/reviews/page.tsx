@@ -22,11 +22,24 @@ export default async function ReviewsQueue({ searchParams }: { searchParams: Pro
   const { view = "pending", assignment } = await searchParams;
   const current = VIEWS[view] ?? VIEWS.pending;
   const ids = await visibleStudentIds(viewer);
-  const subs = await db.submission.findMany({
+  const done = current === VIEWS.done;
+  const DONE_LIMIT = 100;
+  const found = await db.submission.findMany({
     where: { userId: { in: ids }, status: { in: current.statuses }, ...(assignment ? { assignment: { slug: assignment } } : {}) },
-    orderBy: { submittedAt: "asc" }, // 古い提出から順に
-    include: { user: { select: { name: true } }, assignment: { select: { title: true, passScore: true } } },
+    // 未対応は古い提出から順に。採点済みは新しい順に直近 100 件
+    orderBy: { submittedAt: done ? "desc" : "asc" },
+    ...(done ? { take: DONE_LIMIT } : {}),
+    include: { user: { select: { name: true } }, assignment: { select: { title: true, passScore: true, slug: true } } },
   });
+  // 修正依頼のあと再提出された古い回は「修正依頼中」に出さない (最新の回だけ)
+  let subs = found;
+  if (current === VIEWS.changes && found.length > 0) {
+    const latest = await db.submission.groupBy({ by: ["assignmentId", "userId"], where: { userId: { in: [...new Set(found.map((s) => s.userId))] } }, _max: { attemptNo: true } });
+    const latestNo = new Map(latest.map((l) => [`${l.assignmentId}:${l.userId}`, l._max.attemptNo]));
+    subs = found.filter((s) => latestNo.get(`${s.assignmentId}:${s.userId}`) === s.attemptNo);
+  }
+  const filterTitle = assignment ? (found[0]?.assignment.title ?? (await db.assignment.findUnique({ where: { slug: assignment }, select: { title: true } }))?.title ?? assignment) : null;
+  const query = (key: string) => `/admin/reviews?view=${key}${assignment ? `&assignment=${encodeURIComponent(assignment)}` : ""}`;
   return (
     <div>
       <PageHeader title="レビュー" description="提出の古い順に並んでいます。担当の受講生の提出だけが表示されます。" />
@@ -34,7 +47,7 @@ export default async function ReviewsQueue({ searchParams }: { searchParams: Pro
         {Object.entries(VIEWS).map(([key, v]) => (
           <Link
             key={key}
-            href={`/admin/reviews?view=${key}`}
+            href={query(key)}
             aria-current={key === view ? "page" : undefined}
             className={`inline-flex min-h-11 items-center rounded-full border px-4 text-sm ${key === view ? "border-accent bg-accent-soft font-semibold text-accent-strong" : "border-border"}`}
           >
@@ -42,6 +55,13 @@ export default async function ReviewsQueue({ searchParams }: { searchParams: Pro
           </Link>
         ))}
       </nav>
+      {filterTitle && (
+        <p className="mb-4 text-sm">
+          課題「{filterTitle}」の提出だけを表示しています。{" "}
+          <Link href={`/admin/reviews?view=${view}`} className="text-accent underline">すべての課題を表示</Link>
+        </p>
+      )}
+      {done && subs.length === DONE_LIMIT && <p className="mb-4 text-sm text-muted">新しい順に {DONE_LIMIT} 件を表示しています。それより前の結果は受講生の詳細画面で確認できます。</p>}
       {subs.length === 0 ? (
         <EmptyState>該当する提出はありません。</EmptyState>
       ) : (

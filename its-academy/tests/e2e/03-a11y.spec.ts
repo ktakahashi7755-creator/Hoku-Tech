@@ -1,5 +1,5 @@
 import AxeBuilder from "@axe-core/playwright";
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Page } from "./fixtures";
 import { login, logout } from "./helpers";
 
 // 1 つのテストで多くの画面を検査するため、制限時間を延ばす

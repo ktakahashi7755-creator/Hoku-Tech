@@ -58,14 +58,18 @@ describe("fromEditorDraft", () => {
     const prev = fromEditorDraft(prevDraft);
     if (!prev.ok) throw new Error("setup");
     prev.content.code[0].verifiedBy = "content/code/x/Main.java";
+    prev.content.code[0].runner = "content/code/x/run.sh";
 
     const same = fromEditorDraft(prevDraft, prev.content);
     expect(same.ok && same.content.code[0].verifiedBy).toBe("content/code/x/Main.java");
+    // 編集画面にない実行スクリプトも引き継ぐ (保存すると実行検証できなくなる不具合の防止)
+    expect(same.ok && same.content.code[0].runner).toBe("content/code/x/run.sh");
 
     const edited = structuredClone(prevDraft);
     edited.code[0].source = "class Main { }";
     const r = fromEditorDraft(edited, prev.content);
     expect(r.ok && r.content.code[0].verifiedBy).toBeUndefined();
+    expect(r.ok && r.content.code[0].runner).toBeUndefined();
 
     const outputEdited = structuredClone(prevDraft);
     outputEdited.code[0].output = "OK";

@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
+import { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
 import { audit } from "@/lib/audit";
 import { requireUser } from "@/lib/auth/dal";
@@ -42,6 +43,24 @@ const DraftShape = z.object({
   workplaceUse: str(10000),
   commonErrors: z.array(z.object({ error: str(500), cause: str(3000), fix: str(3000) })).max(30),
 });
+
+type Tx = Prisma.TransactionClient;
+
+/**
+ * 版の保存・確定・公開を、同じレッスンへの同時操作と衝突しない形で実行する。
+ * 直列化可能 (Serializable) のトランザクションで行い、衝突したときは数回やり直す
+ * (公開直前の版を、別の画面からの下書き保存が上書きするのを防ぐ)。
+ */
+async function serially<T>(fn: (tx: Tx) => Promise<T>): Promise<T> {
+  for (let attempt = 0; ; attempt++) {
+    try {
+      return await db.$transaction(fn, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
+    } catch (e) {
+      if (attempt < 3 && e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2034") continue;
+      throw e;
+    }
+  }
+}
 
 function revalidateLesson(lessonId: string, slug?: string) {
   revalidatePath("/admin/content");
@@ -110,9 +129,8 @@ export async function moveLesson(lessonId: string, direction: "up" | "down"): Pr
  */
 export async function saveDraft(lessonId: string, rawDraft: EditorDraft): Promise<CmsState> {
   const user = await requireUser(ADMIN_ROLES);
-  const lesson = await db.lesson.findUniqueOrThrow({ where: { id: Id.parse(lessonId) } });
+  const id = Id.parse(lessonId);
   const draft = DraftShape.parse(rawDraft);
-  const latest = await db.lessonVersion.findFirst({ where: { lessonId: lesson.id }, orderBy: { version: "desc" } });
   const data = {
     title: draft.title.trim() || "(無題)",
     estimatedMinutes: Math.min(Math.max(Math.round(Number(draft.estimatedMinutes)) || 30, 5), 600),
@@ -120,12 +138,15 @@ export async function saveDraft(lessonId: string, rawDraft: EditorDraft): Promis
     changeNote: draft.changeNote.trim() || null,
     authorId: user.id,
   };
-  const saved =
-    latest && !latest.publishedAt && latest.id !== lesson.scheduledVersionId
-      ? await db.lessonVersion.update({ where: { id: latest.id }, data })
-      : await db.lessonVersion.create({ data: { ...data, lessonId: lesson.id, version: (latest?.version ?? 0) + 1 } });
-  await audit({ actorId: user.id, action: "lesson.save_draft", targetType: "lesson", targetId: lesson.id, metadata: { version: saved.version } });
-  revalidateLesson(lesson.id);
+  const saved = await serially(async (tx) => {
+    const lesson = await tx.lesson.findUniqueOrThrow({ where: { id } });
+    const latest = await tx.lessonVersion.findFirst({ where: { lessonId: id }, orderBy: { version: "desc" } });
+    return latest && isEditableDraft(latest, lesson)
+      ? tx.lessonVersion.update({ where: { id: latest.id }, data })
+      : tx.lessonVersion.create({ data: { ...data, lessonId: id, version: (latest?.version ?? 0) + 1 } });
+  });
+  await audit({ actorId: user.id, action: "lesson.save_draft", targetType: "lesson", targetId: id, metadata: { version: saved.version } });
+  revalidateLesson(id);
   const check = fromEditorDraft(draft);
   return {
     ok: `下書き (版 ${saved.version}) を保存しました。受講生にはまだ表示されません。`,
@@ -133,16 +154,23 @@ export async function saveDraft(lessonId: string, rawDraft: EditorDraft): Promis
   };
 }
 
+/** 上書きしてよい下書きか (未公開で、公開中・予約中の版でない) */
+function isEditableDraft(version: { id: string; publishedAt: Date | null }, lesson: { currentVersionId: string | null; scheduledVersionId: string | null }): boolean {
+  return !version.publishedAt && version.id !== lesson.currentVersionId && version.id !== lesson.scheduledVersionId;
+}
+
 /** 過去の版を元に新しい下書きを作る (差し戻し) */
 export async function restoreVersionAsDraft(lessonId: string, versionId: string): Promise<void> {
   const user = await requireUser(ADMIN_ROLES);
   const source = await db.lessonVersion.findFirstOrThrow({ where: { id: Id.parse(versionId), lessonId: Id.parse(lessonId) } });
-  const lesson = await db.lesson.findUniqueOrThrow({ where: { id: lessonId } });
-  const latest = await db.lessonVersion.findFirstOrThrow({ where: { lessonId }, orderBy: { version: "desc" } });
   const editorDraft = { ...editorStateOf(source), changeNote: `版 ${source.version} から復元` };
   const data = { title: source.title, estimatedMinutes: source.estimatedMinutes, content: { editorDraft }, changeNote: editorDraft.changeNote, authorId: user.id };
-  if (!latest.publishedAt && latest.id !== lesson.scheduledVersionId) await db.lessonVersion.update({ where: { id: latest.id }, data });
-  else await db.lessonVersion.create({ data: { ...data, lessonId, version: latest.version + 1 } });
+  await serially(async (tx) => {
+    const lesson = await tx.lesson.findUniqueOrThrow({ where: { id: lessonId } });
+    const latest = await tx.lessonVersion.findFirstOrThrow({ where: { lessonId }, orderBy: { version: "desc" } });
+    if (isEditableDraft(latest, lesson)) await tx.lessonVersion.update({ where: { id: latest.id }, data });
+    else await tx.lessonVersion.create({ data: { ...data, lessonId, version: latest.version + 1 } });
+  });
   await audit({ actorId: user.id, action: "lesson.restore_version", targetType: "lesson", targetId: lessonId, metadata: { from: source.version } });
   revalidateLesson(lessonId);
 }
@@ -153,8 +181,8 @@ export async function restoreVersionAsDraft(lessonId: string, versionId: string)
  * 公開・予約の前に版を確定する。下書き (editorDraft) を検証して LessonContent に変換し、版に書き戻す。
  * 実行検証済みの印は、現在公開中の版とコードが同じ場合だけ引き継ぐ。
  */
-async function finalizeVersion(lessonId: string, versionId: string): Promise<{ error: string } | { version: { id: string; version: number; publishedAt: Date | null }; slug: string }> {
-  const version = await db.lessonVersion.findFirst({
+async function finalizeVersion(tx: Tx, lessonId: string, versionId: string): Promise<{ error: string } | { version: { id: string; version: number; publishedAt: Date | null }; slug: string }> {
+  const version = await tx.lessonVersion.findFirst({
     where: { id: Id.parse(versionId), lessonId: Id.parse(lessonId) },
     include: { lesson: { include: { currentVersion: true } } },
   });
@@ -163,7 +191,7 @@ async function finalizeVersion(lessonId: string, versionId: string): Promise<{ e
   const current = version.lesson.currentVersion ? LessonContentSchema.safeParse(version.lesson.currentVersion.content) : null;
   const result = fromEditorDraft(editorStateOf(version), current?.success ? current.data : null);
   if (!result.ok) return { error: `公開に必要な項目が不足しています: ${result.errors.join(" / ")}` };
-  await db.lessonVersion.update({
+  await tx.lessonVersion.update({
     where: { id: version.id },
     data: { title: result.title, estimatedMinutes: result.estimatedMinutes, content: result.content, changeNote: result.changeNote ?? version.changeNote },
   });
@@ -172,13 +200,16 @@ async function finalizeVersion(lessonId: string, versionId: string): Promise<{ e
 
 export async function publishVersion(lessonId: string, versionId: string): Promise<CmsState> {
   const user = await requireUser(ADMIN_ROLES);
-  const fin = await finalizeVersion(lessonId, versionId);
+  // 確定 (下書き → 教材の形式) と公開を 1 つのトランザクションで行う
+  const fin = await serially(async (tx) => {
+    const f = await finalizeVersion(tx, lessonId, versionId);
+    if ("error" in f) return f;
+    await tx.lessonVersion.update({ where: { id: f.version.id }, data: { publishedAt: f.version.publishedAt ?? new Date() } });
+    await tx.lesson.update({ where: { id: lessonId }, data: { currentVersionId: f.version.id, status: "PUBLISHED", scheduledVersionId: null, publishAt: null } });
+    return f;
+  });
   if ("error" in fin) return { error: fin.error };
   const { version } = fin;
-  await db.$transaction([
-    db.lessonVersion.update({ where: { id: version.id }, data: { publishedAt: version.publishedAt ?? new Date() } }),
-    db.lesson.update({ where: { id: lessonId }, data: { currentVersionId: version.id, status: "PUBLISHED", scheduledVersionId: null, publishAt: null } }),
-  ]);
   await audit({ actorId: user.id, action: "lesson.publish", targetType: "lesson", targetId: lessonId, metadata: { version: version.version } });
   revalidateLesson(lessonId, fin.slug);
   return { ok: `版 ${version.version} を公開しました。` };
@@ -193,11 +224,15 @@ export async function scheduleVersion(lessonId: string, versionId: string, atLoc
   // 入力は日本時間として扱う
   const at = new Date(`${parsed.data.at.length === 16 ? parsed.data.at + ":00" : parsed.data.at}+09:00`);
   if (at.getTime() <= Date.now()) return { error: "公開日時は現在より後にしてください" };
-  const fin = await finalizeVersion(lessonId, versionId);
+  const fin = await serially(async (tx) => {
+    const f = await finalizeVersion(tx, lessonId, versionId);
+    if ("error" in f) return f;
+    if (f.version.publishedAt) return { error: "公開済みの版は予約できません" };
+    await tx.lesson.update({ where: { id: lessonId }, data: { scheduledVersionId: f.version.id, publishAt: at } });
+    return f;
+  });
   if ("error" in fin) return { error: fin.error };
   const { version } = fin;
-  if (version.publishedAt) return { error: "公開済みの版は予約できません" };
-  await db.lesson.update({ where: { id: lessonId }, data: { scheduledVersionId: version.id, publishAt: at } });
   await audit({ actorId: user.id, action: "lesson.schedule", targetType: "lesson", targetId: lessonId, metadata: { version: version.version, at: at.toISOString() } });
   revalidateLesson(lessonId);
   return { ok: "公開を予約しました。" };

@@ -1,10 +1,16 @@
 "use client";
 
-import { useState, useTransition, type ReactNode } from "react";
+import { useEffect, useState, useTransition, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { saveDraft, type CmsState } from "@/app/actions/cms";
 import type { EditorDraft } from "@/lib/content/draft";
 import { Button, cx, inputStyles } from "@/components/ui";
+
+/** 同じ画面のほかの操作 (版から下書きを作る など) が、保存していない編集を消さないかを確認するため */
+let editorDirty = false;
+export function hasUnsavedLessonEdits(): boolean {
+  return editorDirty;
+}
 
 const LANGS = ["java", "bash", "sql", "html", "css", "javascript", "xml", "properties", "text"] as const;
 
@@ -50,7 +56,16 @@ function Repeat<T>({ items, onChange, make, label, render }: { items: T[]; onCha
             <span className="flex gap-1">
               <button type="button" className="min-h-9 rounded px-2 text-sm text-accent hover:bg-accent-soft disabled:opacity-40" disabled={i === 0} onClick={() => move(i, -1)} aria-label={`${label} ${i + 1} を上へ`}>↑</button>
               <button type="button" className="min-h-9 rounded px-2 text-sm text-accent hover:bg-accent-soft disabled:opacity-40" disabled={i === items.length - 1} onClick={() => move(i, 1)} aria-label={`${label} ${i + 1} を下へ`}>↓</button>
-              <button type="button" className="min-h-9 rounded px-2 text-sm text-danger hover:bg-danger-soft" onClick={() => onChange(items.filter((_, j) => j !== i))}>削除</button>
+              <button
+                type="button"
+                className="min-h-9 rounded px-2 text-sm text-danger hover:bg-danger-soft"
+                aria-label={`${label} ${i + 1} を削除`}
+                onClick={() => {
+                  if (window.confirm(`${label} ${i + 1} を削除しますか? (保存するまでは元に戻せます: ページを再読み込み)`)) onChange(items.filter((_, j) => j !== i));
+                }}
+              >
+                削除
+              </button>
             </span>
           </div>
           {render(item, (v) => onChange(items.map((x, j) => (j === i ? v : x))), i)}
@@ -73,6 +88,18 @@ export function LessonEditor({ lessonId, initial }: { lessonId: string; initial:
     setD((prev) => ({ ...prev, [k]: v }));
     setDirty(true);
   };
+
+  // 保存していない編集があるまま画面を離れようとしたら、ブラウザの確認を出す
+  useEffect(() => {
+    editorDirty = dirty;
+    if (!dirty) return;
+    const warn = (e: BeforeUnloadEvent) => e.preventDefault();
+    window.addEventListener("beforeunload", warn);
+    return () => {
+      window.removeEventListener("beforeunload", warn);
+      editorDirty = false;
+    };
+  }, [dirty]);
 
   return (
     <form

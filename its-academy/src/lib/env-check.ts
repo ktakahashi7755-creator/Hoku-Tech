@@ -13,6 +13,7 @@ export function checkEnvironment(env: Record<string, string | undefined>): strin
   else if (!/^postgres(ql)?:\/\//.test(url)) problems.push("DATABASE_URL は postgresql:// で始まる接続文字列にしてください");
   if (env.TRUSTED_PROXY_HOPS !== undefined && !/^[1-9]\d*$/.test(env.TRUSTED_PROXY_HOPS)) problems.push("TRUSTED_PROXY_HOPS は 1 以上の整数にしてください");
   if (appEnv === "production" || appEnv === "staging") {
+    if (env.TRUSTED_PROXY_HOPS === undefined) problems.push("本番・検証環境では HTTPS を終端するプロキシの段数 TRUSTED_PROXY_HOPS を設定してください (Cloud Run は 1)");
     if (env.COOKIE_SECURE !== "true") problems.push("本番・検証環境では HTTPS で運用し、COOKIE_SECURE=true を設定してください");
     if (url && /its_dev_only|ci_only_password|:postgres@|:password@/.test(url)) problems.push("DATABASE_URL に開発用・初期値のパスワードが使われています");
   }

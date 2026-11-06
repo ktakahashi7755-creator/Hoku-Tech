@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { requireMyOverview } from "@/lib/queries/me";
-import { Card, EmptyState, ProgressBar, Stat } from "@/components/ui";
+import { Card, EmptyState, PageHeader, ProgressBar, Stat } from "@/components/ui";
 import { NextActionCard } from "@/components/next-action";
 import { WeekChart } from "@/components/week-chart";
 import { SubmissionBadge } from "@/components/status-badge";
@@ -12,7 +12,12 @@ export const metadata: Metadata = { title: "ホーム" };
 export default async function HomePage() {
   const { user, overview } = await requireMyOverview();
   if (!overview.enrollment) {
-    return <EmptyState>まだコースに登録されていません。担当講師に連絡してください。</EmptyState>;
+    return (
+      <div className="flex flex-col gap-6">
+        <PageHeader title="ホーム" />
+        <EmptyState>まだコースに登録されていません。担当講師に連絡してください。</EmptyState>
+      </div>
+    );
   }
   const o = overview;
   const slugs = Object.fromEntries(o.assignments.map((a) => [a.id, a.slug]));

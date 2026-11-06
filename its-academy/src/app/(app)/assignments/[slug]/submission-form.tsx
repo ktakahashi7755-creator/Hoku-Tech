@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { saveSubmission } from "@/app/actions/submissions";
+import { ActionForm } from "@/components/action-form";
 import { Button, Field, inputStyles } from "@/components/ui";
 import { submitsRepository } from "@/lib/validation";
 
@@ -9,7 +10,13 @@ export function SubmissionForm({ assignmentId, type, defaults }: { assignmentId:
   const [state, action, pending] = useActionState(saveSubmission, undefined);
   const repo = submitsRepository(type);
   return (
-    <form action={action} className="flex flex-col gap-5">
+    <ActionForm
+      action={action}
+      className="flex flex-col gap-5"
+      confirm={(submitter) =>
+        submitter?.getAttribute("value") === "submit" ? "提出すると、講師のレビューが終わるまで内容を変更できません。提出しますか?" : null
+      }
+    >
       <input type="hidden" name="assignmentId" value={assignmentId} />
       {repo ? (
         <Field label="GitHub リポジトリの URL" htmlFor="repoUrl" hint="例: https://github.com/your-name/its-profile" error={state?.fieldErrors?.repoUrl}>
@@ -29,12 +36,12 @@ export function SubmissionForm({ assignmentId, type, defaults }: { assignmentId:
       </div>
       <div className="flex flex-wrap gap-3">
         <Button type="submit" name="intent" value="submit" disabled={pending}>
-          提出する
+          {pending ? "保存しています…" : "提出する"}
         </Button>
         <Button type="submit" name="intent" value="draft" variant="secondary" disabled={pending}>
           下書き保存
         </Button>
       </div>
-    </form>
+    </ActionForm>
   );
 }

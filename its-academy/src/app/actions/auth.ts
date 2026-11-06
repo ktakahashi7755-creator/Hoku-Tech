@@ -58,7 +58,7 @@ export async function login(_prev: FormState, formData: FormData): Promise<FormS
 }
 
 export async function logout(): Promise<void> {
-  const user = await requireUser();
+  const user = await requireUser(undefined, { allowPendingPasswordChange: true });
   await deleteCurrentSession();
   await audit({ actorId: user.id, action: "auth.logout" });
   redirect("/login");
@@ -66,20 +66,26 @@ export async function logout(): Promise<void> {
 
 const PasswordSchema = z
   .object({
-    current: z.string().min(1, "現在のパスワードを入力してください"),
+    current: z.string().min(1, "現在のパスワードを入力してください").max(256),
     next: z.string().min(PASSWORD_MIN_LENGTH, `${PASSWORD_MIN_LENGTH} 文字以上にしてください`).max(256),
     confirm: z.string(),
   })
   .refine((v) => v.next === v.confirm, { path: ["confirm"], message: "確認用のパスワードが一致しません" });
 
 export async function changePassword(_prev: FormState, formData: FormData): Promise<FormState> {
-  const me = await requireUser();
+  const me = await requireUser(undefined, { allowPendingPasswordChange: true });
   const parsed = PasswordSchema.safeParse({ current: formData.get("current"), next: formData.get("next"), confirm: formData.get("confirm") });
   if (!parsed.success) {
     return { fieldErrors: Object.fromEntries(parsed.error.issues.map((i) => [String(i.path[0]), i.message])) };
   }
+  // 盗まれたセッションで現在のパスワードを総当たりされないよう、ログインと同じ回数制限をかける
+  const ip = await clientIp();
+  if (await isLoginThrottled(me.email, ip)) {
+    return { error: "試行回数が上限に達しました。15 分ほど待ってから再度お試しください。" };
+  }
   const user = await db.user.findUniqueOrThrow({ where: { id: me.id } });
   if (!(await verifyPassword(user.passwordHash, parsed.data.current))) {
+    await recordLoginAttempt(me.email, ip, false);
     return { fieldErrors: { current: "現在のパスワードが正しくありません" } };
   }
   if (parsed.data.next === parsed.data.current) {
@@ -90,5 +96,6 @@ export async function changePassword(_prev: FormState, formData: FormData): Prom
   await revokeAllSessions(me.id);
   await createSession(me.id);
   await audit({ actorId: me.id, action: "auth.password_changed" });
+  // 新しいセッションの Cookie を設定したため、この画面は再描画され、仮パスワードの案内が消える
   return { ok: "パスワードを変更しました。ほかの端末ではログアウトされました。" };
 }

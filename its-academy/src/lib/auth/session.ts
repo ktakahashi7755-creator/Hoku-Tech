@@ -6,6 +6,7 @@ import { generateSessionToken, hashSessionToken } from "./token";
 export const SESSION_COOKIE = "its_session";
 const SESSION_TTL_MS = 1000 * 60 * 60 * 24 * 7; // 7 日
 const RENEW_THRESHOLD_MS = 1000 * 60 * 60 * 24; // 残り 1 日を切ったら延長
+const MAX_SESSION_AGE_MS = 1000 * 60 * 60 * 24 * 30; // 延長を続けても、ログインから 30 日で再ログインを求める
 
 function cookieOptions(expires: Date) {
   return {
@@ -45,7 +46,7 @@ export async function validateSession(): Promise<SessionUser | null> {
   });
   if (!session) return null;
   const now = Date.now();
-  if (session.expiresAt.getTime() <= now || !session.user.isActive) {
+  if (session.expiresAt.getTime() <= now || now - session.createdAt.getTime() > MAX_SESSION_AGE_MS || !session.user.isActive) {
     await db.session.delete({ where: { id: session.id } }).catch(() => {});
     return null;
   }

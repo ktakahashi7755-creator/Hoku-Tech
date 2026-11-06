@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import { login, logout } from "./helpers";
 
 test.describe.configure({ mode: "serial" });
@@ -19,6 +19,9 @@ test("仮パスワード: 発行 → 本人がログイン → 変更を求め�
   await login(page, "student3@its.example", temp);
   await page.waitForURL(/\/me\?changePassword=1$/);
   await expect(page.getByRole("alert").filter({ hasText: "仮パスワードでログインしています" })).toBeVisible();
+  // 仮パスワードのままでは、ほかの画面を使えない
+  await page.goto("/home");
+  await page.waitForURL(/\/me\?changePassword=1$/);
   await page.getByLabel("現在のパスワード").fill(temp);
   await page.getByLabel("新しいパスワード", { exact: true }).fill("misaki-new-password-2026");
   await page.getByLabel("新しいパスワード (確認)").fill("misaki-new-password-2026");

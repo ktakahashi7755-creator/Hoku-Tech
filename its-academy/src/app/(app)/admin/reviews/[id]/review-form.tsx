@@ -2,16 +2,34 @@
 
 import { useActionState, useState, useTransition } from "react";
 import { startReview, submitReview } from "@/app/actions/staff";
+import { ActionForm } from "@/components/action-form";
 import { Button, Field, inputStyles } from "@/components/ui";
 
 type Criterion = { key: string; label: string; weight: number; description: string };
 
 export function StartReviewButton({ submissionId }: { submissionId: string }) {
   const [pending, start] = useTransition();
+  const [error, setError] = useState<string | null>(null);
   return (
-    <Button variant="secondary" disabled={pending} onClick={() => start(() => startReview(submissionId))}>
-      レビューを開始する (状態を「レビュー待ち」から着手中に)
-    </Button>
+    <div className="flex flex-col gap-2">
+      <Button
+        variant="secondary"
+        disabled={pending}
+        onClick={() =>
+          start(async () => {
+            setError(null);
+            try {
+              await startReview(submissionId);
+            } catch {
+              setError("状態を変更できませんでした。ページを再読み込みしてください。");
+            }
+          })
+        }
+      >
+        {pending ? "変更しています…" : "レビューを開始する (状態を「レビュー中」にする)"}
+      </Button>
+      {error && <p role="alert" className="text-sm text-danger">{error}</p>}
+    </div>
   );
 }
 
@@ -20,7 +38,7 @@ export function ReviewForm({ submissionId, criteria, passScore }: { submissionId
   const [scores, setScores] = useState<Record<string, number>>(Object.fromEntries(criteria.map((c) => [c.key, 0])));
   const total = criteria.reduce((s, c) => s + Math.min(Math.max(scores[c.key] || 0, 0), c.weight), 0);
   return (
-    <form action={action} className="flex flex-col gap-4">
+    <ActionForm action={action} className="flex flex-col gap-4" confirm="採点を確定すると、後から変更できません。受講生に結果が通知されます。確定しますか?">
       <input type="hidden" name="submissionId" value={submissionId} />
       {criteria.map((c) => (
         <Field key={c.key} label={`${c.label} (0〜${c.weight})`} htmlFor={`score_${c.key}`} hint={c.description} error={state?.fieldErrors?.[`score_${c.key}`]}>
@@ -54,7 +72,7 @@ export function ReviewForm({ submissionId, criteria, passScore }: { submissionId
         {state?.error && <p role="alert" className="rounded-lg bg-danger-soft p-3 text-sm text-danger">{state.error}</p>}
         {state?.ok && <p className="rounded-lg bg-success-soft p-3 text-sm text-success">{state.ok}</p>}
       </div>
-      <Button type="submit" disabled={pending}>採点を確定する</Button>
-    </form>
+      <Button type="submit" disabled={pending}>{pending ? "保存しています…" : "採点を確定する"}</Button>
+    </ActionForm>
   );
 }

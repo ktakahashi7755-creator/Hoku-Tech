@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import { createPrismaClient } from "../../src/lib/prisma-client";
 import { TEST_DATABASE_URL } from "../../playwright.config";
 import { login, logout } from "./helpers";

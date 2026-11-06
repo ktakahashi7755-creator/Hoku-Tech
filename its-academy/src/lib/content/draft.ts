@@ -110,6 +110,8 @@ export function fromEditorDraft(d: EditorDraft, previous?: LessonContent | null)
       source: c.source.trimEnd(),
       output: c.output.trimEnd() || undefined,
       verifiedBy: unchanged ? c.verifiedBy : undefined,
+      // 複数ファイルの実行スクリプトは編集画面に出さないため、前の版から引き継ぐ (実行検証の印と同じ条件)
+      runner: unchanged ? prev?.runner : undefined,
     };
   });
 

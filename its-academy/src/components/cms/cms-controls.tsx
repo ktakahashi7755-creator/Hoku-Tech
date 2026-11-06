@@ -4,6 +4,7 @@ import { useActionState, useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { cancelSchedule, createLesson, moveLesson, publishVersion, restoreVersionAsDraft, scheduleVersion, type CmsState } from "@/app/actions/cms";
 import { Button, inputStyles } from "@/components/ui";
+import { hasUnsavedLessonEdits } from "./lesson-editor";
 
 function Msg({ state }: { state: CmsState }) {
   if (!state) return null;
@@ -85,7 +86,29 @@ export function PublishPanel({ lessonId, versionId, version, scheduled }: { less
 
 export function CancelScheduleButton({ lessonId }: { lessonId: string }) {
   const [pending, start] = useTransition();
-  return <Button type="button" variant="secondary" disabled={pending} onClick={() => start(() => cancelSchedule(lessonId))}>予約を取り消す</Button>;
+  const [error, setError] = useState<string | null>(null);
+  return (
+    <span className="flex flex-col gap-1">
+      <Button
+        type="button"
+        variant="secondary"
+        disabled={pending}
+        onClick={() =>
+          start(async () => {
+            setError(null);
+            try {
+              await cancelSchedule(lessonId);
+            } catch {
+              setError("予約を取り消せませんでした。ページを再読み込みしてください。");
+            }
+          })
+        }
+      >
+        {pending ? "取り消しています…" : "予約を取り消す"}
+      </Button>
+      {error && <span role="alert" className="text-sm text-danger">{error}</span>}
+    </span>
+  );
 }
 
 export function VersionActions({ lessonId, versionId, canRepublish }: { lessonId: string; versionId: string; canRepublish: boolean }) {
@@ -96,15 +119,19 @@ export function VersionActions({ lessonId, versionId, canRepublish }: { lessonId
       <button
         type="button"
         disabled={pending}
-        onClick={() =>
+        onClick={() => {
+          if (hasUnsavedLessonEdits() && !window.confirm("保存していない編集があります。この版から下書きを作ると、その編集は失われます。続けますか?")) return;
           start(async () => {
             await restoreVersionAsDraft(lessonId, versionId);
             window.location.reload(); // 編集フォームを復元した内容で読み直す
-          })
-        }
+          });
+        }}
         className="min-h-11 rounded-lg px-2 text-sm text-accent hover:bg-accent-soft">この版から下書きを作る</button>
       {canRepublish && (
-        <button type="button" disabled={pending} onClick={() => start(async () => setState(await publishVersion(lessonId, versionId)))} className="min-h-11 rounded-lg px-2 text-sm text-accent hover:bg-accent-soft">この版に戻して公開</button>
+        <button type="button" disabled={pending} onClick={() => {
+            if (!window.confirm("この版を受講生に公開します。よろしいですか?")) return;
+            start(async () => setState(await publishVersion(lessonId, versionId)));
+          }} className="min-h-11 rounded-lg px-2 text-sm text-accent hover:bg-accent-soft">この版に戻して公開</button>
       )}
       {state?.error && <span role="alert" className="text-sm text-danger">{state.error}</span>}
     </span>

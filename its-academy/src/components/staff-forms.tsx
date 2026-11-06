@@ -4,6 +4,7 @@ import { useActionState, useState, useTransition } from "react";
 import { cleanupStaleRecords } from "@/app/actions/accounts";
 import { addComment, addSkillAssessment, createStudent, updateEnrollment, updateSettings, type NewStudentState } from "@/app/actions/staff";
 import type { FormState } from "@/app/actions/auth";
+import { ActionForm } from "./action-form";
 import { Button, Field, inputStyles } from "./ui";
 
 function Feedback({ state }: { state: FormState }) {
@@ -18,7 +19,7 @@ function Feedback({ state }: { state: FormState }) {
 export function CommentForm({ studentId }: { studentId: string }) {
   const [state, action, pending] = useActionState(addComment, undefined);
   return (
-    <form action={action} className="flex flex-col gap-3">
+    <ActionForm action={action} state={state} resetOnSuccess className="flex flex-col gap-3">
       <input type="hidden" name="studentId" value={studentId} />
       <Field label="コメント" htmlFor="body" error={state?.fieldErrors?.body}>
         <textarea id="body" name="body" rows={3} className={inputStyles} />
@@ -30,14 +31,14 @@ export function CommentForm({ studentId }: { studentId: string }) {
       </fieldset>
       <Feedback state={state} />
       <Button type="submit" disabled={pending}>コメントを保存</Button>
-    </form>
+    </ActionForm>
   );
 }
 
 export function SkillForm({ studentId, areas, levels }: { studentId: string; areas: readonly { key: string; label: string }[]; levels: Record<number, string> }) {
   const [state, action, pending] = useActionState(addSkillAssessment, undefined);
   return (
-    <form action={action} className="flex flex-col gap-3">
+    <ActionForm action={action} state={state} resetOnSuccess className="flex flex-col gap-3">
       <input type="hidden" name="studentId" value={studentId} />
       <div className="grid gap-3 sm:grid-cols-2">
         <Field label="観点" htmlFor="skill">
@@ -56,14 +57,25 @@ export function SkillForm({ studentId, areas, levels }: { studentId: string; are
       </Field>
       <Feedback state={state} />
       <Button type="submit" disabled={pending}>評価を記録</Button>
-    </form>
+    </ActionForm>
   );
 }
 
 export function EnrollmentForm({ enrollment, instructors }: { enrollment: { id: string; instructorId: string | null; targetEndDate: string; status: string }; instructors: { id: string; name: string }[] }) {
   const [state, action, pending] = useActionState(updateEnrollment, undefined);
   return (
-    <form action={action} className="flex flex-col gap-3">
+    <ActionForm
+      action={action}
+      className="flex flex-col gap-3"
+      confirm={(_submitter, form) => {
+        const next = new FormData(form).get("status");
+        if (next === enrollment.status) return null;
+        if (next === "WITHDRAWN") return "受講状態を「退校」にします。受講生は課題を提出できなくなります。よろしいですか?";
+        if (next === "COMPLETED") return "受講状態を「修了」にします。よろしいですか?";
+        if (next === "PAUSED") return "受講状態を「休止中」にします。休止中は課題を提出できません。よろしいですか?";
+        return null;
+      }}
+    >
       <input type="hidden" name="enrollmentId" value={enrollment.id} />
       <Field label="担当講師" htmlFor="instructorId" error={state?.fieldErrors?.instructorId}>
         <select id="instructorId" name="instructorId" defaultValue={enrollment.instructorId ?? ""} className={inputStyles}>
@@ -84,14 +96,14 @@ export function EnrollmentForm({ enrollment, instructors }: { enrollment: { id: 
       </Field>
       <Feedback state={state} />
       <Button type="submit" disabled={pending}>受講設定を保存</Button>
-    </form>
+    </ActionForm>
   );
 }
 
 export function NewStudentForm({ instructors }: { instructors: { id: string; name: string }[] }) {
   const [state, action, pending] = useActionState<NewStudentState, FormData>(createStudent, undefined);
   return (
-    <form action={action} className="flex flex-col gap-4">
+    <ActionForm action={action} state={state} resetOnSuccess className="flex flex-col gap-4">
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label="氏名" htmlFor="name" error={state?.fieldErrors?.name}><input id="name" name="name" className={inputStyles} /></Field>
         <Field label="メールアドレス" htmlFor="email" error={state?.fieldErrors?.email}><input id="email" name="email" type="email" className={inputStyles} /></Field>
@@ -113,33 +125,51 @@ export function NewStudentForm({ instructors }: { instructors: { id: string; nam
           <p className="mt-2">受講生に安全な方法で伝え、初回ログイン後にマイページで変更するよう案内してください。チャットに貼る場合は、伝えた後にメッセージを削除してください。</p>
         </div>
       )}
-      <Button type="submit" disabled={pending}>追加する</Button>
-    </form>
+      <Button type="submit" disabled={pending}>{pending ? "追加しています…" : "追加する"}</Button>
+    </ActionForm>
   );
 }
 
 export function SettingsForm({ threshold }: { threshold: number }) {
   const [state, action, pending] = useActionState(updateSettings, undefined);
   return (
-    <form action={action} className="flex flex-col gap-3">
+    <ActionForm action={action} className="flex flex-col gap-3">
       <Field label="学習停滞とみなす日数" htmlFor="stagnationThresholdDays" hint="最終学習日からこの日数以上経過した受講生をダッシュボードに表示します (1〜60 日)。" error={state?.fieldErrors?.stagnationThresholdDays}>
         <input id="stagnationThresholdDays" name="stagnationThresholdDays" type="number" min={1} max={60} defaultValue={threshold} className={`${inputStyles} max-w-40`} />
       </Field>
       <Feedback state={state} />
       <Button type="submit" disabled={pending} className="self-start">保存</Button>
-    </form>
+    </ActionForm>
   );
 }
 
 export function CleanupButton() {
-  const [state, setState] = useState<{ ok?: string } | undefined>(undefined);
+  const [state, setState] = useState<{ ok?: string; error?: string } | undefined>(undefined);
   const [pending, start] = useTransition();
   return (
     <div className="flex flex-col gap-2">
-      <Button type="button" variant="secondary" className="self-start" disabled={pending} onClick={() => start(async () => setState(await cleanupStaleRecords()))}>
-        古い記録を削除する
+      <Button
+        type="button"
+        variant="secondary"
+        className="self-start"
+        disabled={pending}
+        onClick={() => {
+          if (!window.confirm("期限切れのセッションと 30 日より前のログイン試行の記録を削除します。元に戻せません。よろしいですか?")) return;
+          start(async () => {
+            try {
+              setState(await cleanupStaleRecords());
+            } catch {
+              setState({ error: "削除できませんでした。時間をおいて再度お試しください。" });
+            }
+          });
+        }}
+      >
+        {pending ? "削除しています…" : "古い記録を削除する"}
       </Button>
-      <div aria-live="polite">{state?.ok && <p role="status" className="text-sm text-success">{state.ok}</p>}</div>
+      <div aria-live="polite">
+        {state?.ok && <p role="status" className="text-sm text-success">{state.ok}</p>}
+        {state?.error && <p role="alert" className="text-sm text-danger">{state.error}</p>}
+      </div>
     </div>
   );
 }

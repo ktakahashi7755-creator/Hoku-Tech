@@ -5,12 +5,18 @@ import { db } from "@/lib/db";
 import { Card, EmptyState, PageHeader } from "@/components/ui";
 import { ReviewView } from "@/components/review-view";
 import { formatDateTime } from "@/lib/labels";
+import { NotificationList } from "@/components/notification-list";
 
 export const metadata: Metadata = { title: "質問・レビュー" };
 
 export default async function ReviewsPage() {
   const { user, overview: o } = await requireMyOverview();
-  if (!o.enrollment) return <EmptyState>受講中のコースがありません。</EmptyState>;
+  if (!o.enrollment) return (
+      <div className="flex flex-col gap-6">
+        <PageHeader title="質問・レビュー" />
+        <EmptyState>受講中のコースがありません。担当講師または管理者に連絡してください。</EmptyState>
+      </div>
+    );
   const reviews = await db.review.findMany({
     where: { submission: { userId: user.id } },
     orderBy: { createdAt: "desc" },
@@ -69,19 +75,7 @@ export default async function ReviewsPage() {
         </Card>
         <Card>
           <h2 className="font-bold">お知らせ</h2>
-          {notices.length === 0 ? (
-            <p className="mt-3 text-sm text-muted">お知らせはありません。</p>
-          ) : (
-            <ul className="mt-3 divide-y divide-border text-sm">
-              {notices.map((n) => (
-                <li key={n.id} className="py-2">
-                  <p className="font-semibold">{n.title}</p>
-                  <p>{n.body}</p>
-                  <p className="text-xs text-muted">{formatDateTime(n.createdAt)}</p>
-                </li>
-              ))}
-            </ul>
-          )}
+          <NotificationList notices={notices} />
         </Card>
       </div>
     </div>

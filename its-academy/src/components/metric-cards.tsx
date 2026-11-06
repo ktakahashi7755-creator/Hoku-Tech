@@ -1,7 +1,7 @@
 import type { Metrics } from "@/lib/progress/metrics";
 import { Stat } from "./ui";
 
-const show = (v: number | null) => (v === null ? "未評価" : `${v}`);
+const show = (v: number | null) => (v === null ? "未評価" : `${v} 点`);
 
 /** 指標 A〜E を分けて表示する (混ぜた総合点は作らない) */
 export function MetricCards({ metrics }: { metrics: Metrics }) {

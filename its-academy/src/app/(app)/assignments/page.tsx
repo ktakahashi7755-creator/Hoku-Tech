@@ -9,10 +9,18 @@ export const metadata: Metadata = { title: "課題" };
 
 export default async function AssignmentsPage() {
   const { overview } = await requireMyOverview();
-  if (!overview.enrollment) return <EmptyState>受講中のコースがありません。</EmptyState>;
+  if (!overview.enrollment) return (
+      <div className="flex flex-col gap-6">
+        <PageHeader title="課題" />
+        <EmptyState>受講中のコースがありません。担当講師または管理者に連絡してください。</EmptyState>
+      </div>
+    );
   return (
     <div>
       <PageHeader title="課題" description="前提のレッスンを完了すると取り組めます。講師がルーブリックで採点し、コメントを返します。" />
+      {overview.assignments.length === 0 ? (
+        <EmptyState>公開中の課題はまだありません。</EmptyState>
+      ) : (
       <ScrollRegion label="課題の一覧" className="rounded-xl border border-border">
         <table className="w-full min-w-[640px] text-left text-sm">
           <thead className="bg-surface text-muted">
@@ -44,6 +52,7 @@ export default async function AssignmentsPage() {
           </tbody>
         </table>
       </ScrollRegion>
+      )}
     </div>
   );
 }

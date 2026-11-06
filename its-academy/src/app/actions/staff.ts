@@ -12,7 +12,7 @@ import { ADMIN_ROLES, STAFF_ROLES } from "@/lib/auth/roles";
 import { RubricCriteriaSchema } from "@/lib/content/schema";
 import { statusFromDecision, totalRubricScore } from "@/lib/progress/metrics";
 import { SKILL_AREAS } from "@/lib/progress/skills";
-import { assertCanViewStudent } from "@/lib/queries/student";
+import { assertCanActOnStudent } from "@/lib/queries/student";
 import type { FormState } from "./auth";
 
 const issues = (e: z.ZodError) => ({ fieldErrors: Object.fromEntries(e.issues.map((i) => [String(i.path[0]), i.message])) });
@@ -22,11 +22,10 @@ const issues = (e: z.ZodError) => ({ fieldErrors: Object.fromEntries(e.issues.ma
 export async function startReview(submissionId: string): Promise<void> {
   const viewer = await requireUser(STAFF_ROLES);
   const sub = await db.submission.findUniqueOrThrow({ where: { id: z.cuid().parse(submissionId) } });
-  await assertCanViewStudent(viewer, sub.userId);
-  if (sub.status === "SUBMITTED" || sub.status === "RESUBMITTED") {
-    await db.submission.update({ where: { id: sub.id }, data: { status: "IN_REVIEW" } });
-    await audit({ actorId: viewer.id, action: "review.start", targetType: "submission", targetId: sub.id });
-  }
+  await assertCanActOnStudent(viewer, sub.userId);
+  // 状態を条件にした更新にして、同時に押されても 1 回だけ記録する
+  const started = await db.submission.updateMany({ where: { id: sub.id, status: { in: ["SUBMITTED", "RESUBMITTED"] } }, data: { status: "IN_REVIEW" } });
+  if (started.count === 1) await audit({ actorId: viewer.id, action: "review.start", targetType: "submission", targetId: sub.id });
   revalidatePath(`/admin/reviews/${sub.id}`);
 }
 
@@ -47,14 +46,19 @@ export async function submitReview(_prev: FormState, formData: FormData): Promis
   const input = parsed.data;
 
   const sub = await db.submission.findUniqueOrThrow({ where: { id: input.submissionId }, include: { assignment: { include: { rubric: true } } } });
-  await assertCanViewStudent(viewer, sub.userId);
+  await assertCanActOnStudent(viewer, sub.userId);
   const reviewable: SubmissionStatus[] = ["SUBMITTED", "IN_REVIEW", "RESUBMITTED"];
   if (!reviewable.includes(sub.status)) return { error: "この提出はすでに採点済みです。" };
 
   const criteria = RubricCriteriaSchema.parse(sub.assignment.rubric.criteria);
-  const scores = [];
+  const scores: { key: string; label: string; weight: number; score: number }[] = [];
   for (const c of criteria) {
-    const raw = Number(formData.get(`score_${c.key}`));
+    const field = formData.get(`score_${c.key}`);
+    // 欄がない (採点中にルーブリックが変わった等) ・空欄を 0 点として保存しない
+    if (typeof field !== "string" || field.trim() === "") {
+      return { fieldErrors: { [`score_${c.key}`]: `0〜${c.weight} の範囲で入力してください` }, error: "採点欄が揃っていません。ページを再読み込みしてから採点してください。" };
+    }
+    const raw = Number(field);
     if (!Number.isFinite(raw) || raw < 0 || raw > c.weight) {
       return { fieldErrors: { [`score_${c.key}`]: `0〜${c.weight} の範囲で入力してください` } };
     }
@@ -66,20 +70,24 @@ export async function submitReview(_prev: FormState, formData: FormData): Promis
     return { error: `合計 ${total} 点は合格点 ${passScore} 点に届いていません。修正依頼または不合格を選んでください。` };
   }
 
-  await db.$transaction([
-    db.review.create({
+  // 2 人が同時に採点しても、先に確定した 1 件だけを保存する (状態を条件にした更新で取り合う)
+  const saved = await db.$transaction(async (tx) => {
+    const claimed = await tx.submission.updateMany({ where: { id: sub.id, status: { in: reviewable } }, data: { status: statusFromDecision(input.decision) } });
+    if (claimed.count !== 1) return false;
+    await tx.review.create({
       data: { submissionId: sub.id, reviewerId: viewer.id, scores, totalScore: total, passScore, decision: input.decision, comment: input.comment },
-    }),
-    db.submission.update({ where: { id: sub.id }, data: { status: statusFromDecision(input.decision) } }),
-    db.notification.create({
+    });
+    await tx.notification.create({
       data: {
         userId: sub.userId,
         title: `レビュー結果: ${sub.assignment.title}`,
         body: `${{ PASS: "合格", CHANGES_REQUESTED: "修正依頼", FAIL: "不合格" }[input.decision]} (${total} 点)。コメントを確認してください。`,
         link: `/assignments/${sub.assignment.slug}`,
       },
-    }),
-  ]);
+    });
+    return true;
+  });
+  if (!saved) return { error: "この提出はほかの講師が採点を確定しました。ページを再読み込みして結果を確認してください。" };
   await audit({ actorId: viewer.id, action: "review.submit", targetType: "submission", targetId: sub.id, metadata: { decision: input.decision, total } });
   revalidatePath(`/admin/reviews/${sub.id}`);
   revalidatePath("/admin/reviews");
@@ -98,7 +106,7 @@ export async function addComment(_prev: FormState, formData: FormData): Promise<
   const viewer = await requireUser(STAFF_ROLES);
   const parsed = CommentInput.safeParse({ studentId: formData.get("studentId"), body: formData.get("body"), visibility: formData.get("visibility") });
   if (!parsed.success) return issues(parsed.error);
-  await assertCanViewStudent(viewer, parsed.data.studentId);
+  await assertCanActOnStudent(viewer, parsed.data.studentId);
   await db.instructorComment.create({ data: { ...parsed.data, authorId: viewer.id } });
   if (parsed.data.visibility === "STUDENT") {
     await db.notification.create({ data: { userId: parsed.data.studentId, title: "講師からコメントが届きました", body: parsed.data.body.slice(0, 120), link: "/reviews" } });
@@ -124,7 +132,7 @@ export async function addSkillAssessment(_prev: FormState, formData: FormData): 
     note: (formData.get("note") as string | null) || undefined,
   });
   if (!parsed.success) return issues(parsed.error);
-  await assertCanViewStudent(viewer, parsed.data.studentId);
+  await assertCanActOnStudent(viewer, parsed.data.studentId);
   await db.skillAssessment.create({
     data: { userId: parsed.data.studentId, assessorId: viewer.id, skill: parsed.data.skill, level: parsed.data.level, note: parsed.data.note },
   });
@@ -196,6 +204,9 @@ export async function createStudent(_prev: NewStudentState, formData: FormData):
   if (!parsed.success) return issues(parsed.error);
   const input = parsed.data;
   if (await db.user.findUnique({ where: { email: input.email } })) return { fieldErrors: { email: "このメールアドレスはすでに登録されています" } };
+  if (input.instructorId && !(await db.user.findFirst({ where: { id: input.instructorId, role: "INSTRUCTOR", isActive: true } }))) {
+    return { fieldErrors: { instructorId: "講師を選択してください" } };
+  }
   const course = await db.course.findFirst({ where: { status: "PUBLISHED" }, orderBy: { createdAt: "asc" } });
   if (!course) return { error: "公開中のコースがありません。" };
 
@@ -244,7 +255,8 @@ export async function setLessonStatus(lessonId: string, status: "PUBLISHED" | "D
   const s = z.enum(["PUBLISHED", "DRAFT"]).parse(status);
   const lesson = await db.lesson.findUniqueOrThrow({ where: { id } });
   if (s === "PUBLISHED" && !lesson.currentVersionId) throw new Error("公開できる版がありません");
-  await db.lesson.update({ where: { id }, data: { status: s } });
+  // 下書きに戻すときは予約公開も取り消す (予約時刻に勝手に公開されないように)
+  await db.lesson.update({ where: { id }, data: s === "DRAFT" ? { status: s, scheduledVersionId: null, publishAt: null } : { status: s } });
   await audit({ actorId: viewer.id, action: "lesson.status", targetType: "lesson", targetId: id, metadata: { status: s } });
   revalidatePath("/admin/content");
   revalidatePath("/curriculum");

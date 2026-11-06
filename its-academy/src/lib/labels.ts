@@ -4,7 +4,7 @@ export const SUBMISSION_STATUS_LABEL: Record<SubmissionStatusValue | "NOT_STARTE
   NOT_STARTED: "未着手",
   DRAFT: "取り組み中",
   SUBMITTED: "提出済み",
-  IN_REVIEW: "レビュー待ち",
+  IN_REVIEW: "レビュー中",
   RESUBMITTED: "再提出",
   CHANGES_REQUESTED: "修正依頼",
   PASSED: "合格",

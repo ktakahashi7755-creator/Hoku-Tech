@@ -50,6 +50,8 @@ services:
       DATABASE_URL: postgresql://its:${POSTGRES_PASSWORD}@db:5432/its_academy
       APP_ENV: ${APP_ENV:-production}
       COOKIE_SECURE: ${COOKIE_SECURE:-true}
+      # インターネットへは手前の HTTPS リバースプロキシ 1 段を経由して公開する前提 (deployment-guide.md §5)
+      TRUSTED_PROXY_HOPS: ${TRUSTED_PROXY_HOPS:-1}
     ports:
       - "127.0.0.1:3000:3000"
     depends_on:

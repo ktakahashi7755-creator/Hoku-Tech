@@ -12,7 +12,12 @@ export const metadata: Metadata = { title: "学習進捗" };
 
 export default async function ProgressPage() {
   const { overview: o } = await requireMyOverview();
-  if (!o.enrollment) return <EmptyState>受講中のコースがありません。</EmptyState>;
+  if (!o.enrollment) return (
+      <div className="flex flex-col gap-6">
+        <PageHeader title="学習進捗" />
+        <EmptyState>受講中のコースがありません。担当講師または管理者に連絡してください。</EmptyState>
+      </div>
+    );
   const byModule = o.modules
     .filter((m) => m.lessons.length > 0)
     .map((m) => {
@@ -57,6 +62,7 @@ export default async function ProgressPage() {
 
       <Card>
         <h2 className="font-bold">レベル別の履修状況</h2>
+        {byModule.length === 0 && <p className="mt-3 text-sm text-muted">公開中のレッスンはまだありません。</p>}
         <ul className="mt-4 flex flex-col gap-5">
           {byModule.map(({ m, ls, done, pct }) => (
             <li key={m.id}>

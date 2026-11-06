@@ -78,6 +78,7 @@ export default async function LessonPage({ params }: { params: Promise<{ slug: s
                       <span aria-hidden className={cx("size-2 shrink-0 rounded-full", st === "COMPLETED" ? "bg-success" : st === "IN_PROGRESS" ? "bg-accent" : "bg-border")} />
                       <span className="min-w-0">{l.currentVersion!.title}</span>
                       {st === "COMPLETED" && <span className="sr-only">(完了)</span>}
+                      {st === "IN_PROGRESS" && <span className="sr-only">(学習中)</span>}
                     </Link>
                   </li>
                 );
@@ -140,6 +141,7 @@ export default async function LessonPage({ params }: { params: Promise<{ slug: s
             ) : (
               <Quiz
                 lessonId={lesson.id}
+                versionId={version.id}
                 passScore={content.quiz.passScore}
                 alreadyPassed={!!passedAttempt}
                 questions={content.quiz.questions.map(({ id, question, choices }) => ({ id, question, choices }))}
@@ -182,7 +184,8 @@ export default async function LessonPage({ params }: { params: Promise<{ slug: s
         <nav aria-label="このページの目次" className="sticky top-28 text-sm">
           <p className="font-semibold text-muted">目次</p>
           <ol className="mt-2 space-y-1">
-            {LESSON_SECTIONS.map(([id, label]) => (
+            {/* 内容がない節 (図解・サンプルコード) は本文に出ないため、目次にも出さない */}
+            {LESSON_SECTIONS.filter(([id]) => (id === "examples" ? content.examples.length > 0 : id === "code" ? content.code.length > 0 : true)).map(([id, label]) => (
               <li key={id}>
                 <a href={`#${id}`} className="text-muted hover:text-accent">
                   {label}

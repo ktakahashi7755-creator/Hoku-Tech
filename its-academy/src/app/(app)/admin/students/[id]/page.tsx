@@ -101,7 +101,7 @@ export default async function StudentDetailPage({ params }: { params: Promise<{ 
                     </td>
                     <td className="py-2">{a.unlocked ? <SubmissionBadge status={a.latestStatus} /> : <Badge>前提未完了</Badge>}</td>
                     <td className="py-2 tabular-nums">{a.attempts}</td>
-                    <td className="py-2 tabular-nums">{a.latestReviewScore ?? "—"}</td>
+                    <td className="py-2 tabular-nums">{a.latestReviewScore === null ? "—" : `${a.latestReviewScore} / 合格 ${a.passScore}`}</td>
                     <td className="py-2">{formatDate(a.lastSubmittedAt)}</td>
                   </tr>
                 );
@@ -156,6 +156,7 @@ export default async function StudentDetailPage({ params }: { params: Promise<{ 
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>
           <h2 className="font-bold">講師コメント</h2>
+          {o.comments.length === 0 && <p className="mt-3 text-sm text-muted">コメントはまだありません。面談の記録や次回の確認事項を残しましょう。</p>}
           <ul className="mt-3 flex flex-col gap-3 text-sm">
             {o.comments.map((c) => (
               <li key={c.id} className="rounded-lg bg-surface p-3">
