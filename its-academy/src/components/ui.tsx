@@ -119,11 +119,13 @@ export function Skeleton({ lines = 3 }: { lines?: number }) {
 
 /**
  * 横にスクロールする領域。キーボードでもスクロールできるよう、フォーカス可能な名前付きの領域にする
- * (WCAG 2.1.1 / axe: scrollable-region-focusable)
+ * (WCAG 2.1.1 / axe: scrollable-region-focusable)。
+ * relative にして、中の絶対配置の要素 (sr-only のラベルなど) もこの領域で切り取る
+ * (付けないと WebKit ではページ全体が横にスクロールする。E2E 06-hardening で検出)
  */
 export function ScrollRegion({ label, className, children }: { label: string; className?: string; children: ReactNode }) {
   return (
-    <div role="region" aria-label={label} tabIndex={0} className={cx("overflow-x-auto", className)}>
+    <div role="region" aria-label={label} tabIndex={0} className={cx("relative overflow-x-auto", className)}>
       {children}
     </div>
   );
