@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <!-- スマホで画面幅に合わせて表示するための指定 -->
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>社内図書コーナー</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="site-header">
+    <h1>社内図書コーナー</h1>
+    <nav aria-label="メインメニュー">
+      <ul class="menu">
+        <li><a href="#books">本を探す</a></li>
+        <li><a href="#mine">借りている本</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main>
+    <section id="books">
+      <h2>本を探す</h2>
+      <form class="search">
+        <!-- label の for と input の id を同じにすると、読み上げソフトが入力欄の名前を読める -->
+        <label for="q">タイトル・著者</label>
+        <input id="q" name="q" type="search" placeholder="例: Java">
+        <button type="submit">検索</button>
+      </form>
+      <ul class="cards">
+        <li class="card"><h3>Java 入門</h3><p>山田 花子</p></li>
+        <li class="card"><h3>SQL 入門</h3><p>佐藤 健</p></li>
+        <li class="card"><h3>Git 入門</h3><p>鈴木 美咲</p></li>
+      </ul>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <small>&copy; ITS 合同会社</small>
+  </footer>
+</body>
+</html>

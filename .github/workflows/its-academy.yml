@@ -49,13 +49,13 @@ jobs:
         run: npm run lint
       - name: Unit tests
         run: npm test
-      - name: Verify lesson code samples (Java / bash / SQL / Maven projects, compared with published output)
+      - name: Install Chromium for browser-based checks
+        run: npx playwright install --with-deps chromium
+      - name: Verify lesson code samples (Java / bash / SQL / Maven / browser, compared with published output)
         run: |
           sudo apt-get install -y postgresql-client >/dev/null
           npm run verify:code
       - name: Build
         run: npm run build
       - name: E2E tests
-        run: |
-          npx playwright install --with-deps chromium
-          npm run test:e2e -- --trace off
+        run: npm run test:e2e -- --trace off

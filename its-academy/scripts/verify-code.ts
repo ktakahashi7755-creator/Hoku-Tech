@@ -38,7 +38,15 @@ function runProject(runner: string): string {
       const out = execFileSync("bash", ["-c", 'bash "$0" 2>&1', path.basename(abs)], {
         cwd: work,
         // Maven の依存取得にプロキシ設定が必要な環境があるため、JAVA_TOOL_OPTIONS は引き継ぎ、その通知行だけ除く
-        env: { ...process.env, LANG: "C.UTF-8", DB_URL: db.url, DB_USER: db.user, DB_PASSWORD: db.password },
+        env: {
+          ...process.env,
+          LANG: "C.UTF-8",
+          GIT_CONFIG_GLOBAL: "/dev/null",
+          NODE_PATH: path.join(ROOT, "node_modules"), // ブラウザ検証 (check.js) が @playwright/test を使えるように
+          DB_URL: db.url,
+          DB_USER: db.user,
+          DB_PASSWORD: db.password,
+        },
         encoding: "utf8",
         stdio: ["ignore", "pipe", "pipe"],
         timeout: 10 * 60 * 1000,

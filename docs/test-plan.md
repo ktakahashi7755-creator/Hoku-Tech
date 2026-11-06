@@ -11,7 +11,7 @@
 | 型検査 | TypeScript | `npm run typecheck` | — | エラー 0 |
 | 静的解析 | ESLint (next) | `npm run lint` | — | エラー 0 |
 | 単体 | Vitest | `npm test` | 44 件 / 6 ファイル | 全件成功 |
-| 教材コード検証 | JDK 21 / bash / PostgreSQL 16 / Maven | `npm run verify:code` | 22 サンプル (Java 単一ファイル 11・bash 2・SQL 3・Maven プロジェクト 6) | 全件一致 |
+| 教材コード検証 | JDK 21 / bash / Git / PostgreSQL 16 / Maven / Chromium | `npm run verify:code` | 26 サンプル (Java 単一ファイル 11・bash 4・SQL 3・Maven プロジェクト 6・ブラウザ 2) | 全件一致 |
 | ビルド | Next.js | `npm run build` | — | 成功 |
 | E2E | Playwright (Chromium) | `npm run test:e2e -- --trace off` | 12 シナリオ (01-lms 8・02-cms 4) | 全件成功 (2 回連続) |
 

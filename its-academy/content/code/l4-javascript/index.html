@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>本を探す</title>
+</head>
+<body>
+  <main>
+    <h1>本を探す</h1>
+    <form id="search-form" novalidate>
+      <label for="q">タイトル</label>
+      <input id="q" name="q" type="search">
+      <button type="submit">検索</button>
+      <p id="error" role="alert"></p>
+    </form>
+    <p id="status" aria-live="polite"></p>
+    <ul id="results"></ul>
+  </main>
+  <!-- defer: HTML を読み終えてからスクリプトを実行する -->
+  <script src="app.js" defer></script>
+</body>
+</html>
