@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { ScrollRegion } from "@/components/ui";
 
 export function CodeBlock({ code, language, filename, label = "サンプルコード" }: { code: string; language: string; filename?: string; label?: string }) {
   const [copied, setCopied] = useState(false);
@@ -24,9 +25,11 @@ export function CodeBlock({ code, language, filename, label = "サンプルコ�
           {copied ? "コピーしました" : "コピー"}
         </button>
       </figcaption>
-      <pre className="overflow-x-auto bg-code p-4 text-sm leading-relaxed">
-        <code className="font-mono">{code}</code>
-      </pre>
+      <ScrollRegion label={`${label}${filename ? ` ${filename}` : ""}`} className="bg-code">
+        <pre className="p-4 text-sm leading-relaxed">
+          <code className="font-mono">{code}</code>
+        </pre>
+      </ScrollRegion>
     </figure>
   );
 }
@@ -35,9 +38,11 @@ export function OutputBlock({ output }: { output: string }) {
   return (
     <figure className="overflow-hidden rounded-xl border border-border">
       <figcaption className="border-b border-border bg-surface px-4 py-2 text-sm font-semibold">実行結果</figcaption>
-      <pre className="overflow-x-auto bg-[#1c1f24] p-4 text-sm leading-relaxed text-[#e8eaed]">
-        <samp className="font-mono">{output}</samp>
-      </pre>
+      <ScrollRegion label="実行結果" className="bg-[#1c1f24]">
+        <pre className="p-4 text-sm leading-relaxed text-[#e8eaed]">
+          <samp className="font-mono">{output}</samp>
+        </pre>
+      </ScrollRegion>
     </figure>
   );
 }

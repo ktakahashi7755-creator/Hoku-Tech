@@ -137,15 +137,21 @@ async function main() {
   }
 
   // 山田: L2 の途中まで。課題 1 は合格、課題 2 は未着手
-  await complete(hanako.id, lessonSlugs.slice(0, 5), 0);
-  await inProgress(hanako.id, lessonSlugs[5], new Date(now - 60 * 60 * 1000));
+  // デモの状態はレッスンの slug で指定する (レッスンを追加しても状態がずれないように)
+  const upTo = (slug: string) => {
+    const i = lessonSlugs.indexOf(slug);
+    if (i < 0) throw new Error(`seed: レッスン ${slug} がありません`);
+    return lessonSlugs.slice(0, i + 1);
+  };
+  await complete(hanako.id, upTo("l2-conditionals"), 0);
+  await inProgress(hanako.id, "l2-loops-arrays", new Date(now - 60 * 60 * 1000));
   // 佐藤: L2 まで完了。課題 2 は修正依頼
-  await complete(ken.id, lessonSlugs.slice(0, 7), 1);
+  await complete(ken.id, upTo("l2-methods"), 1);
   // 鈴木: L1 で 9 日止まっている (停滞検知のデモ)
-  await complete(misaki.id, lessonSlugs.slice(0, 2), 9);
-  await db.quizAttempt.create({ data: { userId: misaki.id, lessonVersionId: versionIdBySlug.get(lessonSlugs[2])!, answers: [], score: 50, passed: false, createdAt: daysAgo(9) } });
+  await complete(misaki.id, upTo("l1-terminal-basics"), 9);
+  await db.quizAttempt.create({ data: { userId: misaki.id, lessonVersionId: versionIdBySlug.get("l1-git-basics")!, answers: [], score: 50, passed: false, createdAt: daysAgo(9) } });
   // 高橋: 開始直後
-  await inProgress(yota.id, lessonSlugs[0], daysAgo(1));
+  await inProgress(yota.id, "l0-how-to-learn", daysAgo(1));
 
   const scores = (values: number[]) =>
     STANDARD_RUBRIC.criteria.map((c, i) => ({ key: c.key, label: c.label, weight: c.weight, score: Math.min(values[i], c.weight) }));

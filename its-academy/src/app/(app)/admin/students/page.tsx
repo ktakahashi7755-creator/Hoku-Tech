@@ -3,7 +3,7 @@ import Link from "next/link";
 import { requireUser } from "@/lib/auth/dal";
 import { isAdmin, STAFF_ROLES } from "@/lib/auth/roles";
 import { listStudentOverviews } from "@/lib/queries/staff";
-import { Badge, ButtonLink, EmptyState, PageHeader } from "@/components/ui";
+import { Badge, ButtonLink, EmptyState, PageHeader, ScrollRegion } from "@/components/ui";
 import { formatDate } from "@/lib/labels";
 
 export const metadata: Metadata = { title: "受講生" };
@@ -50,7 +50,7 @@ export default async function StudentsPage({ searchParams }: { searchParams: Pro
       {rows.length === 0 ? (
         <EmptyState>該当する受講生はいません。</EmptyState>
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-border">
+        <ScrollRegion label="受講生の一覧" className="rounded-xl border border-border">
           <table className="w-full min-w-[960px] text-left text-sm">
             <thead className="bg-surface text-muted">
               <tr>
@@ -85,7 +85,7 @@ export default async function StudentsPage({ searchParams }: { searchParams: Pro
               ))}
             </tbody>
           </table>
-        </div>
+        </ScrollRegion>
       )}
     </div>
   );

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { requireMyOverview } from "@/lib/queries/me";
-import { Badge, EmptyState, PageHeader } from "@/components/ui";
+import { Badge, EmptyState, PageHeader, ScrollRegion } from "@/components/ui";
 import { SubmissionBadge } from "@/components/status-badge";
 import { ASSIGNMENT_TYPE_LABEL, formatDate } from "@/lib/labels";
 
@@ -13,7 +13,7 @@ export default async function AssignmentsPage() {
   return (
     <div>
       <PageHeader title="課題" description="前提のレッスンを完了すると取り組めます。講師がルーブリックで採点し、コメントを返します。" />
-      <div className="overflow-x-auto rounded-xl border border-border">
+      <ScrollRegion label="課題の一覧" className="rounded-xl border border-border">
         <table className="w-full min-w-[640px] text-left text-sm">
           <thead className="bg-surface text-muted">
             <tr>
@@ -43,7 +43,7 @@ export default async function AssignmentsPage() {
             ))}
           </tbody>
         </table>
-      </div>
+      </ScrollRegion>
     </div>
   );
 }

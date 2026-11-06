@@ -11,6 +11,7 @@ import { L3_L4_ASSIGNMENTS, L3_LESSONS, L4_LESSONS } from "./lessons-l3-l4";
 import { L4_HTTP, L4_JDBC, L5_ASSIGNMENT, L5_LESSONS } from "./lessons-l4-l5";
 import { L5_SECURITY, L7_FINAL, L7_GUIDE } from "./lessons-l5-l7";
 import { FE_L6_ASSIGNMENTS, L4_FRONTEND, L6_LESSONS } from "./lessons-fe-l6";
+import { L1_GITHUB, L1_SETUP } from "./lessons-l1-setup";
 
 export type CodeRef = Omit<LessonContent["code"][number], "source"> & { verifiedBy: string };
 
@@ -172,6 +173,7 @@ export const MODULES: ModuleDef[] = [
     description: "ターミナルと Git/GitHub を使って、ファイルと変更履歴を管理できるようになる",
     weeks: 1,
     lessons: [
+      L1_SETUP,
       {
         slug: "l1-terminal-basics",
         title: "ターミナルの基本操作",
@@ -366,6 +368,7 @@ export const MODULES: ModuleDef[] = [
           reviewPoints: ["status → add → commit", "作業は main ではなくブランチで", "ブランチ作成は git switch -c", "秘密情報は commit しない (.gitignore)"],
         },
       },
+      L1_GITHUB,
     ],
   },
   {

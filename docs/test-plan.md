@@ -11,9 +11,10 @@
 | 型検査 | TypeScript | `npm run typecheck` | — | エラー 0 |
 | 静的解析 | ESLint (next) | `npm run lint` | — | エラー 0 |
 | 単体 | Vitest | `npm test` | 44 件 / 6 ファイル | 全件成功 |
-| 教材コード検証 | JDK 21 / bash / Git / PostgreSQL 16 / Maven / Chromium | `npm run verify:code` | 26 サンプル (Java 単一ファイル 11・bash 4・SQL 3・Maven プロジェクト 6・ブラウザ 2) | 全件一致 |
+| 教材コード検証 | JDK 21 / bash / Git / PostgreSQL 16 / Maven / Chromium | `npm run verify:code` | 28 サンプル (Java 単一ファイル 11・bash 6・SQL 3・Maven プロジェクト 6・ブラウザ 2) | 全件一致 |
 | ビルド | Next.js | `npm run build` | — | 成功 |
-| E2E | Playwright (Chromium) | `npm run test:e2e -- --trace off` | 12 シナリオ (01-lms 8・02-cms 4) | 全件成功 (2 回連続) |
+| E2E | Playwright (Chromium) | `npm run test:e2e -- --trace off` | 16 (01-lms 8・02-cms 4・03-a11y 4) | 全件成功 |
+| アクセシビリティ | axe-core 4.14 (WCAG 2.2 A/AA) | 03-a11y.spec.ts | 26 画面 (受講生画面は 375px と 1280px) + キーボード操作 | 違反 0 件 |
 
 E2E は専用の DB (`TEST_DATABASE_URL`、既定は `its_academy_test`) を `prisma migrate deploy` + seed で毎回作り直す。
 
@@ -53,7 +54,7 @@ E2E は専用の DB (`TEST_DATABASE_URL`、既定は `its_academy_test`) を `pr
 
 ## 5. 未実施・残課題
 
-* axe による自動アクセシビリティ検査、スクリーンリーダーでの通し確認
+* スクリーンリーダー (VoiceOver / NVDA) での通し確認、ログイン直後のフォーカス位置の評価 (自動検査は T-12-01 で実施済み)
 * Firefox / WebKit (Safari) での E2E
 * 負荷試験 (受講生 100 名以上での一覧表示)
 * 講師・管理者画面の 375px 表示の自動検証 (受講生画面のみ自動化済み)

@@ -6,7 +6,7 @@ import { isAdmin, STAFF_ROLES } from "@/lib/auth/roles";
 import { assertCanViewStudent, getStudentOverview, hasEnrollment } from "@/lib/queries/student";
 import { guidanceFor } from "@/lib/queries/staff";
 import { SKILL_AREAS, SKILL_LABEL, SKILL_LEVEL_LABEL } from "@/lib/progress/skills";
-import { Badge, Card, PageHeader } from "@/components/ui";
+import { Badge, Card, PageHeader, ScrollRegion } from "@/components/ui";
 import { MetricCards } from "@/components/metric-cards";
 import { WeekChart } from "@/components/week-chart";
 import { SubmissionBadge } from "@/components/status-badge";
@@ -80,7 +80,7 @@ export default async function StudentDetailPage({ params }: { params: Promise<{ 
 
       <Card>
         <h2 className="font-bold">課題の状況</h2>
-        <div className="mt-3 overflow-x-auto">
+        <ScrollRegion label="課題の状況" className="mt-3">
           <table className="w-full min-w-[560px] text-left text-sm">
             <thead className="text-muted">
               <tr>
@@ -108,7 +108,7 @@ export default async function StudentDetailPage({ params }: { params: Promise<{ 
               })}
             </tbody>
           </table>
-        </div>
+        </ScrollRegion>
       </Card>
 
       <div className="grid gap-6 lg:grid-cols-2">

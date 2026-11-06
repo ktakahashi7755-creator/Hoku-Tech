@@ -116,3 +116,15 @@ export function Skeleton({ lines = 3 }: { lines?: number }) {
     </div>
   );
 }
+
+/**
+ * 横にスクロールする領域。キーボードでもスクロールできるよう、フォーカス可能な名前付きの領域にする
+ * (WCAG 2.1.1 / axe: scrollable-region-focusable)
+ */
+export function ScrollRegion({ label, className, children }: { label: string; className?: string; children: ReactNode }) {
+  return (
+    <div role="region" aria-label={label} tabIndex={0} className={cx("overflow-x-auto", className)}>
+      {children}
+    </div>
+  );
+}

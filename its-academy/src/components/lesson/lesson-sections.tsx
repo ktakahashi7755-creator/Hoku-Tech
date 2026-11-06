@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import type { LessonContent } from "@/lib/content/schema";
 import { allCodeVerified } from "@/lib/content/draft";
-import { Card } from "@/components/ui";
+import { Card, ScrollRegion } from "@/components/ui";
 import { RichText } from "./rich-text";
 import { CodeBlock, OutputBlock } from "./code-block";
 
@@ -120,9 +120,11 @@ export function LessonSections({ content, quizSlot, children }: { content: Lesso
                   {e.answer && (
                     <details className="mt-1">
                       <summary className="min-h-11 cursor-pointer content-center text-sm font-semibold text-accent">解答例を見る (自分で考えてから)</summary>
-                      <pre className="mt-1 overflow-x-auto rounded-lg bg-code p-3 text-sm">
-                        <code className="font-mono">{e.answer}</code>
-                      </pre>
+                      <ScrollRegion label={`解答例: ${e.title}`} className="mt-1 rounded-lg bg-code">
+                        <pre className="p-3 text-sm">
+                          <code className="font-mono">{e.answer}</code>
+                        </pre>
+                      </ScrollRegion>
                     </details>
                   )}
                 </Card>

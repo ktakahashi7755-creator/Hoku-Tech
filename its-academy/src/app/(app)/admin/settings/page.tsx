@@ -3,7 +3,7 @@ import { db } from "@/lib/db";
 import { requireUser } from "@/lib/auth/dal";
 import { ADMIN_ROLES, ROLE_LABEL } from "@/lib/auth/roles";
 import { getStagnationThreshold } from "@/lib/queries/settings";
-import { Card, PageHeader } from "@/components/ui";
+import { Card, PageHeader, ScrollRegion } from "@/components/ui";
 import { SettingsForm } from "@/components/staff-forms";
 import { formatDateTime } from "@/lib/labels";
 
@@ -22,7 +22,7 @@ export default async function SettingsPage() {
       </Card>
       <Card>
         <h2 className="font-bold">監査ログ (直近 30 件)</h2>
-        <div className="mt-3 overflow-x-auto">
+        <ScrollRegion label="監査ログ" className="mt-3">
           <table className="w-full min-w-[640px] text-left text-sm">
             <thead className="text-muted">
               <tr>
@@ -43,7 +43,7 @@ export default async function SettingsPage() {
               ))}
             </tbody>
           </table>
-        </div>
+        </ScrollRegion>
       </Card>
     </div>
   );

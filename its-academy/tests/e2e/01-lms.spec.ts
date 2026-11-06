@@ -61,7 +61,7 @@ test("受講生: 前回の続きから再開し、理解度チェック合格後
   // 次のレッスンへの導線と、進捗画面への反映
   await expect(page.getByRole("link", { name: /次のレッスン: メソッド/ })).toBeVisible();
   await page.goto("/progress");
-  await expect(page.getByText("6 / 28 レッスン")).toBeVisible();
+  await expect(page.getByText("8 / 30 レッスン")).toBeVisible();
   await logout(page);
 });
 
