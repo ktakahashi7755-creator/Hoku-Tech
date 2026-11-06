@@ -4,7 +4,8 @@
  *
  * ログイン用パスワードは SEED_PASSWORD 環境変数で指定する (未指定時は開発用の既定値)。
  */
-import { PrismaClient, type Prisma } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
+import { createPrismaClient } from "../src/lib/prisma-client";
 import { hashPassword } from "../src/lib/auth/password";
 import { ASSIGNMENTS, COURSE, MODULES, STANDARD_RUBRIC } from "../content/curriculum";
 import { buildLessonContent } from "../scripts/curriculum-loader";
@@ -13,7 +14,7 @@ if (process.env.NODE_ENV === "production") {
   throw new Error("seed は本番環境では実行できません");
 }
 
-const db = new PrismaClient();
+const db = createPrismaClient();
 const PASSWORD = process.env.SEED_PASSWORD ?? "its-dev-password-2026";
 const DAY = 24 * 60 * 60 * 1000;
 const now = Date.now();

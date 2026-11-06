@@ -4,12 +4,12 @@
  * 使い方: DATABASE_URL=<負荷試験用 DB> npx tsx scripts/load-seed.ts 200
  * 本番環境では実行できない。
  */
-import { PrismaClient } from "@prisma/client";
+import { createPrismaClient } from "../src/lib/prisma-client";
 import { hashPassword } from "../src/lib/auth/password";
 
 if (process.env.NODE_ENV === "production") throw new Error("本番環境では実行できません");
 
-const db = new PrismaClient();
+const db = createPrismaClient();
 const N = Number(process.argv[2] ?? 200);
 const OFFSET = Number(process.argv[3] ?? 0); // 追加で実行するときのメールアドレスの番号の開始位置
 let seed = 42;

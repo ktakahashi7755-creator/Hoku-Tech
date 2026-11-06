@@ -25,11 +25,11 @@
 | フレームワーク | Next.js 16.4.5 (App Router, Cache Components, Partial Prefetching) / React 19.3 | |
 | 言語 | TypeScript 5 | |
 | DB | PostgreSQL 16 | |
-| ORM | Prisma 6.19.3 | Prisma 7 はドライバアダプタ方式への移行が必要なため STEP 13 で評価 |
+| ORM | Prisma 7.10.1 (ドライバアダプタ `@prisma/adapter-pg`) | 接続設定は `prisma.config.ts` と `src/lib/prisma-client.ts` |
 | 認証 | 自前実装 (DB セッション + argon2id) | §3 |
 | 検証 | zod 4 | |
 | UI | Tailwind CSS 4 + 自作の最小コンポーネント (`src/components/ui.tsx`) | shadcn/ui は導入していない (§5) |
-| テスト | Vitest 3 (単体) / Playwright 1.63 (E2E) | |
+| テスト | Vitest 5 (単体) / Playwright 1.63 (E2E・Chromium / Firefox / WebKit) / axe-core 4.14 (アクセシビリティ) | |
 | CI | GitHub Actions (`.github/workflows/its-academy.yml`) | PostgreSQL サービス + JDK 21 |
 
 ## 2. 全体構成
@@ -116,7 +116,7 @@ CMS で編集したコードは自動検証の対象外のため、「自動実�
 
 | リスク | 内容 | 対応 |
 |--------|------|------|
-| npm audit (high 3 件) | Prisma CLI の設定読み込みが依存する `deepmerge-ts` の既知の脆弱性。アプリの実行時の処理経路には含まれない | STEP 13 で Prisma 7 へ更新 |
-| 受講生一覧の N+1 | `listStudentOverviews` は受講生ごとに集計クエリを発行 | 100 名規模までは許容。超える場合は集計 SQL / マテリアライズドビューへ |
+| npm audit | 本番の依存関係は 0 件 (Prisma 7.10.1 への更新で high 3 件を解消、Vitest 5 への更新で開発用の critical 2 件を解消)。残りは開発用の lint ツール (eslint-config-next 経由の minimatch) の moderate 8 件で、利用者に配布されない | eslint-config-next の更新時に再確認 |
+| 受講生一覧の集計 | 一括読み込みと SQL での集計で 200 名 0.25 秒・700 名 0.8 秒 (test-plan.md §4) | 同時アクセスが多い大規模運用では、集計結果を保存する方式を検討 |
 | ログイン試行制限の分散環境 | DB ベースのため複数台構成でも有効だが、`login_attempts` が増え続ける | 定期削除ジョブを STEP 13 で追加 |
 | 学習時間の精度 | 画面表示中に 60 秒ごとに記録 (1 回最大 90 秒加算)。複数タブで重複しうる | 指標には使わず参考表示のみ |

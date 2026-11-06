@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { PrismaClient } from "@prisma/client";
+import { createPrismaClient } from "../../src/lib/prisma-client";
 import { TEST_DATABASE_URL } from "../../playwright.config";
 import { login, logout } from "./helpers";
 
@@ -91,7 +91,7 @@ test("管理者: 公開予約した版は予約時刻を過ぎると公開され
   await logout(page);
 
   // 予約時刻が過ぎた状態を作る (テスト用 DB を直接更新)
-  const db = new PrismaClient({ datasourceUrl: TEST_DATABASE_URL });
+  const db = createPrismaClient(TEST_DATABASE_URL);
   await db.lesson.update({ where: { slug: "l2-methods" }, data: { publishAt: new Date(Date.now() - 1000) } });
   await db.$disconnect();
 
