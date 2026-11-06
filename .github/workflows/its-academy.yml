@@ -12,6 +12,7 @@ permissions:
 jobs:
   check:
     runs-on: ubuntu-24.04
+    timeout-minutes: 30
     defaults:
       run:
         working-directory: its-academy
@@ -63,6 +64,7 @@ jobs:
   cross-browser:
     # Firefox と WebKit (Safari のエンジン) で E2E を実行する
     runs-on: ubuntu-24.04
+    timeout-minutes: 25
     strategy:
       fail-fast: false
       matrix:
@@ -95,6 +97,7 @@ jobs:
       - run: npx prisma generate
       - run: npm run build
       - run: npx playwright install --with-deps ${{ matrix.browser }}
+        timeout-minutes: 10
       - name: E2E (${{ matrix.browser }})
         run: npm run test:e2e -- --trace off
 
