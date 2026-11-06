@@ -1,0 +1,415 @@
+// ITS ENGINEER ACADEMY — database schema
+// 設計方針は ../docs/database-schema.md を参照。
+// - 教材 (courses/modules/lessons/lesson_versions) と進捗 (lesson_progress 等) を分離する
+// - 進捗・提出・採点は lesson_version / rubric のスナップショットを参照し、教材更新で過去の評価が壊れないようにする
+// - 採点 (reviews)・監査ログ (audit_logs) は追記のみ。更新・削除しない
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  SUPER_ADMIN
+  ADMIN
+  INSTRUCTOR
+  STUDENT
+}
+
+enum PublishStatus {
+  DRAFT
+  SCHEDULED
+  PUBLISHED
+  ARCHIVED
+}
+
+enum EnrollmentStatus {
+  ACTIVE
+  PAUSED
+  COMPLETED
+  WITHDRAWN
+}
+
+enum LessonProgressStatus {
+  IN_PROGRESS
+  COMPLETED
+}
+
+enum AssignmentType {
+  MULTIPLE_CHOICE
+  WRITTEN
+  CODE
+  GITHUB_REPO
+  PROJECT
+  FINAL_PROJECT
+}
+
+// 「未着手」は提出レコードが存在しない状態として表す
+enum SubmissionStatus {
+  DRAFT // 取り組み中
+  SUBMITTED // 提出済み
+  IN_REVIEW // レビュー待ち (講師が着手)
+  CHANGES_REQUESTED // 修正依頼
+  RESUBMITTED // 再提出
+  PASSED // 合格
+  FAILED // 不合格
+}
+
+enum ReviewDecision {
+  PASS
+  CHANGES_REQUESTED
+  FAIL
+}
+
+enum CommentVisibility {
+  INTERNAL // 講師・管理者のみ
+  STUDENT // 受講生にも表示
+}
+
+model User {
+  id               String    @id @default(cuid())
+  email            String    @unique
+  name             String
+  passwordHash     String
+  role             Role      @default(STUDENT)
+  affiliation      String? // 所属
+  joinedAt         DateTime? @db.Date // 入校日
+  isActive         Boolean   @default(true)
+  lastLoginAt      DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  sessions            Session[]
+  enrollments         Enrollment[]       @relation("StudentEnrollments")
+  instructedEnrolls   Enrollment[]       @relation("InstructorEnrollments")
+  lessonProgress      LessonProgress[]
+  learningSessions    LearningSession[]
+  submissions         Submission[]
+  reviews             Review[]
+  quizAttempts        QuizAttempt[]
+  skillAssessments    SkillAssessment[]  @relation("AssessedStudent")
+  givenAssessments    SkillAssessment[]  @relation("Assessor")
+  commentsReceived    InstructorComment[] @relation("CommentStudent")
+  commentsWritten     InstructorComment[] @relation("CommentAuthor")
+  notifications       Notification[]
+  auditLogs           AuditLog[]
+  authoredVersions    LessonVersion[]
+
+  @@map("users")
+}
+
+model Session {
+  id         String   @id @default(cuid())
+  tokenHash  String   @unique // SHA-256(token)。生トークンは保存しない
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  lastSeenAt DateTime @default(now())
+  userAgent  String?
+
+  @@index([userId])
+  @@map("sessions")
+}
+
+model LoginAttempt {
+  id        String   @id @default(cuid())
+  email     String
+  ip        String?
+  success   Boolean
+  createdAt DateTime @default(now())
+
+  @@index([email, createdAt])
+  @@index([ip, createdAt])
+  @@map("login_attempts")
+}
+
+model Course {
+  id          String        @id @default(cuid())
+  slug        String        @unique
+  title       String
+  description String
+  status      PublishStatus @default(DRAFT)
+  weeks       Int           @default(12)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  modules     Module[]
+  enrollments Enrollment[]
+
+  @@map("courses")
+}
+
+model Module {
+  id          String   @id @default(cuid())
+  courseId    String
+  course      Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  level       String // L0〜L8
+  title       String
+  description String
+  position    Int
+  weeks       Float    @default(1)
+
+  lessons     Lesson[]
+  assignments Assignment[]
+
+  @@unique([courseId, position])
+  @@map("modules")
+}
+
+model Lesson {
+  id               String        @id @default(cuid())
+  moduleId         String
+  module           Module        @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  slug             String        @unique
+  position         Int
+  status           PublishStatus @default(DRAFT)
+  publishAt        DateTime? // 公開予約
+  currentVersionId String?       @unique
+  currentVersion   LessonVersion? @relation("CurrentVersion", fields: [currentVersionId], references: [id])
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  versions    LessonVersion[] @relation("LessonVersions")
+  progress    LessonProgress[]
+  assignments Assignment[]
+
+  @@unique([moduleId, position])
+  @@map("lessons")
+}
+
+model LessonVersion {
+  id               String   @id @default(cuid())
+  lessonId         String
+  lesson           Lesson   @relation("LessonVersions", fields: [lessonId], references: [id], onDelete: Cascade)
+  version          Int
+  title            String
+  estimatedMinutes Int
+  content          Json // src/lib/content/schema.ts の LessonContent (13 項目)
+  changeNote       String?
+  sourceUrl        String? // 移行元 (REOrGA) の記事 URL
+  sourcePostId     Int?
+  authorId         String?
+  author           User?    @relation(fields: [authorId], references: [id])
+  createdAt        DateTime @default(now())
+
+  currentOf    Lesson?          @relation("CurrentVersion")
+  progress     LessonProgress[]
+  quizAttempts QuizAttempt[]
+
+  @@unique([lessonId, version])
+  @@map("lesson_versions")
+}
+
+model Enrollment {
+  id              String           @id @default(cuid())
+  userId          String
+  user            User             @relation("StudentEnrollments", fields: [userId], references: [id], onDelete: Cascade)
+  courseId        String
+  course          Course           @relation(fields: [courseId], references: [id])
+  instructorId    String?
+  instructor      User?            @relation("InstructorEnrollments", fields: [instructorId], references: [id])
+  status          EnrollmentStatus @default(ACTIVE)
+  startedAt       DateTime         @default(now()) // 学習開始日
+  targetEndDate   DateTime?        @db.Date // 目標修了日
+  weeklyHours     Int              @default(20)
+  currentLessonId String? // 前回の続きから再開するための最終閲覧レッスン
+  completedAt     DateTime?
+  createdAt       DateTime         @default(now())
+
+  @@unique([userId, courseId])
+  @@index([instructorId])
+  @@map("enrollments")
+}
+
+model LessonProgress {
+  id                 String               @id @default(cuid())
+  userId             String
+  user               User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lessonId           String
+  lesson             Lesson               @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  lessonVersionId    String // 最後に学習した版
+  lessonVersion      LessonVersion        @relation(fields: [lessonVersionId], references: [id])
+  status             LessonProgressStatus @default(IN_PROGRESS)
+  firstViewedAt      DateTime             @default(now())
+  lastViewedAt       DateTime             @default(now())
+  completedAt        DateTime?
+  completedVersionId String? // 完了操作をした時点の版
+
+  @@unique([userId, lessonId])
+  @@map("lesson_progress")
+}
+
+model LearningSession {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lessonId    String?
+  startedAt   DateTime @default(now())
+  lastPingAt  DateTime @default(now())
+  durationSec Int      @default(0)
+
+  @@index([userId, startedAt])
+  @@map("learning_sessions")
+}
+
+model Rubric {
+  id          String   @id @default(cuid())
+  name        String
+  // [{ key, label, weight, description }]。weight の合計は 100
+  criteria    Json
+  createdAt   DateTime @default(now())
+
+  assignments Assignment[]
+
+  @@map("rubrics")
+}
+
+model Assignment {
+  id           String         @id @default(cuid())
+  slug         String         @unique
+  moduleId     String
+  module       Module         @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  lessonId     String?
+  lesson       Lesson?        @relation(fields: [lessonId], references: [id])
+  title        String
+  type         AssignmentType
+  // 目的 / 想定シーン / 要件 / 提出物 などの構造化本文 (src/lib/content/schema.ts の AssignmentBody)
+  body         Json
+  passScore    Int // 合格点 (100 点満点中)。課題ごとに設定
+  rubricId     String
+  rubric       Rubric         @relation(fields: [rubricId], references: [id])
+  position     Int
+  status       PublishStatus  @default(PUBLISHED)
+  createdAt    DateTime       @default(now())
+
+  submissions Submission[]
+
+  @@map("assignments")
+}
+
+model Submission {
+  id           String           @id @default(cuid())
+  assignmentId String
+  assignment   Assignment       @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  userId       String
+  user         User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  attemptNo    Int
+  status       SubmissionStatus @default(DRAFT)
+  text         String? // 記述・コード
+  repoUrl      String? // GitHub リポジトリ URL
+  note         String? // 受講生のコメント (AI 利用の有無なども記載)
+  submittedAt  DateTime?
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  reviews Review[]
+
+  @@unique([assignmentId, userId, attemptNo])
+  @@index([status])
+  @@map("submissions")
+}
+
+model Review {
+  id             String         @id @default(cuid())
+  submissionId   String
+  submission     Submission     @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  reviewerId     String
+  reviewer       User           @relation(fields: [reviewerId], references: [id])
+  // 採点時点のルーブリックのスナップショットと得点 [{ key, label, weight, score }]
+  scores         Json
+  totalScore     Int
+  passScore      Int // 採点時点の合格点
+  decision       ReviewDecision
+  comment        String
+  createdAt      DateTime       @default(now())
+
+  @@index([submissionId])
+  @@map("reviews")
+}
+
+model QuizAttempt {
+  id              String        @id @default(cuid())
+  userId          String
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lessonVersionId String
+  lessonVersion   LessonVersion @relation(fields: [lessonVersionId], references: [id])
+  answers         Json
+  score           Int // 0〜100
+  passed          Boolean
+  createdAt       DateTime      @default(now())
+
+  @@index([userId])
+  @@map("quiz_attempts")
+}
+
+model SkillAssessment {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation("AssessedStudent", fields: [userId], references: [id], onDelete: Cascade)
+  assessorId String
+  assessor   User     @relation("Assessor", fields: [assessorId], references: [id])
+  skill      String // src/lib/progress/skills.ts の SKILL_AREAS
+  level      Int // 1〜5
+  note       String?
+  createdAt  DateTime @default(now())
+
+  @@index([userId, skill])
+  @@map("skill_assessments")
+}
+
+model InstructorComment {
+  id         String            @id @default(cuid())
+  studentId  String
+  student    User              @relation("CommentStudent", fields: [studentId], references: [id], onDelete: Cascade)
+  authorId   String
+  author     User              @relation("CommentAuthor", fields: [authorId], references: [id])
+  body       String
+  visibility CommentVisibility @default(INTERNAL)
+  createdAt  DateTime          @default(now())
+
+  @@index([studentId])
+  @@map("instructor_comments")
+}
+
+model Notification {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  body      String
+  link      String?
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId, readAt])
+  @@map("notifications")
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  actorId    String?
+  actor      User?    @relation(fields: [actorId], references: [id])
+  action     String
+  targetType String?
+  targetId   String?
+  metadata   Json?
+  ip         String?
+  createdAt  DateTime @default(now())
+
+  @@index([actorId, createdAt])
+  @@index([targetType, targetId])
+  @@map("audit_logs")
+}
+
+model Setting {
+  key       String   @id
+  value     Json
+  updatedAt DateTime @updatedAt
+
+  @@map("settings")
+}
