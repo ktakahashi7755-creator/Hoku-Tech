@@ -335,7 +335,7 @@ Hoku Tech 本体のファイル (index.html / assets / data) には一切変更�
 |----|------|------------------------------|
 | D-01 | LMS 本体をどのリポジトリで開発するか。現リポジトリ (Hoku Tech) は「外部ライブラリ禁止・単一 HTML」のルールがあり、Next.js / PostgreSQL 構成と両立しない | 新規リポジトリ (例: `its-engineer-academy`) を推奨。調査ドキュメントのみ本リポジトリに置く |
 | D-02 | Hoku Tech と ITS ENGINEER ACADEMY の関係 (別製品 / 統合 / 置き換え) | 別製品として扱う。Hoku Tech のブランド・データは変更しない |
-| D-03 | ホスティングと DB の運用先 (費用が発生するため事前承認が必要) | 契約は行わない。ローカル (Docker の PostgreSQL) で開発を進める |
+| D-03 | ホスティングと DB の運用先 (費用が発生するため事前承認が必要) | 契約は行わない。選定資料 [hosting-options.md](hosting-options.md) で Google Cloud (Cloud Run + Cloud SQL、東京、月 1 万円前後) を推奨 |
 | D-04 | IDE を VS Code に統一するか | VS Code に統一し、Eclipse 記事は「参考」に格下げ |
 | D-05 | Servlet/JSP の扱い | 概要 + 1 課題に圧縮し、Spring Boot に時間を回す |
 | D-06 | DB 製品 | PostgreSQL に統一 |
