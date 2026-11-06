@@ -84,3 +84,11 @@ body {
 main :where(p, li, dd, dt, td, th, h1, h2, h3, figcaption, label, legend, summary) {
   overflow-wrap: anywhere;
 }
+
+/*
+ * 画面を移動したときに見出しへ移すフォーカス (FocusOnArrival) は、読み上げの位置を伝えるためのもの。
+ * 見出しは操作できる部品ではないため、枠線は表示しない。
+ */
+main h1[tabindex="-1"]:focus {
+  outline: none;
+}

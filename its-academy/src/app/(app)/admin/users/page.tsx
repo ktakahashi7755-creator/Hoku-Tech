@@ -46,7 +46,7 @@ export default async function UsersPage() {
                     {u.mustChangePassword && <Badge tone="warning">仮パスワード</Badge>}
                   </div>
                 </td>
-                <td className="px-3 py-3">{formatDateTime(u.lastLoginAt)}</td>
+                <td className="whitespace-nowrap px-3 py-3">{formatDateTime(u.lastLoginAt)}</td>
                 <td className="px-3 py-3">
                   {canManageAccount(me, u) ? (
                     <AccountControls user={{ id: u.id, name: u.name, role: u.role, isActive: u.isActive }} roles={assignable.map((r) => ({ value: r, label: ROLE_LABEL[r] }))} />

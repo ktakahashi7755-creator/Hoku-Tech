@@ -102,7 +102,7 @@ export default async function StudentDetailPage({ params }: { params: Promise<{ 
                     <td className="py-2">{a.unlocked ? <SubmissionBadge status={a.latestStatus} /> : <Badge>前提未完了</Badge>}</td>
                     <td className="py-2 tabular-nums">{a.attempts}</td>
                     <td className="py-2 tabular-nums">{a.latestReviewScore === null ? "—" : `${a.latestReviewScore} / 合格 ${a.passScore}`}</td>
-                    <td className="py-2">{formatDate(a.lastSubmittedAt)}</td>
+                    <td className="whitespace-nowrap py-2">{formatDate(a.lastSubmittedAt)}</td>
                   </tr>
                 );
               })}

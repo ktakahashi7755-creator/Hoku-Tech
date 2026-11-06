@@ -40,7 +40,7 @@ export default async function SettingsPage() {
             <tbody className="divide-y divide-border">
               {logs.map((l) => (
                 <tr key={l.id}>
-                  <td className="py-2">{formatDateTime(l.createdAt)}</td>
+                  <td className="whitespace-nowrap py-2">{formatDateTime(l.createdAt)}</td>
                   <td className="py-2">{l.actor ? `${l.actor.name} (${ROLE_LABEL[l.actor.role]})` : "—"}</td>
                   <td className="py-2 font-mono text-xs">{l.action}</td>
                   <td className="py-2 font-mono text-xs">{l.targetType ? `${l.targetType}:${l.targetId}` : "—"}</td>

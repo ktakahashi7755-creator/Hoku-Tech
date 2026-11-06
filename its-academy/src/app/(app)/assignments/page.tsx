@@ -46,7 +46,7 @@ export default async function AssignmentsPage() {
                 <td className="px-4 py-3">{a.unlocked ? <SubmissionBadge status={a.latestStatus} /> : <Badge>前提レッスン未完了</Badge>}</td>
                 <td className="px-4 py-3 tabular-nums">{a.attempts}</td>
                 <td className="px-4 py-3 tabular-nums">{a.latestReviewScore === null ? "—" : `${a.latestReviewScore} / 合格 ${a.passScore}`}</td>
-                <td className="px-4 py-3">{formatDate(a.lastSubmittedAt)}</td>
+                <td className="whitespace-nowrap px-4 py-3">{formatDate(a.lastSubmittedAt)}</td>
               </tr>
             ))}
           </tbody>

@@ -83,7 +83,7 @@ export default async function StudentsPage({ searchParams }: { searchParams: Pro
                   <td className="px-3 py-3 tabular-nums">{v(r.metrics.comprehension)}</td>
                   <td className="px-3 py-3 tabular-nums">{v(r.metrics.implementation)}</td>
                   <td className="px-3 py-3 tabular-nums">{v(r.metrics.workReadiness)}</td>
-                  <td className="px-3 py-3">{formatDate(r.lastActivity)}</td>
+                  <td className="whitespace-nowrap px-3 py-3">{formatDate(r.lastActivity)}</td>
                   <td className="px-3 py-3">
                     <div className="flex flex-wrap gap-1">
                       {r.stagnant && <Badge tone="warning">停滞の可能性</Badge>}
