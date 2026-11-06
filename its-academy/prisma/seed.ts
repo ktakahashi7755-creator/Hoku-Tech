@@ -53,7 +53,7 @@ async function main() {
   const moduleIdByLevel = new Map<string, string>();
   for (const [mi, m] of MODULES.entries()) {
     const mod = await db.module.create({
-      data: { courseId: course.id, level: m.level, title: m.title, description: m.description, position: mi, weeks: m.weeks },
+      data: { courseId: course.id, level: m.level, title: m.title, description: m.description, position: mi, weeks: m.weeks, optional: m.optional ?? false },
     });
     moduleIdByLevel.set(m.level, mod.id);
     for (const [li, l] of m.lessons.entries()) {

@@ -157,6 +157,7 @@ function buildOverview(studentId: string, data: OverviewData, now: Date) {
       minutes: l.currentVersion!.estimatedMinutes,
       level: m.level,
       moduleTitle: m.title,
+      optional: m.optional,
       status: lessonStatus(l.id),
     })),
   );
@@ -179,6 +180,7 @@ function buildOverview(studentId: string, data: OverviewData, now: Date) {
         title: a.title,
         type: a.type,
         level: m.level,
+        optional: m.optional,
         passScore: a.passScore,
         unlocked: !a.lessonId || lessonStatus(a.lessonId) === "COMPLETED",
         latestStatus: (latest?.status ?? null) as SubmissionStatusValue | null,
@@ -201,8 +203,9 @@ function buildOverview(studentId: string, data: OverviewData, now: Date) {
   for (const s of skills) if (!latestSkill.has(s.skill)) latestSkill.set(s.skill, s);
 
   const metrics = computeMetrics({
-    lessons: lessons.map((l) => ({ id: l.id, completed: l.status === "COMPLETED" })),
-    assignments: assignments.map((a) => ({ id: a.id, type: a.type, latestStatus: a.latestStatus, latestReviewScore: a.latestReviewScore })),
+    // 任意 (発展) のレッスンは必修の履修率に含めない
+    lessons: lessons.filter((l) => !l.optional).map((l) => ({ id: l.id, completed: l.status === "COMPLETED" })),
+    assignments: assignments.filter((a) => !a.optional).map((a) => ({ id: a.id, type: a.type, latestStatus: a.latestStatus, latestReviewScore: a.latestReviewScore })),
     quizBestScores,
     latestSkillLevels: [...latestSkill.values()].map((s) => s.level),
   });

@@ -154,6 +154,7 @@ model Module {
   description String
   position    Int
   weeks       Float    @default(1)
+  optional    Boolean  @default(false) // 任意 (発展) のモジュール。必修の進捗指標には含めない
 
   lessons     Lesson[]
   assignments Assignment[]

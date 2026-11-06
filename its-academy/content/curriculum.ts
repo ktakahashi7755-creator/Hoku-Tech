@@ -12,6 +12,7 @@ import { L4_HTTP, L4_JDBC, L5_ASSIGNMENT, L5_LESSONS } from "./lessons-l4-l5";
 import { L5_SECURITY, L7_FINAL, L7_GUIDE } from "./lessons-l5-l7";
 import { FE_L6_ASSIGNMENTS, L4_FRONTEND, L6_LESSONS } from "./lessons-fe-l6";
 import { L1_GITHUB, L1_SETUP } from "./lessons-l1-setup";
+import { L8_ASSIGNMENT, L8_MODULE } from "./lessons-l8";
 
 export type CodeRef = Omit<LessonContent["code"][number], "source"> & { verifiedBy: string };
 
@@ -26,6 +27,8 @@ export type LessonDef = {
 
 export type ModuleDef = {
   level: string;
+  /** 任意 (発展) のモジュール。必修の進捗指標・目標ペースには含めない */
+  optional?: boolean;
   title: string;
   description: string;
   weeks: number;
@@ -883,6 +886,7 @@ export const MODULES: ModuleDef[] = [
   { level: "L5", title: "Spring Boot・API 開発", description: "Spring Boot で認証付きの Web アプリと REST API を作り、テストを書く", weeks: 2, lessons: [...L5_LESSONS, L5_SECURITY] },
   { level: "L6", title: "実践開発・チーム開発", description: "ブランチ・PR・コードレビュー・チケット駆動で、チームで開発する", weeks: 1.5, lessons: L6_LESSONS },
   { level: "L7", title: "卒業制作・実務能力評価", description: "要件定義から発表までを一人で行い、講師が実務能力を評価する", weeks: 1, lessons: [L7_GUIDE] },
+  L8_MODULE,
 ];
 
 export const ASSIGNMENTS: AssignmentDef[] = [
@@ -949,4 +953,5 @@ export const ASSIGNMENTS: AssignmentDef[] = [
   L5_ASSIGNMENT,
   ...FE_L6_ASSIGNMENTS,
   L7_FINAL,
+  L8_ASSIGNMENT,
 ];
