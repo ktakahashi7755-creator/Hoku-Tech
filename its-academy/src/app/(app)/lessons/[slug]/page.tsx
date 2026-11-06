@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
@@ -12,6 +13,13 @@ import { applyScheduledPublishes } from "@/lib/content/publish";
 import { Quiz } from "@/components/lesson/quiz";
 import { CompleteButton } from "@/components/lesson/complete-button";
 import { LessonActivity } from "@/components/lesson/lesson-activity";
+
+/** タブ・読み上げで「どのレッスンか」が分かるよう、レッスン名をページ名にする (公開中のレッスン名のみ。本文や個人の情報は含めない) */
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params;
+  const lesson = await db.lesson.findUnique({ where: { slug }, select: { status: true, currentVersion: { select: { title: true } } } });
+  return { title: lesson?.status === "PUBLISHED" && lesson.currentVersion ? lesson.currentVersion.title : "レッスン" };
+}
 
 export default async function LessonPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;

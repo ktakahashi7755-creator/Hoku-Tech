@@ -57,3 +57,13 @@ test("死活監視はログインなしで応答し、内部情報を返さな�
   expect(h["referrer-policy"]).toBeTruthy();
   expect(h["x-powered-by"]).toBeUndefined();
 });
+
+test("レッスン・課題のページ名に、そのレッスン名・課題名が入る (タブ・読み上げで区別できる)", async ({ page }) => {
+  await login(page, "student@its.example");
+  await page.waitForURL(/\/home$/);
+  await page.goto("/lessons/l2-loops-arrays"); // CMS の E2E で編集しないレッスン
+  await expect(page).toHaveTitle(/^繰り返しと配列 \| ITS ENGINEER ACADEMY$/);
+  await page.goto("/assignments/a2-grade-calculator");
+  await expect(page).toHaveTitle(/^成績判定プログラム \| ITS ENGINEER ACADEMY$/);
+  await logout(page);
+});

@@ -13,8 +13,8 @@
 | 単体 | Vitest | `npm test` | 69 件 / 8 ファイル | 全件成功 |
 | 教材コード検証 | JDK 21 / bash / Git / PostgreSQL 16 / Maven / Chromium | `npm run verify:code` | 30 サンプル (Java・bash・Git・SQL・Maven で起動する Spring Boot・Chromium でのブラウザ確認。L8 の 2 件を含む) | 全件一致 |
 | ビルド | Next.js | `npm run build` | — | 成功 |
-| E2E | Playwright (Chromium) | `npm run test:e2e -- --trace off` | 27 (01-lms 8・02-cms 4・03-a11y 5・04-accounts 3・05-cms-assignments 4・06-hardening 3) | 全件成功 |
-| E2E (他ブラウザ) | Playwright (Firefox / WebKit) | CI の `cross-browser` ジョブ (`PW_BROWSERS`) | 上と同じ 27 件 × 2 | 全件成功 (CI) |
+| E2E | Playwright (Chromium) | `npm run test:e2e -- --trace off` | 28 (01-lms 8・02-cms 4・03-a11y 5・04-accounts 3・05-cms-assignments 4・06-hardening 4) | 全件成功 |
+| E2E (他ブラウザ) | Playwright (Firefox / WebKit) | CI の `cross-browser` ジョブ (`PW_BROWSERS`) | 上と同じ 28 件 × 2 | 全件成功 (CI) |
 | コンテナ | Docker / Compose | CI の `container` ジョブ | 起動・ヘルスチェック・ヘッダー・危険な設定での起動拒否・バックアップと復元 | 成功 (ローカルと CI) |
 | アクセシビリティ | axe-core 4.14 (WCAG 2.2 A/AA) | 03-a11y.spec.ts | 26 画面 (受講生画面は 375px と 1280px) + キーボード操作 | 違反 0 件 |
 
@@ -49,7 +49,7 @@ E2E は専用の DB (`TEST_DATABASE_URL`、既定は `its_academy_test`) を `pr
 | 10 | CMS: 必須チェック | 本文が空の新規レッスンは公開できず、受講生のカリキュラムにも出ない |
 | 11 | CMS: 公開予約 | 予約時刻を過ぎると受講生に新しい版が表示される |
 | 12 | CMS: 権限 | 講師は教材管理を開けない |
-| 13〜17 | アクセシビリティ (03-a11y) | ログイン・受講生 9 画面 (375 / 1280px)・講師管理者 10 画面で axe 違反 0 件、キーボードだけでログイン・スキップリンク、主要画面でコンソールエラーと CSP 違反 0 件 |
+| 13〜17 | アクセシビリティ (03-a11y) | ログイン・受講生 9 画面 (375 / 1280px)・講師管理者 10 画面で axe 違反 0 件、キーボードだけでログインし、ログイン直後のフォーカスがページの見出しにあること・スキップリンク、主要画面でコンソールエラーと CSP 違反 0 件 |
 | 18 | 仮パスワード (04-accounts) | 管理者が発行 → 本人が仮パスワードでログイン → 変更を求められ、変更で解除。元のパスワードは無効 |
 | 19 | 利用停止 | 停止中はログインできず、再開で戻る |
 | 20 | 権限の変更 | ロールの変更と、自分自身・上位ロールを操作できないこと |
@@ -60,6 +60,7 @@ E2E は専用の DB (`TEST_DATABASE_URL`、既定は `its_academy_test`) を `pr
 | 25 | ログイン試行制限 (06-hardening) | 同じメールアドレスで 5 回失敗すると、正しいパスワードでもログインできない |
 | 26 | 講師・管理者画面の 375px | 11 画面で横スクロールなし |
 | 27 | 死活監視とヘッダー | /api/health がログインなしで `{"status":"ok"}`・no-store。CSP・X-Frame-Options・nosniff・Referrer-Policy があり X-Powered-By がない |
+| 28 | ページ名 | レッスン・課題のページ名にレッスン名・課題名が入る |
 
 ## 4. 負荷試験 (2026-11-06)
 
@@ -85,6 +86,10 @@ E2E は専用の DB (`TEST_DATABASE_URL`、既定は `its_academy_test`) を `pr
   「次にやること」カードの背景色がスタイルの優先順位で消えていた不具合を発見し、`Card` の `tone` 指定に修正済み。
 * 色のコントラスト比を計算で確認 (全組み合わせ 4.5:1 以上。design-system.md §2)。
 
+* 読み上げ構造の機械的な確認 (受講生 8 画面・管理者 6 画面): 各画面の h1 が 1 つ・見出しレベルの飛びなし・ランドマーク (header / nav / main と名前付きの領域)・
+  名前のない入力欄やボタン 0 件・重複 ID 0 件。見つかった問題: レッスンと課題の詳細でページ名がサイト名だけだった → レッスン名・課題名を付けた。
+  ログイン直後にフォーカスが失われていた → ページの見出しへ移すようにした (`FocusOnArrival`)。
+
 ## 6. 本番構成の確認 (2026-11-06。手順は deployment-guide.md §5・§6)
 
 * Docker イメージ (standalone・非 root) と docker compose を本番と同じ設定 (APP_ENV=production, COOKIE_SECURE=true) で起動し、
@@ -95,7 +100,7 @@ E2E は専用の DB (`TEST_DATABASE_URL`、既定は `its_academy_test`) を `pr
 
 ## 7. 未実施・残課題
 
-* スクリーンリーダー (VoiceOver / NVDA) での通し確認、ログイン直後のフォーカス位置の評価 (自動検査は実施済み)
+* スクリーンリーダー (VoiceOver / NVDA) での通し確認 (読み上げ構造の機械的な確認は §5 で実施済み)
 * L1 環境構築の手順の Mac / Windows 実機での確認 (このコンテナは Linux のため未確認)
 * 本番相当の環境 (HTTPS 終端・マネージド DB) での確認と復元訓練 — ホスティング未契約のため (D-03)
 * 負荷試験は 1 台のコンテナ内での計測。本番の構成が決まった後に、同じスクリプトで再計測する

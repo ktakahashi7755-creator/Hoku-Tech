@@ -3,6 +3,7 @@ import { requireUser } from "@/lib/auth/dal";
 import { isAdmin, isStaff, ROLE_LABEL } from "@/lib/auth/roles";
 import { logout } from "@/app/actions/auth";
 import { NavLinks, type NavItem } from "./nav-links";
+import { FocusOnArrival } from "./focus-on-arrival";
 
 const STUDENT_NAV: NavItem[] = [
   { href: "/home", label: "ホーム" },
@@ -52,6 +53,7 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
         </div>
         <NavLinks items={nav} />
       </header>
+      <FocusOnArrival />
       <main id="main" className="mx-auto max-w-6xl px-4 py-8">
         {user.mustChangePassword && (
           <p role="alert" className="mb-6 rounded-lg border border-warning bg-warning-soft p-4 text-warning">

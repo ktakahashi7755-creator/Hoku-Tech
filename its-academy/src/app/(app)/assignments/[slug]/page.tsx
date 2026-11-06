@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { db } from "@/lib/db";
@@ -21,6 +22,13 @@ function List({ title, items }: { title: string; items: string[] }) {
       </ul>
     </div>
   );
+}
+
+/** タブ・読み上げで「どの課題か」が分かるよう、課題名をページ名にする (公開中の課題名のみ) */
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params;
+  const assignment = await db.assignment.findUnique({ where: { slug }, select: { status: true, title: true } });
+  return { title: assignment?.status === "PUBLISHED" ? assignment.title : "課題" };
 }
 
 export default async function AssignmentPage({ params }: { params: Promise<{ slug: string }> }) {

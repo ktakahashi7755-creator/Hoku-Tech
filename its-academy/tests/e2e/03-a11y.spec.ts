@@ -58,9 +58,12 @@ test("キーボードだけでログインでき、本文へスキップでき�
   await page.keyboard.type(process.env.SEED_PASSWORD ?? "its-dev-password-2026");
   await page.keyboard.press("Enter");
   await page.waitForURL(/\/home$/);
+  // ログイン直後はフォーカスがページの見出しに移り、次の Tab で本文の最初の操作へ進める
+  await expect(page.locator("main h1:visible")).toBeFocused();
+  await page.keyboard.press("Tab");
+  expect(await page.evaluate(() => !!document.activeElement?.closest("main"))).toBe(true);
 
   // ページを開いた直後: 最初の Tab でスキップリンク、Enter で本文 (main) へ移動できる
-  // (ログイン直後はクライアント側の画面遷移のためフォーカス位置が先頭に戻らない。手動確認の項目として test-plan.md に記載)
   await page.goto("/home");
   await page.keyboard.press("Tab");
   await expect(page.getByRole("link", { name: "本文へスキップ" })).toBeFocused();
