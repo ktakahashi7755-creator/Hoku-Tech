@@ -3,10 +3,11 @@
 import { useActionState } from "react";
 import { saveSubmission } from "@/app/actions/submissions";
 import { Button, Field, inputStyles } from "@/components/ui";
+import { submitsRepository } from "@/lib/validation";
 
 export function SubmissionForm({ assignmentId, type, defaults }: { assignmentId: string; type: string; defaults: { text: string; repoUrl: string; note: string } }) {
   const [state, action, pending] = useActionState(saveSubmission, undefined);
-  const repo = type === "GITHUB_REPO";
+  const repo = submitsRepository(type);
   return (
     <form action={action} className="flex flex-col gap-5">
       <input type="hidden" name="assignmentId" value={assignmentId} />

@@ -9,6 +9,7 @@
 import type { AssignmentBody, LessonContent, RubricCriteria } from "@/lib/content/schema";
 import { L3_L4_ASSIGNMENTS, L3_LESSONS, L4_LESSONS } from "./lessons-l3-l4";
 import { L4_HTTP, L4_JDBC, L5_ASSIGNMENT, L5_LESSONS } from "./lessons-l4-l5";
+import { L5_SECURITY, L7_FINAL, L7_GUIDE } from "./lessons-l5-l7";
 
 export type CodeRef = Omit<LessonContent["code"][number], "source"> & { verifiedBy: string };
 
@@ -34,7 +35,7 @@ export type AssignmentDef = {
   level: string;
   afterLesson: string; // このレッスンを完了すると取り組める
   title: string;
-  type: "CODE" | "GITHUB_REPO";
+  type: "CODE" | "GITHUB_REPO" | "PROJECT" | "FINAL_PROJECT";
   passScore: number;
   body: AssignmentBody;
 };
@@ -875,9 +876,9 @@ export const MODULES: ModuleDef[] = [
     ],
   },
   { level: "L4", title: "Web 技術・SQL", description: "HTTP・HTML/CSS/JavaScript・SQL・JDBC を学び、Web アプリの仕組みを理解する", weeks: 2, lessons: [L4_HTTP, ...L4_LESSONS, L4_JDBC] },
-  { level: "L5", title: "Spring Boot・API 開発", description: "Spring Boot で認証付きの Web アプリと REST API を作り、テストを書く", weeks: 2, lessons: L5_LESSONS },
+  { level: "L5", title: "Spring Boot・API 開発", description: "Spring Boot で認証付きの Web アプリと REST API を作り、テストを書く", weeks: 2, lessons: [...L5_LESSONS, L5_SECURITY] },
   { level: "L6", title: "実践開発・チーム開発", description: "ブランチ・PR・コードレビュー・チケット駆動で、チームで開発する", weeks: 1.5, lessons: [] },
-  { level: "L7", title: "卒業制作・実務能力評価", description: "要件定義から発表までを一人で行い、講師が実務能力を評価する", weeks: 1, lessons: [] },
+  { level: "L7", title: "卒業制作・実務能力評価", description: "要件定義から発表までを一人で行い、講師が実務能力を評価する", weeks: 1, lessons: [L7_GUIDE] },
 ];
 
 export const ASSIGNMENTS: AssignmentDef[] = [
@@ -942,4 +943,5 @@ export const ASSIGNMENTS: AssignmentDef[] = [
   },
   ...L3_L4_ASSIGNMENTS,
   L5_ASSIGNMENT,
+  L7_FINAL,
 ];

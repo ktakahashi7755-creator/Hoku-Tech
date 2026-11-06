@@ -6,7 +6,7 @@ import type { SubmissionStatus } from "@prisma/client";
 import { db } from "@/lib/db";
 import { audit } from "@/lib/audit";
 import { requireUser } from "@/lib/auth/dal";
-import { GITHUB_REPO_URL } from "@/lib/validation";
+import { GITHUB_REPO_URL, submitsRepository } from "@/lib/validation";
 import type { FormState } from "./auth";
 
 const PENDING = ["SUBMITTED", "IN_REVIEW", "RESUBMITTED"] as const;
@@ -47,10 +47,10 @@ export async function saveSubmission(_prev: FormState, formData: FormData): Prom
   const text = input.text?.trim() || null;
   const repoUrl = input.repoUrl || null;
   if (input.intent === "submit") {
-    if (assignment.type === "GITHUB_REPO" && (!repoUrl || !GITHUB_REPO_URL.test(repoUrl))) {
+    if (submitsRepository(assignment.type) && (!repoUrl || !GITHUB_REPO_URL.test(repoUrl))) {
       return { fieldErrors: { repoUrl: "https://github.com/ユーザー名/リポジトリ名 の形式で入力してください" } };
     }
-    if (assignment.type !== "GITHUB_REPO" && !text) {
+    if (!submitsRepository(assignment.type) && !text) {
       return { fieldErrors: { text: "提出内容を入力してください" } };
     }
   }

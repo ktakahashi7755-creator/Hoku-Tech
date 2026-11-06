@@ -33,3 +33,15 @@ describe("GITHUB_REPO_URL", () => {
     expect(GITHUB_REPO_URL.test("https://github.com/hanako")).toBe(false);
   });
 });
+
+import { submitsRepository } from "@/lib/validation";
+
+describe("submitsRepository", () => {
+  it("リポジトリ提出の形式を判定する", () => {
+    expect(submitsRepository("GITHUB_REPO")).toBe(true);
+    expect(submitsRepository("FINAL_PROJECT")).toBe(true);
+    expect(submitsRepository("PROJECT")).toBe(true);
+    expect(submitsRepository("CODE")).toBe(false);
+    expect(submitsRepository("WRITTEN")).toBe(false);
+  });
+});
