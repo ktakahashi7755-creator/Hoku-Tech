@@ -61,11 +61,14 @@ export const L1_SETUP: LessonDef = {
       {
         title: "確認スクリプトを実行する",
         task: "check-env.sh を作業フォルダに保存し、bash check-env.sh を実行してください。[NG] の項目があれば、→ の後の案内に従って直し、すべて [OK] になるまで繰り返します。最後の画面のスクリーンショットを講師に送ります。",
+        hint: "[NG] の行には、→ の後に直し方の案内が表示されます。1 つ直すたびに、スクリプトを実行し直して確かめます。",
+        answer: "すべての行が [OK] になり、最後に「すべての確認が完了しました」と表示されれば完了です。[NG] が残って直し方が分からない場合は、その行の表示 (→ の案内を含む全文) と、自分で試したことを講師に送って相談します。",
       },
       {
         title: "Java を動かす",
         task: "VS Code で Hello.java を作り、「こんにちは、(自分の名前)」と表示するプログラムを書いて、ターミナルで java Hello.java を実行してください。",
         hint: "public class Hello { public static void main(String[] args) { System.out.println(\"...\"); } }",
+        answer: "例:\npublic class Hello {\n    public static void main(String[] args) {\n        System.out.println(\"こんにちは、山田花子\");\n    }\n}\njava Hello.java を実行すると「こんにちは、山田花子」と表示されます。クラス名 (Hello) とファイル名 (Hello.java) は同じにします。",
       },
     ],
     quiz: {
@@ -145,7 +148,7 @@ export const L1_GITHUB: LessonDef = {
     examples: [
       {
         title: "公開鍵と秘密鍵",
-        body: "公開鍵は「南京錠」、秘密鍵は「その鍵」です。南京錠 (公開鍵) は GitHub に預けても問題ありませんが、鍵 (秘密鍵) を持っている人だけが開けられます。鍵を人に渡したら、だれでも開けられてしまいます。",
+        body: "公開鍵は「南京錠」、秘密鍵は「それを開ける鍵」です。南京錠は GitHub に預けても問題ありません。開けられるのは、鍵を持っている人だけです。秘密鍵を人に渡すと、その人があなたになりすまして GitHub に接続できてしまいます。",
       },
     ],
     code: [
@@ -160,11 +163,14 @@ export const L1_GITHUB: LessonDef = {
       {
         title: "SSH 鍵を登録して接続を確かめる",
         task: "ssh-keygen -t ed25519 -C \"自分のメールアドレス\" で鍵を作り (パスフレーズを設定)、cat ~/.ssh/id_ed25519.pub の内容を GitHub に登録してください。ssh -T git@github.com を実行し、「Hi ユーザー名! You've successfully authenticated」と表示されることを確かめます。",
+        hint: "GitHub に貼るのは .pub の付いた公開鍵の中身です。初めて接続するときに「Are you sure you want to continue connecting」と聞かれたら yes と入力します。",
+        answer: "「Hi ユーザー名! You've successfully authenticated, but GitHub does not provide shell access.」と表示されれば成功です。Permission denied (publickey) と表示される場合は、GitHub に登録した内容が id_ed25519.pub と同じかを確かめます。秘密鍵 (id_ed25519) の中身は表示・登録しません。",
       },
       {
         title: "初めての push",
-        task: "GitHub で practice というリポジトリを「Add a README file」にチェックを入れて作り (main ブランチが作られます)、git clone します。feature/readme ブランチを作って README.md に 1 行追記し、commit して git push -u origin feature/readme で送ってください。GitHub の画面に feature/readme ブランチが表示され、main はそのまま残っていることを確かめます。",
+        task: "GitHub で practice というリポジトリを「Add a README file」にチェックを入れて作り (main ブランチが作られます)、git clone します。feature/readme ブランチを作って README.md に 1 行追記し、コミットして git push -u origin feature/readme で送ってください。GitHub の画面に feature/readme ブランチが表示され、main はそのまま残っていることを確かめます。",
         hint: "空のリポジトリに最初に feature/readme を push すると、そのブランチが既定のブランチ (main の代わり) になってしまいます。README 付きで作れば main が先にできます。",
+        answer: "例:\ngit clone git@github.com:ユーザー名/practice.git\ncd practice\ngit switch -c feature/readme\necho \"練習中です\" >> README.md\ngit add README.md\ngit commit -m \"docs: update README\"\ngit push -u origin feature/readme\nGitHub のブランチ一覧に main と feature/readme の 2 つがあり、main の README.md が変わっていなければ成功です。",
       },
     ],
     quiz: {
@@ -179,10 +185,17 @@ export const L1_GITHUB: LessonDef = {
         },
         {
           id: "q2",
-          question: "新しいブランチを作って切り替えるコマンドはどれですか。",
-          choices: ["git branch -b feature/x", "git switch -c feature/x", "git push -b feature/x"],
+          question: "新しいブランチ feature/readme を初めて push するときのコマンドはどれですか。",
+          choices: ["git push", "git push -u origin feature/readme", "git commit -u origin feature/readme"],
           answerIndex: 1,
-          explanation: "git switch -c (または git checkout -b) です。",
+          explanation: "初回は -u で送り先 (origin の同名ブランチ) を登録します。登録すると、2 回目からは git push だけで送れます。git commit はリモートに送るコマンドではありません。",
+        },
+        {
+          id: "q3",
+          question: "SSH 鍵を GitHub に登録した後、接続できるかを確かめるコマンドはどれですか。",
+          choices: ["ssh -T git@github.com", "git push -u origin main", "cat ~/.ssh/id_ed25519"],
+          answerIndex: 0,
+          explanation: "ssh -T git@github.com は GitHub に SSH で接続できるかだけを確かめ、成功すると「Hi ユーザー名! You've successfully authenticated」と表示されます。git push は変更を送るコマンドで、接続の確認には向きません。cat ~/.ssh/id_ed25519 は秘密鍵の中身を画面に出すだけで、漏えいの原因にもなります。",
         },
       ],
     },

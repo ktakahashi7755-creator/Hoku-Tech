@@ -85,7 +85,7 @@ export const MODULES: ModuleDef[] = [
           objectives: [
             "このコースの進め方 (レッスン → 理解度チェック → 課題 → レビュー) を説明できる",
             "詰まったときに、相手が答えやすい質問文を書ける",
-            "AI ツールを使うときのルールを守れる",
+            "AI ツールを使うときの 3 つのルール (理解してから使う・使った箇所を申告する・秘密情報を貼らない) を説明できる",
           ],
           prerequisites: ["パソコンでブラウザを開き、文字を入力できること"],
           explanation: [
@@ -114,7 +114,7 @@ export const MODULES: ModuleDef[] = [
             {
               title: "悪い質問と良い質問",
               body:
-                "悪い例: 「Java が動きません」\n良い例: 「l2-variables のサンプルを動かそうとしています。javac Main.java の後に java Main を実行すると『エラー: メイン・クラスMainを検出およびロードできませんでした』と表示されます。ファイル名は Main.java で、ターミナルは同じフォルダで開いています。Windows 11 + WSL2 (Ubuntu 24.04)、Java 21 です。」",
+                "悪い例: 「Java が動きません」\n良い例: 「「変数とデータ型」のサンプルを動かそうとしています。javac Main.java の後に java Main を実行すると『エラー: メイン・クラスMainを検出およびロードできませんでした』と表示されます。ファイル名は Main.java で、ターミナルは同じフォルダで開いています。Windows 11 + WSL2 (Ubuntu 24.04)、Java 21 です。」",
             },
           ],
           code: [],
@@ -148,6 +148,13 @@ export const MODULES: ModuleDef[] = [
                 ],
                 answerIndex: 2,
                 explanation: "AI の利用は禁止ではありませんが、理解して説明できることと、利用の申告が条件です。",
+              },
+              {
+                id: "q3",
+                question: "このコースの「15 分ルール」として正しいものはどれですか。",
+                choices: ["自分で調べても 15 分以上進まないときは、状況を整理して質問する", "質問する前に、必ず 1 時間以上は自分で調べる", "詰まったら、調べる前にすぐ質問する"],
+                answerIndex: 0,
+                explanation: "悩み続けるより、15 分を目安に状況を整理して聞くほうが早く解決し、整理する過程で自己解決することもあります。ただし、何も調べずに聞くのではなく、自分で試したことを質問に書けるようにしておきます。",
               },
             ],
           },
@@ -243,9 +250,16 @@ export const MODULES: ModuleDef[] = [
               {
                 id: "q2",
                 question: "rm で削除したファイルについて正しいものはどれですか。",
-                choices: ["ゴミ箱から戻せる", "元に戻せない", "1 時間以内なら戻せる"],
+                choices: ["ゴミ箱から戻せる", "元に戻せない", "同じ名前で touch すれば元の中身に戻る"],
                 answerIndex: 1,
                 explanation: "rm はゴミ箱を経由しません。特に rm -r (フォルダごと削除) は実行前に対象を ls で確認します。",
+              },
+              {
+                id: "q3",
+                question: "/home/hanako にいるとき、practice/memo.txt が指すファイルはどれですか。",
+                choices: ["/home/hanako/practice/memo.txt", "/practice/memo.txt", "/home/practice/memo.txt"],
+                answerIndex: 0,
+                explanation: "/ で始まらないパスは相対パスで、カレントディレクトリ (/home/hanako) からの道順として読まれます。/practice/memo.txt は / から始まる絶対パスなので、まったく別の場所を指します。",
               },
             ],
           },
@@ -282,7 +296,7 @@ export const MODULES: ModuleDef[] = [
             {
               heading: "Git とは",
               body:
-                "Git はフォルダ (リポジトリ) 全体の変更履歴を記録するツールです。いつ・誰が・何を・なぜ変えたかが残るので、問題が起きたときに原因の変更を探したり、前の状態に戻したりできます。GitHub は Git のリポジトリをインターネット上で共有するサービスです。",
+                "Git はフォルダ (リポジトリ) 全体の変更履歴を記録するツールです。いつ・だれが・何を・なぜ変えたかが残るので、問題が起きたときに原因の変更を探したり、前の状態に戻したりできます。GitHub は Git のリポジトリをインターネット上で共有するサービスです。",
             },
             {
               heading: "リポジトリを作る",
@@ -292,12 +306,12 @@ export const MODULES: ModuleDef[] = [
             {
               heading: "3 つの場所",
               body:
-                "作業ツリー (編集中のファイル) → ステージ (次の commit に含める変更) → リポジトリ (記録済みの履歴)。\ngit add でステージに載せ、git commit で記録します。git status でいまどの状態かを確認します。",
+                "作業ツリー (編集中のファイル) → ステージ (次に記録する変更) → リポジトリ (記録済みの履歴)。\ngit add でステージに載せ、git commit で記録します (この記録を「コミット」と呼びます)。git status でいまどの状態かを確認します。",
             },
             {
               heading: "履歴と差分を見る",
               body:
-                "git log --oneline は commit の履歴を 1 行ずつ表示します (先頭の英数字は commit を見分ける ID です)。git diff は、まだ git add していない変更の中身を表示します。git diff --stat なら、どのファイルが何行変わったかの要約だけを表示します。commit の前に git diff で「意図した変更だけか」を確かめる習慣をつけましょう。",
+                "git log --oneline はコミットの履歴を 1 行ずつ表示します (先頭の英数字はコミットを見分ける ID です)。git diff は、まだ git add していない変更の中身を表示します。git diff --stat なら、どのファイルが何行変わったかの要約だけを表示します。コミットの前に git diff で「意図した変更だけか」を確かめる習慣をつけましょう。",
             },
             {
               heading: "ブランチ",
@@ -312,7 +326,7 @@ export const MODULES: ModuleDef[] = [
           examples: [
             {
               title: "セーブポイントのたとえ",
-              body: "commit はゲームのセーブポイントです。こまめにセーブしておけば、失敗してもその地点からやり直せます。ブランチは「本編のセーブデータを残したまま、別のデータで試す」ことに当たります。",
+              body: "コミットはゲームのセーブポイントです。こまめにセーブしておけば、失敗してもその地点からやり直せます。ブランチは「本編のセーブデータを残したまま、別のデータで試す」ことに当たります。",
             },
           ],
           code: [
@@ -326,10 +340,10 @@ export const MODULES: ModuleDef[] = [
           ],
           exercises: [
             {
-              title: "自分のリポジトリで 2 回 commit する",
+              title: "自分のリポジトリで 2 回コミットする",
               task:
-                "my-profile リポジトリを作り、README.md に名前を書いて 1 回目の commit をします。次に feature/goal ブランチを作り、README.md に「このコースの目標」を 1 行追記して 2 回目の commit をしてください。最後に git log --oneline で 2 件の履歴があることを確認します。",
-              hint: "2 回目の commit の前にも git add が必要です。",
+                "my-profile リポジトリを作り、README.md に名前を書いて 1 回目のコミットをします。次に feature/goal ブランチを作り、README.md に「このコースの目標」を 1 行追記して 2 回目のコミットをしてください。最後に git log --oneline で 2 件の履歴があることを確認します。",
+              hint: "2 回目のコミットの前にも git add が必要です。",
               answer: "git init -b main my-profile\ncd my-profile\necho \"# 山田花子\" > README.md\ngit add README.md\ngit commit -m \"docs: add README\"\ngit switch -c feature/goal\necho \"目標: Spring Boot で Web アプリを作る\" >> README.md\ngit diff\ngit add README.md\ngit commit -m \"docs: add goal\"\ngit log --oneline",
             },
           ],
@@ -353,9 +367,9 @@ export const MODULES: ModuleDef[] = [
               {
                 id: "q3",
                 question: "git add README.md の役割として正しいものはどれですか。",
-                choices: ["README.md の変更を、次の commit に含める (ステージに載せる)", "README.md を GitHub に送る", "README.md の変更を取り消す"],
+                choices: ["README.md の変更を、次のコミットに含める (ステージに載せる)", "README.md を GitHub に送る", "README.md の変更を取り消す"],
                 answerIndex: 0,
-                explanation: "git add はステージに載せるだけで、記録 (commit) も送信 (push) もしません。GitHub へ送るのは次のレッスンで学ぶ git push です。",
+                explanation: "git add はステージに載せるだけで、記録 (コミット) も送信 (push) もしません。GitHub へ送るのは次のレッスンで学ぶ git push です。",
               },
             ],
           },
@@ -370,15 +384,15 @@ export const MODULES: ModuleDef[] = [
             {
               error: "nothing added to commit",
               cause: "git add をせずに git commit した",
-              fix: "git status で変更を確認し、git add ファイル名 してから commit します。",
+              fix: "git status で変更を確認し、git add ファイル名 してから git commit します。",
             },
             {
-              error: "パスワードやキーを commit してしまった",
+              error: "パスワードやキーをコミットしてしまった",
               cause: ".env などの設定ファイルを git add . でまとめて追加した",
               fix: "すぐ講師に報告し、キーを無効化します。秘密情報のファイルは .gitignore に書いて追跡対象から外します。",
             },
           ],
-          reviewPoints: ["status → add → commit", "作業は main ではなくブランチで", "ブランチ作成は git switch -c", "秘密情報は commit しない (.gitignore)"],
+          reviewPoints: ["status → add → commit", "作業は main ではなくブランチで", "ブランチ作成は git switch -c", "秘密情報はコミットしない (.gitignore)"],
         },
       },
       L1_GITHUB,
@@ -402,7 +416,7 @@ export const MODULES: ModuleDef[] = [
             "整数同士の割り算と余りの結果を予測できる",
             "java Main.java で 1 ファイルのプログラムを実行できる",
           ],
-          prerequisites: ["ターミナルの基本操作", "JDK 21 のインストール (java -version で確認)"],
+          prerequisites: ["ターミナルの基本操作", "開発環境を整える (Windows / Mac)"],
           explanation: [
             {
               heading: "変数は名前の付いた箱",
@@ -411,7 +425,7 @@ export const MODULES: ModuleDef[] = [
             {
               heading: "よく使うデータ型",
               body:
-                "int: 整数 (-21億〜21億)\nlong: 大きな整数\ndouble: 小数 (誤差が出ることがあるため、お金の計算には使わない)\nboolean: true / false\nchar: 1 文字 ('A')\nString: 文字列 (\"こんにちは\")。String はクラス (参照型) で、先頭が大文字です。",
+                "int: 整数 (約 -21 億〜21 億)\nlong: 大きな整数\ndouble: 小数 (誤差が出ることがあるため、お金の計算には使わない)\nboolean: true / false\nchar: 1 文字 ('A')\nString: 文字列 (\"こんにちは\")。String はクラス (参照型) で、先頭が大文字です。",
             },
             {
               heading: "計算のルール",
@@ -442,11 +456,13 @@ export const MODULES: ModuleDef[] = [
               title: "自己紹介プログラム",
               task: "名前 (String)、年齢 (int)、身長 cm (double)、Java 経験の有無 (boolean) を変数にして、「山田花子 (25歳) 身長 158.5cm Java経験: false」のように 1 行で表示してください。",
               hint: "文字列と変数は + でつなげられます。",
+              answer: "例:\nString name = \"山田花子\";\nint age = 25;\ndouble height = 158.5;\nboolean hasJavaExperience = false;\nSystem.out.println(name + \" (\" + age + \"歳) 身長 \" + height + \"cm Java経験: \" + hasJavaExperience);\n表示: 山田花子 (25歳) 身長 158.5cm Java経験: false\n変数名はキャメルケース (hasJavaExperience) にします。",
             },
             {
               title: "結果を予測する",
               task: "実行する前に 10 / 4、10 % 4、10.0 / 4 の結果を紙に書き、実行して確かめてください。",
-              answer: "2、2、2.5",
+              hint: "整数同士の割り算は小数点以下が切り捨てられ、どちらかが小数なら結果も小数になります。% は割り算の余りです。",
+              answer: "10 / 4 は 2 (整数同士なので切り捨て)、10 % 4 は 2 (10 = 4 × 2 + 2)、10.0 / 4 は 2.5 です。",
             },
           ],
           quiz: {
@@ -547,6 +563,7 @@ export const MODULES: ModuleDef[] = [
               title: "送料計算",
               task: "購入金額 (int) から送料を決めるメソッドを書いてください。0 未満は「入力エラー」、5000 円以上は送料 0 円、それ未満は 500 円。0、4999、5000、-1 で動作を確認します。",
               hint: "境界値 (4999 と 5000) を必ず試します。",
+              answer: "例:\nstatic String shipping(int amount) {\n    if (amount < 0) {\n        return \"入力エラー\";\n    }\n    if (amount >= 5000) {\n        return \"送料 0 円\";\n    }\n    return \"送料 500 円\";\n}\n確認: 0 → 送料 500 円、4999 → 送料 500 円、5000 → 送料 0 円、-1 → 入力エラー。範囲外の値を最初に弾く (ガード節) と、後の条件が単純になります。",
             },
           ],
           quiz: {
@@ -603,7 +620,7 @@ export const MODULES: ModuleDef[] = [
             "for / 拡張 for / while を使い分けられる",
             "合計・平均・最大値を求めるプログラムを書ける",
           ],
-          prerequisites: ["変数とデータ型", "条件分岐"],
+          prerequisites: ["変数とデータ型", "条件分岐 (if / switch)"],
           explanation: [
             {
               heading: "配列",
@@ -640,12 +657,14 @@ export const MODULES: ModuleDef[] = [
             {
               title: "最低点と合格者数",
               task: "サンプルの scores から最低点と、70 点以上の人数を求めて表示してください。",
+              hint: "最低点は最初の要素を仮の最低点にして、より小さい値が出たら入れ替えます。人数は、条件に合うたびに count++ で数えます。",
               answer: "最低点: 61、70 点以上: 4 人",
             },
             {
               title: "九九の 1 行",
               task: "for 文を使い、3 の段 (3 6 9 ... 27) を 1 行に表示してください。",
               hint: "改行しない出力は System.out.print です。",
+              answer: "例:\nfor (int i = 1; i <= 9; i++) {\n    System.out.print(3 * i + \" \");\n}\nSystem.out.println();\n表示: 3 6 9 12 15 18 21 24 27",
             },
           ],
           quiz: {
@@ -702,7 +721,7 @@ export const MODULES: ModuleDef[] = [
             "void の意味を説明できる",
             "オーバーロードを使い分けられる",
           ],
-          prerequisites: ["変数とデータ型", "条件分岐", "繰り返しと配列"],
+          prerequisites: ["変数とデータ型", "条件分岐 (if / switch)", "繰り返しと配列"],
           explanation: [
             {
               heading: "メソッドとは",
@@ -743,6 +762,7 @@ export const MODULES: ModuleDef[] = [
             {
               title: "BMI を計算するメソッド",
               task: "身長 (m, double) と体重 (kg, double) を受け取り、BMI (体重 ÷ (身長 × 身長)) を返すメソッド bmi を作り、1.6m・50kg で呼び出して表示してください。次に、String.format で小数第 1 位まで表示してください。",
+              hint: "戻り値の型は double、引数は (double height, double weight) の 2 つです。表示を整えるのは、計算した後に String.format で行います。",
               answer: "weight / (height * height) で計算すると 19.531249999999996 と表示されます (double の誤差を含む値。weight / height / height と書くと 19.53125 になり、計算の順序で誤差が変わります)。String.format(\"%.1f\", bmi(1.6, 50)) は 19.5 です。",
             },
           ],
@@ -754,7 +774,7 @@ export const MODULES: ModuleDef[] = [
                 question: "戻り値を返さないメソッドの戻り値の型はどれですか。",
                 choices: ["null", "void", "empty"],
                 answerIndex: 1,
-                explanation: "void は「何も返さない」という意味です。",
+                explanation: "void は「このメソッドは値を返さない」という意味で、return 値; を書く必要がありません。null は「何も入っていない」ことを表す値で、型ではないため戻り値の型には書けません。",
               },
               {
                 id: "q2",
@@ -766,9 +786,9 @@ export const MODULES: ModuleDef[] = [
               {
                 id: "q3",
                 question: "withTax を price * 110 / 100 と整数で計算している理由はどれですか。",
-                choices: ["double だと誤差が出る可能性があるため", "速いため", "Java の決まりだから"],
+                choices: ["double だと誤差が出る可能性があるため", "計算が速くなるため", "int のほうが大きな金額を扱えるため"],
                 answerIndex: 0,
-                explanation: "お金の計算は整数で行い、端数の処理 (切り捨てなど) を明示します。",
+                explanation: "double は小数を 2 進数で表すため、0.1 + 0.2 が 0.30000000000000004 になるような誤差が出ます。お金の計算は整数 (円) で行い、端数の処理 (切り捨てなど) を明示します。扱える範囲は int より double のほうが広いので、範囲が理由ではありません。",
               },
             ],
           },
@@ -806,9 +826,9 @@ export const MODULES: ModuleDef[] = [
           objectives: [
             "クラス・フィールド・コンストラクタ・メソッドの役割を説明できる",
             "new でオブジェクトを作り、メソッドを呼び出せる",
-            "private と検証付きメソッドで、不正な状態を防げる (カプセル化)",
+            "フィールドを private にし、不正な値を例外で拒否するメソッドを持つクラスを書ける (カプセル化)",
           ],
-          prerequisites: ["メソッド"],
+          prerequisites: ["メソッド (処理に名前を付ける)"],
           explanation: [
             {
               heading: "クラスとオブジェクト",
@@ -820,7 +840,7 @@ export const MODULES: ModuleDef[] = [
             },
             {
               heading: "カプセル化",
-              body: "フィールドを private にすると、クラスの外から直接書き換えられなくなります。残高を変える方法をコンストラクタと deposit / withdraw に限定し、そのすべてで金額をチェックすれば「残高がマイナス」という不正な状態を防げます (サンプルでは初期残高がマイナス・入出金額が 0 以下・残高を超える出金を、それぞれ例外にしています)。チェックが 1 か所でも抜けると、そこから不正な状態が入り込みます。final を付けたフィールドは一度設定したら変更できません。",
+              body: "フィールドを private にすると、クラスの外から直接書き換えられなくなります。残高を変える方法をコンストラクタと deposit / withdraw に限定し、そのすべてで金額をチェックすれば「残高がマイナス」という不正な状態を防げます。サンプルでは、初期残高がマイナス・入出金額が 0 以下・残高を超える出金の 3 つを、それぞれ例外にしています。チェックが 1 か所でも抜けると、そこから不正な状態が入り込みます。final を付けたフィールドは一度設定したら変更できません。",
             },
             {
               heading: "例外で異常を知らせる",
@@ -845,10 +865,14 @@ export const MODULES: ModuleDef[] = [
             {
               title: "入金のチェックを確かめる",
               task: "main で account.deposit(0) を呼び、例外のメッセージが表示されるよう try / catch を書いてください。",
+              hint: "deposit(0) は IllegalArgumentException を投げます。catch (IllegalArgumentException e) で受け取り、e.getMessage() を表示します。",
+              answer: "例:\ntry {\n    account.deposit(0);\n} catch (IllegalArgumentException e) {\n    System.out.println(\"エラー: \" + e.getMessage());\n}\n表示: エラー: 入金額は 1 円以上にしてください\n例外が起きたので、残高は変わりません。",
             },
             {
               title: "商品クラスを作る",
               task: "name (変更不可) と stock (在庫数) を持つ Product クラスを作り、出荷メソッド ship(int qty) で在庫を減らしてください。在庫より多い数量や 0 以下の数量は例外にします。",
+              hint: "name は private final にしてコンストラクタで設定します。ship では、チェックをすべて通った後で stock を減らします。",
+              answer: "例:\nclass Product {\n    private final String name;\n    private int stock;\n\n    Product(String name, int stock) {\n        if (stock < 0) {\n            throw new IllegalArgumentException(\"在庫数は 0 以上にしてください\");\n        }\n        this.name = name;\n        this.stock = stock;\n    }\n\n    void ship(int qty) {\n        if (qty <= 0) {\n            throw new IllegalArgumentException(\"出荷数は 1 以上にしてください\");\n        }\n        if (qty > stock) {\n            throw new IllegalArgumentException(\"在庫不足です (在庫 \" + stock + \")\");\n        }\n        stock -= qty;\n    }\n\n    String getName() {\n        return name;\n    }\n\n    int getStock() {\n        return stock;\n    }\n}\n確認: 在庫 10 で ship(3) の後は 7。ship(0) と ship(8) は例外になり、在庫は 7 のままです。",
             },
           ],
           quiz: {
@@ -864,7 +888,7 @@ export const MODULES: ModuleDef[] = [
               {
                 id: "q2",
                 question: "コンストラクタが呼ばれるのはいつですか。",
-                choices: ["new でオブジェクトを作るとき", "メソッドを呼ぶたび", "プログラム終了時"],
+                choices: ["new でオブジェクトを作るとき", "メソッドを呼ぶたび", "フィールドに初めてアクセスしたとき"],
                 answerIndex: 0,
                 explanation: "new のときに 1 回だけ呼ばれ、初期化を行います。",
               },
@@ -912,26 +936,26 @@ export const ASSIGNMENTS: AssignmentDef[] = [
     type: "GITHUB_REPO",
     passScore: 70,
     body: {
-      purpose: "Git の基本操作 (commit・ブランチ) と、GitHub でリポジトリを公開する流れを一通り経験する。",
+      purpose: "Git の基本操作 (コミット・ブランチ) と、GitHub でリポジトリを公開する流れを一通り経験する。",
       scenario: "配属初日に「自己紹介を README にまとめてチームのリポジトリに PR を出して」と頼まれた想定です。",
       requirements: [
         "GitHub に public リポジトリ its-profile を作る",
         "README.md に名前 (ニックネーム可)・このコースの目標・学習計画を書く",
         "main 以外のブランチで作業し、PR を作って自分でマージする",
-        "commit が 3 件以上あり、メッセージが「種類: 内容」の形式",
+        "コミットが 3 件以上あり、メッセージが「種類: 内容」の形式",
       ],
       recommended: ["README に見出し (#) と箇条書きを使う", "PR の説明欄に変更内容を書く"],
       steps: [
         "GitHub でリポジトリを作成し、手元に git clone する",
         "git switch -c feature/profile でブランチを作る",
-        "README.md を編集して commit (3 回以上に分ける)",
+        "README.md を編集してコミットする (3 回以上に分ける)",
         "git push -u origin feature/profile で送る",
         "GitHub で PR を作成し、内容を確認してマージする",
       ],
       deliverables: ["リポジトリの URL", "マージした PR の URL (備考欄)"],
       readmeChecklist: ["名前", "このコースの目標", "週ごとの学習計画"],
       resubmitCondition: "要件のいずれかを満たしていない場合は修正依頼になります。指摘を直して再提出してください。",
-      interviewPoints: ["ブランチを使う理由", "commit と push の違い", "PR で何をレビューしてもらうか"],
+      interviewPoints: ["ブランチを使う理由", "コミットと push の違い", "PR で何をレビューしてもらうか"],
     },
   },
   {
