@@ -47,7 +47,7 @@
 次点は AWS (同等の機能だが設定項目が多い)。円建て・国内事業者を重視する場合はさくらのクラウドだが、
 PostgreSQL で任意時点への復元ができないため、個人情報を扱う本番 DB として許容できるかの判断が必要。
 
-## 4. 決定後の作業 (deployment-guide.md §7)
+## 4. 決定後の作業 (deployment-guide.md §7。Google Cloud の具体的な手順は [deploy-gcp.md](deploy-gcp.md))
 
 1. 契約・プロジェクト作成 (依頼者側)。請求先と管理者アカウントを決める
 2. DB の作成 (東京・自動バックアップ・PITR 有効)、秘密情報 (DATABASE_URL など) の登録

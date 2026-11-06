@@ -1,6 +1,6 @@
 # ITS ENGINEER ACADEMY — デプロイ・運用ガイド
 
-> 版: v0.3 (2026-11-06)。本番環境はまだ存在しない (契約が必要なため未作成、development-progress.md の D-03)。
+> 版: v0.4 (2026-11-06)。本番環境はまだ存在しない (契約が必要なため未作成、development-progress.md の D-03)。
 > 本書は「実施・確認済み」の手順と「本番化の手順案 (未実施・要承認)」を分けて記載する。
 
 ---
@@ -45,6 +45,8 @@ CI (`.github/workflows/its-academy.yml`) は上記に加えて Firefox / WebKit 
 | `APP_ENV` | 推奨 | `production` / `staging` / `test` / `local`。`NODE_ENV=production` のときの既定は `production` |
 | `COOKIE_SECURE` | 本番・検証で必須 | `true` で Cookie に Secure 属性、HSTS と `upgrade-insecure-requests` を付ける (HTTPS 前提)。**ヘッダーはビルド時に確定する**ため、ビルド時と実行時の両方で同じ値にする |
 | `NEXT_SERVER_ACTIONS_ENCRYPTION_KEY` | 複数台構成で必須 | サーバーアクションの暗号鍵を全台で揃える |
+| `TRUSTED_PROXY_HOPS` | 本番で推奨 | HTTPS を終端するプロキシの段数 (1 以上の整数)。ログイン試行の制限と監査ログの IP に `X-Forwarded-For` の末尾から数えた値を使い、利用者が書いた偽の値を使わない。未設定なら先頭の値 (プロキシなしのローカル向け)。Cloud Run は 1 (deploy-gcp.md §5) |
+| `BOOTSTRAP_ADMIN_EMAIL` / `BOOTSTRAP_ADMIN_NAME` / `BOOTSTRAP_ADMIN_PASSWORD` | 初期設定のときだけ | `npm run db:bootstrap` で作る最初のシステム管理者 (§7) |
 | `SEED_PASSWORD` | 任意 | 開発用 seed のパスワード |
 | `TEST_DATABASE_URL` | 任意 | E2E 用 DB |
 | `POSTGRES_PASSWORD` | docker compose で必須 | §5 の DB コンテナのパスワード |
@@ -149,13 +151,18 @@ docker run --rm --network its-academy_default -v "$PWD/scripts:/scripts:ro" -v "
 
 ## 7. 本番化の手順案 (未実施・要承認)
 
+Google Cloud の場合の具体的なコマンドは [deploy-gcp.md](deploy-gcp.md)。
+
+
 1. ホスティングと DB の選定・契約 (承認後、D-03)。候補: コンテナ実行環境 + マネージド PostgreSQL (日本リージョン、自動バックアップと PITR がある製品)
 2. シークレットの登録: `DATABASE_URL`、`NEXT_SERVER_ACTIONS_ENCRYPTION_KEY` (複数台の場合)。`APP_ENV=production`、`COOKIE_SECURE=true`
 3. イメージのビルド: `docker build -t its-academy .` と `docker build --target tools -t its-academy-tools .`
 4. リリースごとに `its-academy-tools` で `npx prisma migrate deploy` を実行してから `its-academy` を入れ替える
 5. HTTPS 終端 (TLS 1.2 以上)。リバースプロキシ配下なら `X-Forwarded-For` を信頼する範囲を限定する
 6. 死活監視に `/api/health` を登録し、標準エラーの JSON ログをログ基盤に送る
-7. 最初の SUPER_ADMIN を DB に直接作成 (seed は本番で動かない)。運用者 2 名で実施し、作成後すぐにパスワードを変更する
+7. 初期設定 `npm run db:bootstrap` (tools イメージ、確認済み) で教材を登録し、最初の SUPER_ADMIN を作る (seed は本番で動かない)。
+   運用者 2 名で実施し、初回ログイン時にパスワードを変更する。docker compose では
+   `BOOTSTRAP_ADMIN_EMAIL=... docker compose --profile setup run --rm bootstrap`
 8. 本番公開前チェック: test-plan.md の全項目成功、npm audit の残件の評価、復元訓練 1 回
 
 ## 8. 定期運用

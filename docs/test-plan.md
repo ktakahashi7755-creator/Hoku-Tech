@@ -10,7 +10,7 @@
 |----|--------|----------|-------------------|------|
 | 型検査 | TypeScript | `npm run typecheck` | — | エラー 0 |
 | 静的解析 | ESLint (next) | `npm run lint` | — | エラー 0 |
-| 単体 | Vitest | `npm test` | 69 件 / 8 ファイル | 全件成功 |
+| 単体 | Vitest | `npm test` | 74 件 / 9 ファイル | 全件成功 |
 | 教材コード検証 | JDK 21 / bash / Git / PostgreSQL 16 / Maven / Chromium | `npm run verify:code` | 30 サンプル (Java・bash・Git・SQL・Maven で起動する Spring Boot・Chromium でのブラウザ確認。L8 の 2 件を含む) | 全件一致 |
 | ビルド | Next.js | `npm run build` | — | 成功 |
 | E2E | Playwright (Chromium) | `npm run test:e2e -- --trace off` | 28 (01-lms 8・02-cms 4・03-a11y 5・04-accounts 3・05-cms-assignments 4・06-hardening 4) | 全件成功 |
