@@ -20,6 +20,14 @@
 
 ---
 
+## 別製品: ITS ENGINEER ACADEMY (`its-academy/`)
+
+`its-academy/` は ITS 合同会社向けの別製品 (Next.js + PostgreSQL の LMS) で、Hoku Tech 本体とは独立している。
+下記の「技術制約」は Hoku Tech 本体 (index.html / assets / data / scripts) に適用し、`its-academy/` には
+[its-academy/CLAUDE.md](its-academy/CLAUDE.md) のルールを適用する。どちらからも相手のファイルを変更しないこと。
+
+---
+
 ## 技術制約 (破ったら差し戻し)
 
 1. **外部ライブラリ / フレームワーク追加禁止** (React, Vue, jQuery, lodash,
