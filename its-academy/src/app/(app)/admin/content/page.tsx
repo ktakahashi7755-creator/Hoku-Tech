@@ -4,7 +4,7 @@ import { db } from "@/lib/db";
 import { requireUser } from "@/lib/auth/dal";
 import { ADMIN_ROLES } from "@/lib/auth/roles";
 import { applyScheduledPublishes } from "@/lib/content/publish";
-import { Badge, Card, PageHeader } from "@/components/ui";
+import { Badge, ButtonLink, Card, PageHeader } from "@/components/ui";
 import { formatDate, formatDateTime } from "@/lib/labels";
 import { MoveButtons, NewLessonForm } from "@/components/cms/cms-controls";
 import { LessonStatusToggle } from "./status-toggle";
@@ -28,6 +28,7 @@ export default async function ContentPage() {
       <PageHeader
         title="教材管理"
         description="レッスンの作成・編集・並べ替え・公開を行います。公開中の版は書き換えず、編集は新しい版の下書きとして保存されます。非公開にしても受講生の進捗と評価の履歴は消えません。"
+        actions={<ButtonLink variant="secondary" href="/admin/content/assignments">課題とルーブリック</ButtonLink>}
       />
       {modules.map((m) => (
         <Card key={m.id}>

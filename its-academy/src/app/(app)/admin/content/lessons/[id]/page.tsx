@@ -85,6 +85,7 @@ export default async function LessonEditPage({ params }: { params: Promise<{ id:
                   {v.sourceUrl && <a href={v.sourceUrl} target="_blank" rel="noreferrer" className="text-xs underline">移行元の記事</a>}
                   <div className="mt-2 flex flex-wrap items-center gap-2">
                     <Link href={`/admin/content/lessons/${lesson.id}/preview/${v.id}`} className="inline-flex min-h-11 items-center px-2 text-sm text-accent underline">プレビュー</Link>
+                    {v.version > 1 && <Link href={`/admin/content/lessons/${lesson.id}/diff/${v.id}`} className="inline-flex min-h-11 items-center px-2 text-sm text-accent underline">前の版との差分</Link>}
                     {v.id !== draft?.id && <VersionActions lessonId={lesson.id} versionId={v.id} canRepublish={!!v.publishedAt && v.id !== lesson.currentVersionId} />}
                   </div>
                 </li>
