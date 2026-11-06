@@ -64,3 +64,21 @@ describe("requiredRoles (描画前のロール確認)", () => {
     expect(requiredRoles("/home")).toBeNull();
   });
 });
+
+import { canManageAccount } from "@/lib/auth/roles";
+
+describe("canManageAccount (アカウント管理の範囲)", () => {
+  it("自分自身は操作できない", () => {
+    expect(canManageAccount({ id: "a", role: "SUPER_ADMIN" }, { id: "a", role: "SUPER_ADMIN" })).toBe(false);
+  });
+  it("ADMIN は講師・受講生を操作でき、他の ADMIN / SUPER_ADMIN は操作できない", () => {
+    expect(canManageAccount({ id: "a", role: "ADMIN" }, { id: "s", role: "STUDENT" })).toBe(true);
+    expect(canManageAccount({ id: "a", role: "ADMIN" }, { id: "i", role: "INSTRUCTOR" })).toBe(true);
+    expect(canManageAccount({ id: "a", role: "ADMIN" }, { id: "b", role: "ADMIN" })).toBe(false);
+    expect(canManageAccount({ id: "a", role: "ADMIN" }, { id: "x", role: "SUPER_ADMIN" })).toBe(false);
+  });
+  it("SUPER_ADMIN は自分以外を操作できる。講師は操作できない", () => {
+    expect(canManageAccount({ id: "x", role: "SUPER_ADMIN" }, { id: "b", role: "ADMIN" })).toBe(true);
+    expect(canManageAccount({ id: "i", role: "INSTRUCTOR" }, { id: "s", role: "STUDENT" })).toBe(false);
+  });
+});

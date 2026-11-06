@@ -35,6 +35,16 @@ export function canViewStudent(
   return false;
 }
 
+/**
+ * 他のアカウントを管理 (ロール変更・仮パスワード発行・停止) できるか。
+ * - 自分自身は対象にできない (自分の権限を上げる・自分を停止する事故を防ぐ)
+ * - 相手の現在のロールを、自分が付与できる範囲であること (ADMIN は他の ADMIN を操作できない)
+ */
+export function canManageAccount(actor: { id: string; role: Role }, target: { id: string; role: Role }): boolean {
+  if (actor.id === target.id) return false;
+  return canAssignRole(actor.role, target.role);
+}
+
 /** ロールを付与・変更できるか。自分より上位、または同格のロールは付与できない (SUPER_ADMIN を除く) */
 export function canAssignRole(actor: Role, target: Role): boolean {
   if (actor === "SUPER_ADMIN") return true;

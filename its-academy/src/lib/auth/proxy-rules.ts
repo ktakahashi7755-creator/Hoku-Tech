@@ -6,6 +6,7 @@ const RULES: { prefix: string; roles: readonly Role[] }[] = [
   { prefix: "/admin/content", roles: ADMIN_ROLES },
   { prefix: "/admin/settings", roles: ADMIN_ROLES },
   { prefix: "/admin/students/new", roles: ADMIN_ROLES },
+  { prefix: "/admin/users", roles: ADMIN_ROLES },
   { prefix: "/admin", roles: STAFF_ROLES },
 ];
 

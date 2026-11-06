@@ -4,7 +4,7 @@ import { requireUser } from "@/lib/auth/dal";
 import { ADMIN_ROLES, ROLE_LABEL } from "@/lib/auth/roles";
 import { getStagnationThreshold } from "@/lib/queries/settings";
 import { Card, PageHeader, ScrollRegion } from "@/components/ui";
-import { SettingsForm } from "@/components/staff-forms";
+import { CleanupButton, SettingsForm } from "@/components/staff-forms";
 import { formatDateTime } from "@/lib/labels";
 
 export const metadata: Metadata = { title: "設定" };
@@ -19,6 +19,11 @@ export default async function SettingsPage() {
       <Card className="max-w-xl">
         <h2 className="font-bold">学習停滞の検知</h2>
         <div className="mt-4"><SettingsForm threshold={threshold} /></div>
+      </Card>
+      <Card className="max-w-xl">
+        <h2 className="font-bold">記録の整理</h2>
+        <p className="mt-1 text-sm text-muted">期限切れのログインセッションと、30 日より古いログイン試行の記録を削除します (月 1 回を目安)。</p>
+        <div className="mt-4"><CleanupButton /></div>
       </Card>
       <Card>
         <h2 className="font-bold">監査ログ (直近 30 件)</h2>

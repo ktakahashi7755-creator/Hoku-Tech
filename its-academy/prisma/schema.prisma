@@ -79,6 +79,7 @@ model User {
   affiliation      String? // 所属
   joinedAt         DateTime? @db.Date // 入校日
   isActive         Boolean   @default(true)
+  mustChangePassword Boolean @default(false) // 管理者が発行した仮パスワードのまま
   lastLoginAt      DateTime?
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt

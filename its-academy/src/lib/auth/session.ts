@@ -32,6 +32,7 @@ export type SessionUser = {
   name: string;
   email: string;
   role: import("@prisma/client").Role;
+  mustChangePassword: boolean;
 };
 
 /** Cookie のトークンを検証し、有効ならユーザーを返す。期限切れ・無効ユーザーは null */
@@ -40,7 +41,7 @@ export async function validateSession(): Promise<SessionUser | null> {
   if (!token) return null;
   const session = await db.session.findUnique({
     where: { tokenHash: hashSessionToken(token) },
-    include: { user: { select: { id: true, name: true, email: true, role: true, isActive: true } } },
+    include: { user: { select: { id: true, name: true, email: true, role: true, isActive: true, mustChangePassword: true } } },
   });
   if (!session) return null;
   const now = Date.now();

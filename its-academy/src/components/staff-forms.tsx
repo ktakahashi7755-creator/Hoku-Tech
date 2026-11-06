@@ -1,6 +1,7 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState, useTransition } from "react";
+import { cleanupStaleRecords } from "@/app/actions/accounts";
 import { addComment, addSkillAssessment, createStudent, updateEnrollment, updateSettings, type NewStudentState } from "@/app/actions/staff";
 import type { FormState } from "@/app/actions/auth";
 import { Button, Field, inputStyles } from "./ui";
@@ -127,5 +128,18 @@ export function SettingsForm({ threshold }: { threshold: number }) {
       <Feedback state={state} />
       <Button type="submit" disabled={pending} className="self-start">保存</Button>
     </form>
+  );
+}
+
+export function CleanupButton() {
+  const [state, setState] = useState<{ ok?: string } | undefined>(undefined);
+  const [pending, start] = useTransition();
+  return (
+    <div className="flex flex-col gap-2">
+      <Button type="button" variant="secondary" className="self-start" disabled={pending} onClick={() => start(async () => setState(await cleanupStaleRecords()))}>
+        古い記録を削除する
+      </Button>
+      <div aria-live="polite">{state?.ok && <p role="status" className="text-sm text-success">{state.ok}</p>}</div>
+    </div>
   );
 }

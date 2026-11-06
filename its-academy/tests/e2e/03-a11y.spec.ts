@@ -40,7 +40,7 @@ test("講師・管理者の画面", async ({ page }) => {
   const studentUrl = await page.getByRole("link", { name: "佐藤 健" }).getAttribute("href");
   await page.goto("/admin/content");
   const lessonUrl = await page.getByRole("link", { name: "変数とデータ型" }).getAttribute("href");
-  for (const path of ["/admin", "/admin/students", studentUrl!, "/admin/reviews?view=done", "/admin/settings", "/admin/content", lessonUrl!, "/admin/students/new"]) {
+  for (const path of ["/admin", "/admin/students", studentUrl!, "/admin/reviews?view=done", "/admin/settings", "/admin/content", lessonUrl!, "/admin/students/new", "/admin/users"]) {
     await audit(page, path);
   }
   await logout(page);

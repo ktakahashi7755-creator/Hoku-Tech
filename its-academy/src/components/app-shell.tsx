@@ -24,6 +24,7 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
         ...(isAdmin(user.role)
           ? [
               { href: "/admin/content", label: "教材管理" },
+              { href: "/admin/users", label: "アカウント" },
               { href: "/admin/settings", label: "設定" },
             ]
           : []),
@@ -52,6 +53,11 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
         <NavLinks items={nav} />
       </header>
       <main id="main" className="mx-auto max-w-6xl px-4 py-8">
+        {user.mustChangePassword && (
+          <p role="alert" className="mb-6 rounded-lg border border-warning bg-warning-soft p-4 text-warning">
+            仮パスワードでログインしています。<Link href="/me" className="font-semibold underline">マイページ</Link>でパスワードを変更してください。
+          </p>
+        )}
         {children}
       </main>
     </div>

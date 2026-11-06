@@ -47,6 +47,9 @@ export async function login(_prev: FormState, formData: FormData): Promise<FormS
   await createSession(user.id);
   await db.user.update({ where: { id: user.id }, data: { lastLoginAt: new Date() } });
   await audit({ actorId: user.id, action: "auth.login" });
+  // 期限切れのセッションをこのタイミングで片付ける
+  await db.session.deleteMany({ where: { userId: user.id, expiresAt: { lt: new Date() } } });
+  if (user.mustChangePassword) redirect("/me?changePassword=1");
   redirect(isStaff(user.role) ? "/admin" : "/home");
 }
 
@@ -75,7 +78,10 @@ export async function changePassword(_prev: FormState, formData: FormData): Prom
   if (!(await verifyPassword(user.passwordHash, parsed.data.current))) {
     return { fieldErrors: { current: "現在のパスワードが正しくありません" } };
   }
-  await db.user.update({ where: { id: me.id }, data: { passwordHash: await hashPassword(parsed.data.next) } });
+  if (parsed.data.next === parsed.data.current) {
+    return { fieldErrors: { next: "現在のパスワードと違うパスワードにしてください" } };
+  }
+  await db.user.update({ where: { id: me.id }, data: { passwordHash: await hashPassword(parsed.data.next), mustChangePassword: false } });
   // 他の端末のセッションを無効化し、この端末は新しいセッションで継続する
   await revokeAllSessions(me.id);
   await createSession(me.id);

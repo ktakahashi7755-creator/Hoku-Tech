@@ -207,6 +207,7 @@ export async function createStudent(_prev: NewStudentState, formData: FormData):
       affiliation: input.affiliation,
       joinedAt: input.joinedAt ? new Date(input.joinedAt) : null,
       passwordHash: await hashPassword(tempPassword),
+      mustChangePassword: true, // 初回ログイン時にパスワードの変更を求める
       enrollments: {
         create: {
           courseId: course.id,
