@@ -45,7 +45,7 @@ CI (`.github/workflows/its-academy.yml`) は上記に加えて Firefox / WebKit 
 | `APP_ENV` | 推奨 | `production` / `staging` / `test` / `local`。`NODE_ENV=production` のときの既定は `production` |
 | `COOKIE_SECURE` | 本番・検証で必須 | `true` で Cookie に Secure 属性、HSTS と `upgrade-insecure-requests` を付ける (HTTPS 前提)。**ヘッダーはビルド時に確定する**ため、ビルド時と実行時の両方で同じ値にする |
 | `NEXT_SERVER_ACTIONS_ENCRYPTION_KEY` | 複数台構成で必須 | サーバーアクションの暗号鍵を全台で揃える |
-| `TRUSTED_PROXY_HOPS` | 本番で推奨 | HTTPS を終端するプロキシの段数 (1 以上の整数)。ログイン試行の制限と監査ログの IP に `X-Forwarded-For` の末尾から数えた値を使い、利用者が書いた偽の値を使わない。未設定なら先頭の値 (プロキシなしのローカル向け)。Cloud Run は 1 (deploy-gcp.md §5) |
+| `TRUSTED_PROXY_HOPS` | 本番・検証で必須 | HTTPS を終端するプロキシの段数 (1 以上の整数)。ログイン試行の制限と監査ログの IP に `X-Forwarded-For` の末尾から数えた値を使い、利用者が書いた偽の値を使わない。未設定なら IP を記録しない (ローカル向け。メールアドレス単位の試行制限は常に有効)。Cloud Run は 1 (deploy-gcp.md §5)、docker compose は既定で 1 (手前に HTTPS のリバースプロキシを 1 段置く前提) |
 | `BOOTSTRAP_ADMIN_EMAIL` / `BOOTSTRAP_ADMIN_NAME` / `BOOTSTRAP_ADMIN_PASSWORD` | 初期設定のときだけ | `npm run db:bootstrap` で作る最初のシステム管理者 (§7) |
 | `SEED_PASSWORD` | 任意 | 開発用 seed のパスワード |
 | `TEST_DATABASE_URL` | 任意 | E2E 用 DB |
@@ -59,7 +59,7 @@ CI (`.github/workflows/its-academy.yml`) は上記に加えて Firefox / WebKit 
 
 | `APP_ENV` | 確認内容 |
 |-----------|----------|
-| production / staging | `DATABASE_URL` があること、`COOKIE_SECURE=true`、開発用・初期値のパスワード (`its_dev_only` など) を使っていないこと |
+| production / staging | `DATABASE_URL` があること、`COOKIE_SECURE=true`、`TRUSTED_PROXY_HOPS` があること、開発用・初期値のパスワード (`its_dev_only` など) を使っていないこと |
 | test / local | `DATABASE_URL` があること |
 
 ## 4. 監視・ログ (確認済み)
@@ -115,6 +115,7 @@ docker compose down                          # 停止 (-v を付けると DB の
 | スクリプト | 内容 |
 |------------|------|
 | `scripts/backup.sh` | `pg_dump --format=custom` で `BACKUP_DIR` (既定 `./backups`) に `its_academy-<UTC時刻>.dump` を作る。`pg_restore --list` で読み戻せることを確認してから保存し、失敗時は途中のファイルを残さない。ファイルは所有者のみ読み書き可 (umask 077)。`BACKUP_RETENTION_DAYS` (既定 14) 日より古い `its_academy-*.dump` だけを削除する |
+| `scripts/pg-env.sh` | 2 つのスクリプトから読み込む。`DATABASE_URL` のパスワードを `PGPASSWORD` に移し、コマンドライン (他の利用者が `ps` で見られる) にパスワードを載せない |
 | `scripts/restore.sh` | `pg_restore --clean --if-exists --single-transaction` で復元。復元先の DB 名を表示して `yes` の入力を求める (`RESTORE_CONFIRM=yes` で省略) |
 
 ```bash

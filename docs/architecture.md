@@ -65,14 +65,18 @@ PostgreSQL (Prisma)
 | 項目 | 実装 | ファイル |
 |------|------|----------|
 | パスワード保存 | argon2id (m=19MiB, t=2, p=1)。最小 12 文字 | `src/lib/auth/password.ts` |
-| セッション | 256bit ランダムトークンを Cookie に、DB には SHA-256 ハッシュのみ保存。7 日で失効、残り 1 日で延長 | `src/lib/auth/session.ts` |
+| セッション | 256bit ランダムトークンを Cookie に、DB には SHA-256 ハッシュのみ保存。7 日で失効、残り 1 日で延長。延長を続けてもログインから 30 日で再ログインが必要 | `src/lib/auth/session.ts` |
 | Cookie | HttpOnly / SameSite=Lax / Secure (本番は `COOKIE_SECURE=true`) | 同上 |
 | ログイン試行制限 | 15 分間にメール単位 5 回・IP 単位 30 回の失敗で拒否 | `src/lib/auth/rate-limit.ts` |
 | アカウント列挙対策 | 失敗メッセージを統一。存在しないユーザーでも照合用の固定ハッシュと照合して応答時間を揃える | `src/app/actions/auth.ts` |
 | パスワード変更 | 全セッションを失効させてから新しいセッションを発行 | 同上 |
+| 採点・コメント・スキル評価 | 対象が受講生 (STUDENT) であり、自分自身でないことを確認 (`assertCanActOnStudent`)。採点の確定は状態を条件にした更新で取り合い、同時に 2 人が確定しても 1 件だけ保存 | `src/lib/queries/student.ts`, `src/app/actions/staff.ts` |
+| 理解度チェック | 正解と解説は合格したときだけ返す。解いている間に新しい版が公開された場合は採点しない | `src/app/actions/learning.ts` |
+| 利用者の IP | `TRUSTED_PROXY_HOPS` (本番・検証で必須) の段数だけ `X-Forwarded-For` の末尾から数えた値。未設定なら記録しない | `src/lib/client-ip.ts` |
+| 教材の公開 | 下書き保存・確定・公開・予約を、直列化可能なトランザクションで実行 (公開直前の版を下書き保存が上書きしない)。予約公開は内容を検証してから切り替える | `src/app/actions/cms.ts`, `src/lib/content/publish.ts` |
 | 認可 | 全ページ・全サーバーアクション・Route Handler で `requireUser(roles)` | `src/lib/auth/dal.ts` |
 | 個人データの分離 | 受講生本人 / 管理者 / **その受講生の担当講師**のみ閲覧可 (`canViewStudent`) | `src/lib/auth/roles.ts`, `src/lib/queries/student.ts` |
-| ロール付与・アカウント操作 | ADMIN は INSTRUCTOR / STUDENT のみ付与・操作可、SUPER_ADMIN はすべて。自分自身は操作できない (`canAssignRole`, `canManageAccount`)。仮パスワード発行時は全セッションを失効し、次回ログインで変更を必須にする | `src/lib/auth/roles.ts`, `src/app/actions/accounts.ts` |
+| ロール付与・アカウント操作 | ADMIN は INSTRUCTOR / STUDENT のみ付与・操作可、SUPER_ADMIN はすべて。自分自身は操作できない (`canAssignRole`, `canManageAccount`)。仮パスワード発行時は全セッションを失効し、次回ログインで変更を必須にする。仮パスワード・初期パスワードのままでは、マイページ (パスワード変更) 以外の画面と操作を使えない (`requireUser`) | `src/lib/auth/roles.ts`, `src/app/actions/accounts.ts` |
 | CSRF | サーバーアクションは POST のみ + Next.js が Origin と Host を照合 + SameSite=Lax | Next.js 組み込み |
 | XSS | 教材本文は HTML として解釈せず React のエスケープで表示 (`RichText`)。`dangerouslySetInnerHTML` 不使用 | `src/components/lesson/rich-text.tsx` |
 | 入力検証 | すべて zod でサーバー側検証 (長さ・形式・列挙値)。GitHub URL は正規表現で限定 | `src/app/actions/*.ts`, `src/lib/validation.ts` |
