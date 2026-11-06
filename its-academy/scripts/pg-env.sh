@@ -5,8 +5,9 @@ pg_url_without_password() {
   local url="$1" re='^(postgres(ql)?://)([^:@/]+):([^@]*)@(.*)$'
   if [[ "$url" =~ $re ]]; then
     local encoded="${BASH_REMATCH[4]}"
-    # %xx 形式のパーセントエンコードを戻す
-    PGPASSWORD="$(printf '%b' "${encoded//%/\\x}")"
+    # %xx 形式のパーセントエンコードだけを戻す (パスワードに含まれる \ は文字のまま扱う)
+    local escaped="${encoded//\\/\\\\}"
+    PGPASSWORD="$(printf '%b' "${escaped//%/\\x}")"
     export PGPASSWORD
     PG_URL="${BASH_REMATCH[1]}${BASH_REMATCH[3]}@${BASH_REMATCH[5]}"
   else

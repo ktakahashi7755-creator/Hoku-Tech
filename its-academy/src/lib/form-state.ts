@@ -16,3 +16,15 @@ export function fieldErrors(error: z.ZodError): Record<string, string> {
   }
   return out;
 }
+
+/**
+ * 入力の形 (長さの上限・件数の上限など) の検証エラーを、画面に出せる文の一覧にする。
+ * 例外で画面ごと落とすと、編集中の内容が失われるため、メッセージとして返す。
+ */
+export function shapeErrors(error: z.ZodError): string[] {
+  return error.issues.slice(0, 5).map((i) => {
+    const where = i.path.length ? `${i.path.join(" > ")}: ` : "";
+    if (i.code === "too_big") return `${where}長すぎるか、項目が多すぎます (上限 ${"maximum" in i ? String(i.maximum) : ""})`;
+    return `${where}${i.message}`;
+  });
+}

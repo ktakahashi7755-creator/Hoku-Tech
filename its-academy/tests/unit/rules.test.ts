@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { isEditableDraft } from "@/lib/content/versions";
 import { strugglingAssignments, weakLessons } from "@/lib/progress/guidance";
-import { reachableAssignments } from "@/lib/progress/metrics";
+import { latestSubmissionByAssignment, reachableAssignments } from "@/lib/progress/metrics";
 
 describe("isEditableDraft", () => {
   const lesson = { currentVersionId: "v1", scheduledVersionId: "v2" };
@@ -51,5 +51,20 @@ describe("reachableAssignments", () => {
       { id: "c", lessonId: null },
     ];
     expect(reachableAssignments(list, new Set(["published"])).map((a) => a.id)).toEqual(["a", "c"]);
+  });
+});
+
+describe("latestSubmissionByAssignment", () => {
+  it("修正依頼の後に下書きを保存しても、最新の提出は修正依頼の回のまま", () => {
+    const subs = [
+      { id: "3", assignmentId: "a", status: "DRAFT" },
+      { id: "2", assignmentId: "a", status: "CHANGES_REQUESTED" },
+      { id: "1", assignmentId: "a", status: "CHANGES_REQUESTED" },
+      { id: "9", assignmentId: "b", status: "DRAFT" },
+    ];
+    const latest = latestSubmissionByAssignment(subs);
+    expect(latest.get("a")?.id).toBe("2");
+    // まだ一度も提出していない課題は下書きを返す
+    expect(latest.get("b")?.id).toBe("9");
   });
 });

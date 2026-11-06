@@ -17,7 +17,7 @@ export default async function AssignmentsPage() {
     );
   return (
     <div>
-      <PageHeader title="課題" description="前提のレッスンを完了すると取り組めます。講師がルーブリックで採点し、コメントを返します。" />
+      <PageHeader title="課題" description="前提のレッスンを完了すると取り組めます。講師が評価の観点 (ルーブリック) に沿って採点し、コメントを返します。" />
       {overview.assignments.length === 0 ? (
         <EmptyState>公開中の課題はまだありません。</EmptyState>
       ) : (
@@ -45,7 +45,7 @@ export default async function AssignmentsPage() {
                 <td className="px-4 py-3">{ASSIGNMENT_TYPE_LABEL[a.type]}</td>
                 <td className="px-4 py-3">{a.unlocked ? <SubmissionBadge status={a.latestStatus} /> : <Badge>前提レッスン未完了</Badge>}</td>
                 <td className="px-4 py-3 tabular-nums">{a.attempts}</td>
-                <td className="px-4 py-3 tabular-nums">{a.latestReviewScore === null ? "—" : `${a.latestReviewScore} / 合格 ${a.passScore}`}</td>
+                <td className="px-4 py-3 tabular-nums">{a.latestReviewScore === null ? "—" : `${a.latestReviewScore} 点 (合格点 ${a.passScore} 点)`}</td>
                 <td className="whitespace-nowrap px-4 py-3">{formatDate(a.lastSubmittedAt)}</td>
               </tr>
             ))}

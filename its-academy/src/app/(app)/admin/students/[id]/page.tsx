@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
@@ -12,6 +13,9 @@ import { WeekChart } from "@/components/week-chart";
 import { SubmissionBadge } from "@/components/status-badge";
 import { CommentForm, EnrollmentForm, SkillForm } from "@/components/staff-forms";
 import { formatDate, formatDateTime, formatMinutes } from "@/lib/labels";
+
+// 受講生名などは入れない (ページ名はアクセス権の確認とは別に作られるため)
+export const metadata: Metadata = { title: "受講生の詳細" };
 
 export default async function StudentDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -56,7 +60,7 @@ export default async function StudentDetailPage({ params }: { params: Promise<{ 
         <Card>
           <h2 className="font-bold">現在地と期間</h2>
           <dl className="mt-3 grid grid-cols-[8rem_1fr] gap-y-2 text-sm">
-            <dt className="text-muted">現在の章</dt>
+            <dt className="text-muted">現在の学習領域</dt>
             <dd>{o.current ? `${o.current.level} ${o.current.moduleTitle} / ${o.current.title}` : "公開中の全レッスン完了"}</dd>
             <dt className="text-muted">学習開始</dt>
             <dd>{formatDate(o.enrollment.startedAt)} (開始から {o.daysSinceStart} 日)</dd>
@@ -99,9 +103,9 @@ export default async function StudentDetailPage({ params }: { params: Promise<{ 
                     <td className="py-2">
                       {latest ? <Link className="text-accent underline" href={`/admin/reviews/${latest.id}`}>{a.title}</Link> : a.title}
                     </td>
-                    <td className="py-2">{a.unlocked ? <SubmissionBadge status={a.latestStatus} /> : <Badge>前提未完了</Badge>}</td>
+                    <td className="py-2">{a.unlocked ? <SubmissionBadge status={a.latestStatus} /> : <Badge>前提レッスン未完了</Badge>}</td>
                     <td className="py-2 tabular-nums">{a.attempts}</td>
-                    <td className="py-2 tabular-nums">{a.latestReviewScore === null ? "—" : `${a.latestReviewScore} / 合格 ${a.passScore}`}</td>
+                    <td className="py-2 tabular-nums">{a.latestReviewScore === null ? "—" : `${a.latestReviewScore} 点 (合格点 ${a.passScore} 点)`}</td>
                     <td className="whitespace-nowrap py-2">{formatDate(a.lastSubmittedAt)}</td>
                   </tr>
                 );
@@ -120,7 +124,7 @@ export default async function StudentDetailPage({ params }: { params: Promise<{ 
             <ul className="mt-3 flex flex-col gap-3 text-sm">
               {feedback.map((f) => (
                 <li key={f.id} className="rounded-lg bg-surface p-3">
-                  <p className="font-semibold">{titleOf.get(f.assignmentId)} ({f.attemptNo} 回目・{f.totalScore} 点)</p>
+                  <p className="font-semibold">{titleOf.get(f.assignmentId)} ({f.attemptNo} 回目 ・ {f.totalScore} 点)</p>
                   <p className="mt-1 whitespace-pre-wrap">{f.comment}</p>
                   <p className="mt-1 text-xs text-muted">{f.reviewer.name} ・ {formatDate(f.createdAt)}</p>
                 </li>
@@ -129,7 +133,7 @@ export default async function StudentDetailPage({ params }: { params: Promise<{ 
           )}
         </Card>
         <Card>
-          <h2 className="font-bold">スキル評価 (不足している能力)</h2>
+          <h2 className="font-bold">スキル評価</h2>
           {o.skills.length === 0 ? (
             <p className="mt-3 text-sm text-muted">まだ評価していません。</p>
           ) : (
@@ -162,7 +166,7 @@ export default async function StudentDetailPage({ params }: { params: Promise<{ 
               <li key={c.id} className="rounded-lg bg-surface p-3">
                 <p className="whitespace-pre-wrap">{c.body}</p>
                 <p className="mt-1 text-xs text-muted">
-                  {c.author.name} ・ {formatDateTime(c.createdAt)} ・ {c.visibility === "STUDENT" ? "受講生に表示" : "講師のみ"}
+                  {c.author.name} ・ {formatDateTime(c.createdAt)} ・ {c.visibility === "STUDENT" ? "受講生にも表示" : "講師・管理者のみ"}
                 </p>
               </li>
             ))}
@@ -173,7 +177,7 @@ export default async function StudentDetailPage({ params }: { params: Promise<{ 
         </Card>
         {isAdmin(viewer.role) && (
           <Card>
-            <h2 className="font-bold">受講設定 (コース割当・期限)</h2>
+            <h2 className="font-bold">受講設定 (担当講師・期限・受講状態)</h2>
             <p className="mt-1 text-sm text-muted">{o.enrollment.course.title}</p>
             <div className="mt-4">
               <EnrollmentForm

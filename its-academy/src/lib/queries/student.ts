@@ -13,6 +13,7 @@ import {
   nextAction,
   paceAgainstTarget,
   jstDayStart,
+  latestSubmissionByAssignment,
   reachableAssignments,
   type SubmissionStatusValue,
 } from "@/lib/progress/metrics";
@@ -178,9 +179,7 @@ function buildOverview(studentId: string, data: OverviewData, now: Date) {
     })),
   );
 
-  // 課題ごとの最新提出
-  const latestByAssignment = new Map<string, (typeof submissions)[number]>();
-  for (const s of submissions) if (!latestByAssignment.has(s.assignmentId)) latestByAssignment.set(s.assignmentId, s);
+  const latestByAssignment = latestSubmissionByAssignment(submissions);
   const attemptsByAssignment = new Map<string, number>();
   for (const s of submissions) {
     if (s.status !== "DRAFT") attemptsByAssignment.set(s.assignmentId, (attemptsByAssignment.get(s.assignmentId) ?? 0) + 1);

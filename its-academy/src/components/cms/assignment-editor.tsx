@@ -33,7 +33,7 @@ export function AssignmentEditor({ id, initial, rubricId, rubrics }: { id: strin
       onSubmit={(e) => {
         e.preventDefault();
         start(async () => {
-          const r = await updateAssignment(id, f, rubric);
+          const r = await updateAssignment(id, f, rubric).catch((): AssignState => ({ errors: ["保存できませんでした。通信を確認して、もう一度お試しください (入力した内容は画面に残っています)。"] }));
           setState(r);
           if (r?.ok) router.refresh();
         });
@@ -93,7 +93,7 @@ export function RubricEditor({ id, name, initial }: { id: string; name: string; 
       onSubmit={(e) => {
         e.preventDefault();
         start(async () => {
-          const r = await updateRubric(id, n, rows);
+          const r = await updateRubric(id, n, rows).catch((): AssignState => ({ errors: ["保存できませんでした。通信を確認して、もう一度お試しください (入力した内容は画面に残っています)。"] }));
           setState(r);
           if (r?.ok) router.refresh();
         });
@@ -129,7 +129,7 @@ export function RubricEditor({ id, name, initial }: { id: string; name: string; 
         </Card>
       ))}
       <Button type="button" variant="secondary" className="self-start" onClick={() => setRows((p) => [...p, { key: "", label: "", weight: 0, description: "" }])}>観点を追加</Button>
-      <p className={total === 100 ? "font-semibold text-success" : "font-semibold text-warning"} aria-live="polite">配点の合計: {total} / 100</p>
+      <p className={total === 100 ? "font-semibold text-success" : "font-semibold text-warning"} aria-live="polite">配点の合計: {total} / 100 点</p>
       <FormMessage state={state} />
       <div className="flex flex-wrap gap-3">
         <Button type="submit" disabled={pending}>保存</Button>

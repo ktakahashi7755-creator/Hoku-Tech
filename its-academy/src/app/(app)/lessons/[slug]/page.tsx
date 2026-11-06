@@ -54,7 +54,7 @@ export default async function LessonPage({ params }: { params: Promise<{ slug: s
   const relatedAssignment = await db.assignment.findFirst({ where: { lessonId: lesson.id, status: "PUBLISHED" } });
 
   const chapterNav = (
-    <nav aria-label="章の一覧">
+    <nav aria-label="レッスンの一覧">
       {modules
         .filter((m) => m.lessons.length > 0)
         .map((m) => (
@@ -77,7 +77,7 @@ export default async function LessonPage({ params }: { params: Promise<{ slug: s
                     >
                       <span aria-hidden className={cx("size-2 shrink-0 rounded-full", st === "COMPLETED" ? "bg-success" : st === "IN_PROGRESS" ? "bg-accent" : "bg-border")} />
                       <span className="min-w-0">{l.currentVersion.title}</span>
-                      {st === "COMPLETED" && <span className="sr-only">(完了)</span>}
+                      {st === "COMPLETED" && <span className="sr-only">(学習完了)</span>}
                       {st === "IN_PROGRESS" && <span className="sr-only">(学習中)</span>}
                     </Link>
                   </li>
@@ -96,7 +96,7 @@ export default async function LessonPage({ params }: { params: Promise<{ slug: s
       {/* 章ナビゲーション: PC は左に常時表示、スマホは折りたたみ (教材を優先表示) */}
       <aside className="lg:sticky lg:top-28 lg:max-h-[calc(100dvh-8rem)] lg:self-start lg:overflow-y-auto">
         <details className="rounded-xl border border-border lg:hidden">
-          <summary className="flex min-h-11 cursor-pointer items-center px-4 font-semibold">章の一覧を開く</summary>
+          <summary className="flex min-h-11 cursor-pointer items-center px-4 font-semibold">レッスンの一覧を開く</summary>
           <div className="p-2">{chapterNav}</div>
         </details>
         <div className="hidden lg:block">{chapterNav}</div>
@@ -115,7 +115,7 @@ export default async function LessonPage({ params }: { params: Promise<{ slug: s
           </div>
           {hasEnrollment(overview) && (
             <div className="mt-4 max-w-sm">
-              <ProgressBar value={overview.metrics.lessonCompletion} label="コース内の進捗" />
+              <ProgressBar value={overview.metrics.lessonCompletion} label="教材の履修率" />
             </div>
           )}
           {content.videoUrl && (

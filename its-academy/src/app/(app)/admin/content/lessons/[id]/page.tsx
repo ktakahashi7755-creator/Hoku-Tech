@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
@@ -9,6 +10,9 @@ import { Badge, ButtonLink, Card, PageHeader } from "@/components/ui";
 import { LessonEditor } from "@/components/cms/lesson-editor";
 import { CancelScheduleButton, PublishPanel, VersionActions } from "@/components/cms/cms-controls";
 import { formatDateTime } from "@/lib/labels";
+
+// 受講生名などは入れない (ページ名はアクセス権の確認とは別に作られるため)
+export const metadata: Metadata = { title: "レッスンの編集" };
 
 export default async function LessonEditPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;

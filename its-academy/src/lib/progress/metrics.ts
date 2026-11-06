@@ -257,3 +257,16 @@ export function totalRubricScore(scores: readonly { weight: number; score: numbe
 export function reachableAssignments<T extends { lessonId: string | null }>(assignments: readonly T[], publishedLessonIds: ReadonlySet<string>): T[] {
   return assignments.filter((a) => !a.lessonId || publishedLessonIds.has(a.lessonId));
 }
+
+/**
+ * 課題ごとの最新の提出 (submissions は回数の新しい順)。下書きは提出ではないため、提出済みの回があればそちらを使う
+ * (修正依頼の後に下書きを保存しても、修正依頼・前回の得点・指導提案が消えないように)。
+ */
+export function latestSubmissionByAssignment<T extends { assignmentId: string; status: string }>(submissions: readonly T[]): Map<string, T> {
+  const latest = new Map<string, T>();
+  for (const s of submissions) {
+    const current = latest.get(s.assignmentId);
+    if (!current || (current.status === "DRAFT" && s.status !== "DRAFT")) latest.set(s.assignmentId, s);
+  }
+  return latest;
+}

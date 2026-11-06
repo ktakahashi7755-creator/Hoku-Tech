@@ -46,10 +46,11 @@ export default async function AssignmentPage({ params }: { params: Promise<{ slu
     orderBy: { attemptNo: "desc" },
     include: { reviews: { orderBy: { createdAt: "desc" }, include: { reviewer: { select: { name: true } } } } },
   });
-  const latest = submissions[0] ?? null;
-  const draft = latest?.status === "DRAFT" ? latest : null;
+  // 下書き (最新の回が DRAFT) と、最後に提出した回を分けて扱う
+  const draft = submissions[0]?.status === "DRAFT" ? submissions[0] : null;
+  const latest = submissions.find((s) => s.status !== "DRAFT") ?? null;
   const lastFeedback = latest && ["CHANGES_REQUESTED", "FAILED"].includes(latest.status) ? latest : null;
-  const canEdit = summary.unlocked && (!latest || latest.status === "DRAFT" || latest.status === "CHANGES_REQUESTED" || latest.status === "FAILED");
+  const canEdit = summary.unlocked && (!latest || latest.status === "CHANGES_REQUESTED" || latest.status === "FAILED");
 
   return (
     <div className="flex flex-col gap-6">
@@ -58,7 +59,7 @@ export default async function AssignmentPage({ params }: { params: Promise<{ slu
         description={
           <span className="flex flex-wrap items-center gap-2">
             <Badge tone="accent">{ASSIGNMENT_TYPE_LABEL[assignment.type]}</Badge>
-            <span>合格点 {assignment.passScore} / 100</span>
+            <span>合格点 {assignment.passScore} 点 (100 点満点)</span>
             <SubmissionBadge status={summary.latestStatus} />
           </span>
         }

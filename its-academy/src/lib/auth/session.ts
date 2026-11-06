@@ -25,7 +25,9 @@ export async function createSession(userId: string): Promise<void> {
   await db.session.create({
     data: { tokenHash: hashSessionToken(token), userId, expiresAt, userAgent },
   });
-  (await cookies()).set(SESSION_COOKIE, token, cookieOptions(expiresAt));
+  // Cookie は最長期間 (30 日) まで保持する。7 日使わなければ DB 側の期限 (expiresAt) で無効になり、
+  // 使い続けている間は DB 側で延長する (画面の描画中は Cookie を書き換えられないため、期限の管理は DB で行う)
+  (await cookies()).set(SESSION_COOKIE, token, cookieOptions(new Date(Date.now() + MAX_SESSION_AGE_MS)));
 }
 
 export type SessionUser = {

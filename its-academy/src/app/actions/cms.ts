@@ -10,6 +10,8 @@ import { ADMIN_ROLES } from "@/lib/auth/roles";
 import { CODE_LANGUAGES, LessonContentSchema } from "@/lib/content/schema";
 import { editorStateOf, emptyDraft, fromEditorDraft, type EditorDraft } from "@/lib/content/draft";
 import { isEditableDraft } from "@/lib/content/versions";
+import { shapeErrors } from "@/lib/form-state";
+import { isMissingReference, isUniqueViolation } from "@/lib/db-errors";
 import { slugSchema } from "@/lib/content/slug";
 import { parseJstLocal } from "@/lib/progress/metrics";
 
@@ -88,13 +90,23 @@ export async function createLesson(_prev: CmsState, formData: FormData): Promise
   if (!parsed.success) return { errors: parsed.error.issues.map((i) => i.message) };
   const { moduleId, title, slug } = parsed.data;
   if (await db.lesson.findUnique({ where: { slug } })) return { errors: ["この URL 名はすでに使われています"] };
-  const last = await db.lesson.findFirst({ where: { moduleId }, orderBy: { position: "desc" } });
-  // 本文が未入力の新規レッスンは下書きとして作り、公開には全項目の入力が必要
-  const lesson = await db.lesson.create({ data: { moduleId, slug, position: (last?.position ?? -1) + 1, status: "DRAFT" } });
+  // 本文が未入力の新規レッスンは下書きとして作り、公開には全項目の入力が必要。レッスンと最初の版は一緒に作る
   const blank = emptyDraft(title);
-  await db.lessonVersion.create({
-    data: { lessonId: lesson.id, version: 1, title, estimatedMinutes: blank.estimatedMinutes, content: { editorDraft: blank }, changeNote: "新規作成", authorId: user.id },
-  });
+  let lesson;
+  try {
+    lesson = await db.$transaction(async (tx) => {
+      const last = await tx.lesson.findFirst({ where: { moduleId }, orderBy: { position: "desc" } });
+      const created = await tx.lesson.create({ data: { moduleId, slug, position: (last?.position ?? -1) + 1, status: "DRAFT" } });
+      await tx.lessonVersion.create({
+        data: { lessonId: created.id, version: 1, title, estimatedMinutes: blank.estimatedMinutes, content: { editorDraft: blank }, changeNote: "新規作成", authorId: user.id },
+      });
+      return created;
+    });
+  } catch (e) {
+    if (isUniqueViolation(e)) return { errors: ["同じ URL 名か同じ位置のレッスンが同時に作られました。ページを再読み込みしてからやり直してください。"] };
+    if (isMissingReference(e)) return { errors: ["追加先のレベルが見つかりません。ページを再読み込みしてください。"] };
+    throw e;
+  }
   await audit({ actorId: user.id, action: "lesson.create", targetType: "lesson", targetId: lesson.id });
   revalidatePath("/admin/content");
   return { ok: "レッスンを作成しました。", lessonId: lesson.id };
@@ -129,7 +141,9 @@ export async function moveLesson(lessonId: string, direction: "up" | "down"): Pr
 export async function saveDraft(lessonId: string, rawDraft: EditorDraft): Promise<CmsState> {
   const user = await requireUser(ADMIN_ROLES);
   const id = Id.parse(lessonId);
-  const draft = DraftShape.parse(rawDraft);
+  const parsedDraft = DraftShape.safeParse(rawDraft);
+  if (!parsedDraft.success) return { errors: ["保存できませんでした。入力を短くしてから保存してください。", ...shapeErrors(parsedDraft.error)] };
+  const draft = parsedDraft.data;
   const data = {
     title: draft.title.trim() || "(無題)",
     estimatedMinutes: Math.min(Math.max(Math.round(Number(draft.estimatedMinutes)) || 30, 5), 600),
@@ -181,7 +195,7 @@ async function finalizeVersion(tx: Tx, lessonId: string, versionId: string): Pro
     where: { id: Id.parse(versionId), lessonId: Id.parse(lessonId) },
     include: { lesson: { include: { currentVersion: true } } },
   });
-  if (!version) return { error: "版が見つかりません" };
+  if (!version) return { error: "版が見つかりません。ページを再読み込みしてください。" };
   if (version.publishedAt) return { version, slug: version.lesson.slug };
   const current = version.lesson.currentVersion ? LessonContentSchema.safeParse(version.lesson.currentVersion.content) : null;
   const result = fromEditorDraft(editorStateOf(version), current?.success ? current.data : null);
@@ -215,14 +229,14 @@ const Schedule = z.object({ at: z.iso.datetime({ local: true }) });
 export async function scheduleVersion(lessonId: string, versionId: string, atLocal: string): Promise<CmsState> {
   const user = await requireUser(ADMIN_ROLES);
   const parsed = Schedule.safeParse({ at: atLocal });
-  if (!parsed.success) return { error: "公開日時を入力してください" };
+  if (!parsed.success) return { error: "公開日時を入力してください。" };
   // 入力は日本時間として扱う
   const at = parseJstLocal(parsed.data.at);
-  if (at.getTime() <= Date.now()) return { error: "公開日時は現在より後にしてください" };
+  if (at.getTime() <= Date.now()) return { error: "公開日時は現在より後にしてください。" };
   const fin = await serially(async (tx) => {
     const f = await finalizeVersion(tx, lessonId, versionId);
     if ("error" in f) return f;
-    if (f.version.publishedAt) return { error: "公開済みの版は予約できません" };
+    if (f.version.publishedAt) return { error: "公開済みの版は予約できません。" };
     await tx.lesson.update({ where: { id: lessonId }, data: { scheduledVersionId: f.version.id, publishAt: at } });
     return f;
   });

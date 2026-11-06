@@ -33,7 +33,7 @@ export function SubmissionForm({ assignmentId, type, defaults }: { assignmentId:
       <FormMessage state={state} />
       <div className="flex flex-wrap gap-3">
         <Button type="submit" name="intent" value="submit" disabled={pending}>
-          {pending ? "保存しています…" : "提出する"}
+          {pending ? "提出しています…" : "提出する"}
         </Button>
         <Button type="submit" name="intent" value="draft" variant="secondary" disabled={pending}>
           下書き保存

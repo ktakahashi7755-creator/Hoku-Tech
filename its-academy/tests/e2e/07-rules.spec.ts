@@ -85,7 +85,7 @@ test("休止中の受講生は課題を提出できない (教材は読める)",
     await page.goto("/assignments/a1-github-profile");
     await page.getByLabel("GitHub リポジトリの URL").fill("https://github.com/yota/its-profile");
     await page.getByRole("button", { name: "提出する" }).click();
-    await expect(page.getByText("受講が一時停止または終了しているため提出できません")).toBeVisible();
+    await expect(page.getByText("受講状態が「休止中」または「退校」のため提出できません")).toBeVisible();
     expect(await db.submission.count({ where: { userId: yota } })).toBe(0);
   } finally {
     await db.enrollment.updateMany({ where: { userId: yota }, data: { status: "ACTIVE" } });

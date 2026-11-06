@@ -158,7 +158,7 @@ test("講師: 担当外の受講生は閲覧できず、停滞の可能性は担
 
   await login(page, "instructor2@its.example");
   await page.waitForURL(/\/admin$/);
-  await expect(page.getByRole("heading", { name: "学習が止まっている可能性がある受講生" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "学習停滞の可能性がある受講生" })).toBeVisible();
   await expect(page.getByRole("link", { name: "鈴木 美咲" }).first()).toBeVisible();
   await page.getByRole("link", { name: "鈴木 美咲" }).first().click();
   await expect(page.getByText(/最終学習から 9 日経過しています/)).toBeVisible();

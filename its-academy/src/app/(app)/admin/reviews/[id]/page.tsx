@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { requireUser } from "@/lib/auth/dal";
@@ -11,6 +12,9 @@ import { CodeBlock } from "@/components/lesson/code-block";
 import { formatDateTime } from "@/lib/labels";
 import { ReviewForm, StartReviewButton } from "./review-form";
 import { notFound } from "next/navigation";
+
+// 受講生名などは入れない (ページ名はアクセス権の確認とは別に作られるため)
+export const metadata: Metadata = { title: "採点" };
 
 export default async function ReviewDetail({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;

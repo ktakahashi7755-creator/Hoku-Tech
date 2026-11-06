@@ -1,9 +1,13 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
 import { requireUser } from "@/lib/auth/dal";
 import { ADMIN_ROLES } from "@/lib/auth/roles";
 import { lessonToLines, lineDiff } from "@/lib/content/diff";
 import { ButtonLink, cx, PageHeader, ScrollRegion } from "@/components/ui";
+
+// 受講生名などは入れない (ページ名はアクセス権の確認とは別に作られるため)
+export const metadata: Metadata = { title: "版の差分" };
 
 /** 指定した版と、その 1 つ前の版との差分 */
 export default async function DiffPage({ params }: { params: Promise<{ id: string; versionId: string }> }) {

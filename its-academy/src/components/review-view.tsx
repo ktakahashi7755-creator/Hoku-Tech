@@ -22,7 +22,7 @@ export function ReviewView({ review }: { review: ReviewLike }) {
       <p>
         <span className="font-semibold">{DECISION_LABEL[review.decision]}</span>
         <span className="ml-2 tabular-nums">
-          {review.totalScore} 点 (合格点 {review.passScore})
+          {review.totalScore} 点 (合格点 {review.passScore} 点)
         </span>
         <span className="ml-2 text-muted">
           {review.reviewer.name} ・ {formatDateTime(review.createdAt)}

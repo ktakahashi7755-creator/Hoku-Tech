@@ -12,7 +12,7 @@ export default async function NewStudentPage() {
   const instructors = await db.user.findMany({ where: { role: "INSTRUCTOR", isActive: true }, select: { id: true, name: true }, orderBy: { name: "asc" } });
   return (
     <div className="max-w-3xl">
-      <PageHeader title="受講生を追加" description="追加すると公開中のコースに受講登録されます。初期パスワードは自動で生成し、保存はハッシュのみです。" />
+      <PageHeader title="受講生を追加" description="追加すると公開中のコースに受講登録されます。仮パスワードは自動で作成します (システムには元に戻せない形で保存します)。" />
       <Card><NewStudentForm instructors={instructors} /></Card>
     </div>
   );

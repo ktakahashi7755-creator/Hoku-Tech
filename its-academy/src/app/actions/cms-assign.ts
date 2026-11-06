@@ -4,6 +4,8 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { AssignmentType } from "@prisma/client";
 import { slugSchema } from "@/lib/content/slug";
+import { shapeErrors } from "@/lib/form-state";
+import { isMissingReference, isUniqueViolation } from "@/lib/db-errors";
 import { db } from "@/lib/db";
 import { audit } from "@/lib/audit";
 import { requireUser } from "@/lib/auth/dal";
@@ -22,7 +24,9 @@ const FormShape = z.object({
 export async function updateAssignment(id: string, raw: AssignmentForm, rubricId: string): Promise<AssignState> {
   const user = await requireUser(ADMIN_ROLES);
   const assignment = await db.assignment.findUniqueOrThrow({ where: { id: z.cuid().parse(id) } });
-  const r = fromAssignmentForm(FormShape.parse(raw));
+  const shape = FormShape.safeParse(raw);
+  if (!shape.success) return { errors: ["保存できませんでした。入力を短くしてから保存してください。", ...shapeErrors(shape.error)] };
+  const r = fromAssignmentForm(shape.data);
   if (!r.ok) return { errors: r.errors };
   const rubric = await db.rubric.findUnique({ where: { id: z.cuid().parse(rubricId) } });
   if (!rubric) return { errors: ["ルーブリックを選択してください"] };
@@ -51,15 +55,28 @@ export async function createAssignment(_prev: AssignState, formData: FormData): 
   if (!p.success) return { errors: p.error.issues.map((i) => i.message) };
   if (await db.assignment.findUnique({ where: { slug: p.data.slug } })) return { errors: ["この URL 名はすでに使われています"] };
   const rubric = await db.rubric.findFirst({ orderBy: { createdAt: "asc" } });
-  if (!rubric) return { errors: ["ルーブリックがありません"] };
+  if (!rubric) return { errors: ["ルーブリックがまだありません。先に「課題とルーブリック」でルーブリックを作成してください。"] };
+  // 前提レッスンは、追加先と同じコースのものに限る (別のコースのレッスンだと、受講生がいつまでも取り組めない)
+  const mod = await db.module.findUnique({ where: { id: p.data.moduleId }, select: { courseId: true } });
+  if (!mod) return { errors: ["追加先のレベルが見つかりません。ページを再読み込みしてください。"] };
+  if (p.data.lessonId && !(await db.lesson.findFirst({ where: { id: p.data.lessonId, module: { courseId: mod.courseId } }, select: { id: true } }))) {
+    return { errors: ["前提のレッスンは、同じコースのレッスンから選んでください。"] };
+  }
   const last = await db.assignment.findFirst({ orderBy: { position: "desc" } });
-  const created = await db.assignment.create({
-    data: {
-      slug: p.data.slug, moduleId: p.data.moduleId, lessonId: p.data.lessonId || null, title: p.data.title, type: p.data.type,
-      status: "DRAFT", passScore: DEFAULT_PASS_SCORE, rubricId: rubric.id, position: (last?.position ?? -1) + 1,
-      body: emptyAssignmentBody(),
-    },
-  });
+  let created;
+  try {
+    created = await db.assignment.create({
+      data: {
+        slug: p.data.slug, moduleId: p.data.moduleId, lessonId: p.data.lessonId || null, title: p.data.title, type: p.data.type,
+        status: "DRAFT", passScore: DEFAULT_PASS_SCORE, rubricId: rubric.id, position: (last?.position ?? -1) + 1,
+        body: emptyAssignmentBody(),
+      },
+    });
+  } catch (e) {
+    if (isUniqueViolation(e)) return { errors: ["この URL 名はすでに使われています"] };
+    if (isMissingReference(e)) return { errors: ["追加先のレベルか前提のレッスンが見つかりません。ページを再読み込みしてください。"] };
+    throw e;
+  }
   await audit({ actorId: user.id, action: "assignment.create", targetType: "assignment", targetId: created.id });
   revalidatePath("/admin/content/assignments");
   return { ok: "課題を作成しました。", id: created.id };
@@ -72,7 +89,9 @@ export async function updateRubric(id: string, name: string, rawCriteria: unknow
   const rubric = await db.rubric.findUniqueOrThrow({ where: { id: z.cuid().parse(id) } });
   const n = z.string().trim().min(1).max(80).safeParse(name);
   if (!n.success) return { errors: ["ルーブリックの名前を入力してください"] };
-  const v = validateRubric(Criteria.parse(rawCriteria));
+  const criteria = Criteria.safeParse(rawCriteria);
+  if (!criteria.success) return { errors: ["保存できませんでした。入力を短くしてから保存してください。", ...shapeErrors(criteria.error)] };
+  const v = validateRubric(criteria.data);
   if (!v.ok) return { errors: v.errors };
   await db.rubric.update({ where: { id: rubric.id }, data: { name: n.data, criteria: v.criteria } });
   await audit({ actorId: user.id, action: "rubric.update", targetType: "rubric", targetId: rubric.id });

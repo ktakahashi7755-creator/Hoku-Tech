@@ -6,11 +6,11 @@ import { RichText } from "./rich-text";
 import { CodeBlock, OutputBlock } from "./code-block";
 
 export const LESSON_SECTIONS = [
-  ["goals", "できるようになること"],
-  ["prerequisites", "前提知識"],
+  ["goals", "このレッスンでできるようになること"],
+  ["prerequisites", "必要な前提知識"],
   ["concepts", "概念の解説"],
   ["examples", "図解・具体例"],
-  ["code", "サンプルコードと実行結果"],
+  ["code", "動作するサンプルコードと実行結果"],
   ["exercises", "自分で試す演習"],
   ["quiz", "理解度チェック"],
   ["workplace", "実務での利用場面"],

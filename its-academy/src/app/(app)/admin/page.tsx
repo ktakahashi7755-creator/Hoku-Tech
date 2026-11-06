@@ -38,8 +38,8 @@ export default async function AdminDashboard() {
 
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>
-          <h2 className="font-bold">学習が止まっている可能性がある受講生</h2>
-          <p className="mt-1 text-xs text-muted">学習時間の長短や停滞だけで能力を判断しないでください。まず状況を確認する連絡を。</p>
+          <h2 className="font-bold">学習停滞の可能性がある受講生</h2>
+          <p className="mt-1 text-xs text-muted">学習時間の長短や停滞だけで能力を判断しないでください。まずは状況を確認する連絡をしてください。</p>
           {stagnant.length === 0 ? (
             <p className="mt-3 text-sm text-muted">該当者はいません。</p>
           ) : (
@@ -56,7 +56,7 @@ export default async function AdminDashboard() {
         <Card>
           <h2 className="font-bold">対応が必要な提出</h2>
           {waiting.length === 0 && fixes.length === 0 ? (
-            <p className="mt-3 text-sm text-muted">ありません。</p>
+            <p className="mt-3 text-sm text-muted">対応が必要な提出はありません。</p>
           ) : (
             <ul className="mt-3 divide-y divide-border">
               {waiting.map((r) => (

@@ -56,7 +56,7 @@ export function ReviewForm({ submissionId, criteria, passScore }: { submissionId
         </Field>
       ))}
       <p className="rounded-lg bg-surface p-3 font-semibold tabular-nums" aria-live="polite">
-        合計 {total} / 100 点 (合格点 {passScore})
+        合計 {total} / 100 点 (合格点 {passScore} 点)
       </p>
       <Field label="判定" htmlFor="decision">
         <select id="decision" name="decision" className={inputStyles} defaultValue={total >= passScore ? "PASS" : "CHANGES_REQUESTED"} key={total >= passScore ? "p" : "c"}>
@@ -69,7 +69,7 @@ export function ReviewForm({ submissionId, criteria, passScore }: { submissionId
         <textarea id="comment" name="comment" rows={6} className={inputStyles} />
       </Field>
       <FormMessage state={state} />
-      <Button type="submit" disabled={pending}>{pending ? "保存しています…" : "採点を確定する"}</Button>
+      <Button type="submit" disabled={pending}>{pending ? "確定しています…" : "採点を確定する"}</Button>
     </ActionForm>
   );
 }

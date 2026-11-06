@@ -10,9 +10,9 @@ export async function GET() {
   const viewer = await requireUser(STAFF_ROLES);
   const rows = await listStudentOverviews(viewer);
   const header = [
-    "ユーザーID", "氏名", "所属", "担当講師", "入校日", "学習開始日", "目標修了日", "現在の学習領域", "現在のレッスン",
-    "A教材履修率", "B課題完了率", "C理解度評価", "D実装能力評価", "E実務準備状況",
-    "完了レッスン数", "合格課題数", "累計学習分", "連続学習日数", "最終学習日", "停滞の可能性", "レビュー待ち件数",
+    "ユーザー ID", "氏名", "所属", "担当講師", "入校日", "学習開始日", "目標修了日", "現在の学習領域", "現在のレッスン",
+    "A 教材履修率", "B 課題完了率", "C 理解度評価", "D 実装能力評価", "E 実務準備状況",
+    "完了レッスン数", "合格課題数", "累計学習分", "連続学習日数", "最終学習日", "学習停滞の可能性", "レビュー待ち件数",
   ];
   const body = rows.map((r) => [
     r.student.id, r.student.name, r.student.affiliation, r.enrollment.instructor?.name,

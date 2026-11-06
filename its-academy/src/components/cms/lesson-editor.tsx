@@ -109,7 +109,8 @@ export function LessonEditor({ lessonId, initial }: { lessonId: string; initial:
       onSubmit={(e) => {
         e.preventDefault();
         start(async () => {
-          const r = await saveDraft(lessonId, d);
+          // 失敗しても編集中の内容を失わないよう、エラーは画面に表示する
+          const r = await saveDraft(lessonId, d).catch((): CmsState => ({ errors: ["保存できませんでした。通信を確認して、もう一度お試しください (入力した内容は画面に残っています)。"] }));
           setState(r);
           if (r?.ok) {
             setDirty(false);

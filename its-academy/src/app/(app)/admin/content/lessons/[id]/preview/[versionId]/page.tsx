@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
 import { requireUser } from "@/lib/auth/dal";
@@ -6,6 +7,9 @@ import { LessonContentSchema } from "@/lib/content/schema";
 import { editorStateOf, fromEditorDraft } from "@/lib/content/draft";
 import { Badge, ButtonLink, PageHeader } from "@/components/ui";
 import { LessonSections } from "@/components/lesson/lesson-sections";
+
+// 受講生名などは入れない (ページ名はアクセス権の確認とは別に作られるため)
+export const metadata: Metadata = { title: "版のプレビュー" };
 
 /** 公開前プレビュー。受講生の画面と同じ部品で表示する (理解度チェックは正解付きで表示) */
 export default async function PreviewPage({ params }: { params: Promise<{ id: string; versionId: string }> }) {
@@ -19,7 +23,7 @@ export default async function PreviewPage({ params }: { params: Promise<{ id: st
   return (
     <div className="mx-auto max-w-3xl">
       <p role="note" className="mb-6 rounded-lg bg-warning-soft p-3 text-sm text-warning">
-        プレビュー (版 {v.version}{v.publishedAt ? "・公開済み" : "・未公開"})。受講生には {v.publishedAt ? "公開中の版のみ" : "まだ"} 表示されません。
+        {v.publishedAt ? `プレビュー (版 ${v.version} ・ 公開済み)。この版は受講生に公開されたことがあります。` : `プレビュー (版 ${v.version} ・ 未公開)。受講生にはまだ表示されません。`}
       </p>
       <PageHeader
         title={result.ok ? result.title : v.title}

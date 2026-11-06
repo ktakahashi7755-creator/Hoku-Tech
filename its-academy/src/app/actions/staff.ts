@@ -14,6 +14,7 @@ import { SKILL_AREAS } from "@/lib/progress/skills";
 import { assertCanActOnStudent } from "@/lib/queries/student";
 import { fieldErrors, type FormState } from "@/lib/form-state";
 import { DECISION_LABEL } from "@/lib/labels";
+import { isUniqueViolation } from "@/lib/db-errors";
 
 const issues = (e: z.ZodError) => ({ fieldErrors: fieldErrors(e) });
 
@@ -91,7 +92,7 @@ export async function submitReview(_prev: FormState, formData: FormData): Promis
   await audit({ actorId: viewer.id, action: "review.submit", targetType: "submission", targetId: sub.id, metadata: { decision: input.decision, total } });
   revalidatePath(`/admin/reviews/${sub.id}`);
   revalidatePath("/admin/reviews");
-  return { ok: "採点を保存しました。受講生に通知しました。" };
+  return { ok: "採点を確定しました。受講生に結果を通知しました。" };
 }
 
 // ---------------------------------------------------------------- 受講生への記録
@@ -180,7 +181,7 @@ export async function updateEnrollment(_prev: FormState, formData: FormData): Pr
   });
   await audit({ actorId: viewer.id, action: "enrollment.update", targetType: "enrollment", targetId: enrollmentId, metadata: { instructorId, targetEndDate, status } });
   revalidatePath(`/admin/students/${before.userId}`);
-  return { ok: "受講設定を更新しました。" };
+  return { ok: "受講設定を保存しました。" };
 }
 
 const NewStudentInput = z.object({
@@ -212,26 +213,33 @@ export async function createStudent(_prev: NewStudentState, formData: FormData):
     return { fieldErrors: { instructorId: "講師を選択してください" } };
   }
   const course = await db.course.findFirst({ where: { status: "PUBLISHED" }, orderBy: { createdAt: "asc" } });
-  if (!course) return { error: "公開中のコースがありません。" };
+  if (!course) return { error: "公開中のコースがありません。先にコースを公開してから受講生を追加してください。" };
 
   const tempPassword = generateTempPassword();
-  const user = await db.user.create({
-    data: {
-      name: input.name,
-      email: input.email,
-      affiliation: input.affiliation,
-      joinedAt: input.joinedAt ? new Date(input.joinedAt) : null,
-      passwordHash: await hashPassword(tempPassword),
-      mustChangePassword: true, // 初回ログイン時にパスワードの変更を求める
-      enrollments: {
-        create: {
-          courseId: course.id,
-          instructorId: input.instructorId || null,
-          targetEndDate: input.targetEndDate ? new Date(input.targetEndDate) : null,
+  let user;
+  try {
+    user = await db.user.create({
+      data: {
+        name: input.name,
+        email: input.email,
+        affiliation: input.affiliation,
+        joinedAt: input.joinedAt ? new Date(input.joinedAt) : null,
+        passwordHash: await hashPassword(tempPassword),
+        mustChangePassword: true, // 初回ログイン時にパスワードの変更を求める
+        enrollments: {
+          create: {
+            courseId: course.id,
+            instructorId: input.instructorId || null,
+            targetEndDate: input.targetEndDate ? new Date(input.targetEndDate) : null,
+          },
         },
       },
-    },
-  });
+    });
+  } catch (e) {
+    // 同じメールアドレスが同時に登録された場合
+    if (isUniqueViolation(e)) return { fieldErrors: { email: "このメールアドレスはすでに登録されています" } };
+    throw e;
+  }
   await audit({ actorId: viewer.id, action: "user.create", targetType: "user", targetId: user.id, metadata: { role: "STUDENT" } });
   revalidatePath("/admin/students");
   return { ok: "受講生を追加しました。", tempPassword, email: user.email };

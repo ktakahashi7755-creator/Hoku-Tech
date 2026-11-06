@@ -14,7 +14,14 @@ export default async function CurriculumPage() {
   const staff = isStaff(user.role);
   const overview = staff ? null : await getStudentOverview(user.id);
   const courseId = overview?.enrollment?.courseId ?? (staff ? (await db.course.findFirst({ where: { status: "PUBLISHED" } }))?.id : undefined);
-  if (!courseId) return <EmptyState>受講中のコースがありません。</EmptyState>;
+  if (!courseId) {
+    return (
+      <div className="flex flex-col gap-6">
+        <PageHeader title="カリキュラム" />
+        <EmptyState>受講中のコースがありません。担当講師または管理者に連絡してください。</EmptyState>
+      </div>
+    );
+  }
 
   const course = await db.course.findUniqueOrThrow({ where: { id: courseId } });
   const modules = await getPublishedCurriculum(courseId);

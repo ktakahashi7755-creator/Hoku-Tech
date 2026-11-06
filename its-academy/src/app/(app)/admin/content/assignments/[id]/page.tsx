@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
 import { requireUser } from "@/lib/auth/dal";
@@ -6,6 +7,9 @@ import { toAssignmentForm } from "@/lib/content/assignment-form";
 import { ASSIGNMENT_TYPE_LABEL } from "@/lib/labels";
 import { ButtonLink, PageHeader } from "@/components/ui";
 import { AssignmentEditor } from "@/components/cms/assignment-editor";
+
+// 受講生名などは入れない (ページ名はアクセス権の確認とは別に作られるため)
+export const metadata: Metadata = { title: "課題の編集" };
 
 export default async function AssignmentEditPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;

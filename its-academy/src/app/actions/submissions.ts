@@ -2,7 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { Prisma, type SubmissionStatus } from "@prisma/client";
+import type { SubmissionStatus } from "@prisma/client";
+import { isUniqueViolation } from "@/lib/db-errors";
 import { db } from "@/lib/db";
 import { audit } from "@/lib/audit";
 import { requireUser } from "@/lib/auth/dal";
@@ -31,7 +32,9 @@ export async function saveSubmission(_prev: FormState, formData: FormData): Prom
     note: formData.get("note") ?? undefined,
   });
   if (!parsed.success) {
-    return { fieldErrors: fieldErrors(parsed.error) };
+    const errors = fieldErrors(parsed.error);
+    // 押したボタン (提出 / 下書き保存) が届かなかった場合は、入力欄ではなくフォーム全体のエラーとして伝える
+    return errors.intent ? { error: "操作を受け付けられませんでした。ページを再読み込みしてから、もう一度ボタンを押してください。" } : { fieldErrors: errors };
   }
   const input = parsed.data;
 
@@ -41,9 +44,13 @@ export async function saveSubmission(_prev: FormState, formData: FormData): Prom
   });
   if (!assignment) return { error: "課題が見つかりません。" };
   // 休学中・退校した受講生は提出できない (教材の閲覧は続けられる)。復帰は管理者が受講設定で行う
-  const enrollment = await db.enrollment.findFirst({ where: { userId: user.id, courseId: assignment.module.courseId }, select: { status: true, instructorId: true } });
+  const enrollment = await db.enrollment.findFirst({
+    where: { userId: user.id, courseId: assignment.module.courseId },
+    // 通知は、現在も講師として利用中の担当者にだけ送る (ロール変更・利用停止の後に、受講生の情報が届かないように)
+    select: { status: true, instructorId: true, instructor: { select: { role: true, isActive: true } } },
+  });
   if (enrollment && (enrollment.status === "PAUSED" || enrollment.status === "WITHDRAWN")) {
-    return { error: "受講が一時停止または終了しているため提出できません。再開したい場合は担当講師または管理者に連絡してください。" };
+    return { error: "受講状態が「休止中」または「退校」のため提出できません。再開したい場合は担当講師または管理者に連絡してください。" };
   }
 
   if (assignment.lessonId) {
@@ -80,20 +87,24 @@ export async function saveSubmission(_prev: FormState, formData: FormData): Prom
 
   let submission;
   try {
-    submission =
-      latest?.status === "DRAFT"
-        ? await db.submission.update({ where: { id: latest.id }, data })
-        : await db.submission.create({ data: { ...data, assignmentId: assignment.id, userId: user.id, attemptNo: (latest?.attemptNo ?? 0) + 1 } });
+    if (latest?.status === "DRAFT") {
+      // 別のタブで先に提出されていたら、下書きに戻さない (状態を条件にした更新)
+      const updated = await db.submission.updateMany({ where: { id: latest.id, status: "DRAFT" }, data });
+      if (updated.count === 0) return { error: "この課題はほかの画面で提出されています。ページを再読み込みして状態を確認してください。" };
+      submission = { ...latest, ...data };
+    } else {
+      submission = await db.submission.create({ data: { ...data, assignmentId: assignment.id, userId: user.id, attemptNo: (latest?.attemptNo ?? 0) + 1 } });
+    }
   } catch (e) {
     // 連続で押された場合など、同じ回数の提出が先に作られていたとき (一意制約違反)
-    if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
+    if (isUniqueViolation(e)) {
       return { error: "同じ提出がすでに保存されています。ページを再読み込みして状態を確認してください。" };
     }
     throw e;
   }
 
   if (input.intent === "submit") {
-    if (enrollment?.instructorId) {
+    if (enrollment?.instructorId && enrollment.instructor?.role === "INSTRUCTOR" && enrollment.instructor.isActive) {
       await db.notification.create({
         data: {
           userId: enrollment.instructorId,

@@ -19,7 +19,7 @@ export function SubmissionBadge({ status }: { status: SubmissionStatusValue | nu
 }
 
 export function LessonBadge({ status }: { status: "NOT_STARTED" | "IN_PROGRESS" | "COMPLETED" }) {
-  if (status === "COMPLETED") return <Badge tone="success">完了</Badge>;
+  if (status === "COMPLETED") return <Badge tone="success">学習完了</Badge>;
   if (status === "IN_PROGRESS") return <Badge tone="accent">学習中</Badge>;
   return <Badge>未学習</Badge>;
 }

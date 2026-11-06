@@ -15,7 +15,7 @@ export default async function HomePage() {
     return (
       <div className="flex flex-col gap-6">
         <PageHeader title="ホーム" />
-        <EmptyState>まだコースに登録されていません。担当講師に連絡してください。</EmptyState>
+        <EmptyState>受講中のコースがありません。担当講師または管理者に連絡してください。</EmptyState>
       </div>
     );
   }

@@ -23,7 +23,7 @@ export default async function AssignmentsAdminPage() {
   ]);
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="課題とルーブリック" description="課題の内容・合格点・評価の観点を編集します。" actions={<ButtonLink variant="secondary" href="/admin/content">レッスンの管理へ</ButtonLink>} />
+      <PageHeader title="課題とルーブリック" description="課題の内容・合格点・評価の観点を編集します。" actions={<ButtonLink variant="secondary" href="/admin/content">教材管理へ戻る</ButtonLink>} />
       <Card>
         <h2 className="font-bold">ルーブリック (評価の観点)</h2>
         <ul className="mt-3 divide-y divide-border">
@@ -47,7 +47,7 @@ export default async function AssignmentsAdminPage() {
                   <div>
                     <Link href={`/admin/content/assignments/${a.id}`} className="font-semibold text-accent underline-offset-2 hover:underline">{a.title}</Link>
                     <p className="text-xs text-muted">
-                      {ASSIGNMENT_TYPE_LABEL[a.type]} ・ 合格点 {a.passScore} ・ {a.rubric.name} ・ 提出 {a._count.submissions} 件
+                      {ASSIGNMENT_TYPE_LABEL[a.type]} ・ 合格点 {a.passScore} 点 ・ {a.rubric.name} ・ 提出 {a._count.submissions} 件
                     </p>
                   </div>
                   <Badge tone={a.status === "PUBLISHED" ? "success" : "neutral"}>{a.status === "PUBLISHED" ? "公開中" : "非公開"}</Badge>

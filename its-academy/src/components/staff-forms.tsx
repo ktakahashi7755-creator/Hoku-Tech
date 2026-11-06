@@ -105,12 +105,12 @@ export function NewStudentForm({ instructors }: { instructors: { id: string; nam
             {instructors.map((i) => <option key={i.id} value={i.id}>{i.name}</option>)}
           </select>
         </Field>
-        <Field label="目標修了日" htmlFor="targetEndDate"><input id="targetEndDate" name="targetEndDate" type="date" className={inputStyles} /></Field>
+        <Field label="目標修了日 (学習期限)" htmlFor="targetEndDate"><input id="targetEndDate" name="targetEndDate" type="date" className={inputStyles} /></Field>
       </div>
       <FormMessage state={state} />
       {state?.tempPassword && (
         <div className="rounded-lg border border-warning bg-warning-soft p-4 text-sm">
-          <p className="font-semibold">初期パスワード (この画面を離れると再表示できません)</p>
+          <p className="font-semibold">仮パスワード (この画面を離れると再表示できません)</p>
           <p className="mt-2 font-mono text-base">{state.email} / {state.tempPassword}</p>
           <p className="mt-2">受講生に安全な方法で伝え、初回ログイン後にマイページで変更するよう案内してください。チャットに貼る場合は、伝えた後にメッセージを削除してください。</p>
         </div>

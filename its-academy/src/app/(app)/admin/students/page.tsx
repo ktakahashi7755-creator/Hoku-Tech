@@ -34,7 +34,7 @@ export default async function StudentsPage({ searchParams }: { searchParams: Pro
     <div>
       <PageHeader
         title="受講生"
-        description="A 教材履修率 / B 課題完了率 / C 理解度 / D 実装能力 / E 実務準備 は別々の指標です。"
+        description="A 教材履修率 / B 課題完了率 / C 理解度評価 / D 実装能力評価 / E 実務準備状況は、混ぜずに別々に見る指標です。"
         actions={
           <>
             <ButtonLink variant="secondary" href="/admin/export/students" prefetch={false}>CSV 出力</ButtonLink>
@@ -64,7 +64,7 @@ export default async function StudentsPage({ searchParams }: { searchParams: Pro
           <table className="w-full min-w-[960px] text-left text-sm">
             <thead className="bg-surface text-muted">
               <tr>
-                {["氏名", "所属", "現在の学習領域", "A 履修率", "B 課題完了", "C 理解度 (点)", "D 実装能力 (点)", "E 実務準備 (点)", "最終学習", "状態"].map((h) => (
+                {["氏名", "所属", "現在の学習領域", "A 教材履修率", "B 課題完了率", "C 理解度評価 (点)", "D 実装能力評価 (点)", "E 実務準備状況 (点)", "最終学習", "状態"].map((h) => (
                   <th key={h} scope="col" className="px-3 py-3 font-semibold">{h}</th>
                 ))}
               </tr>
@@ -86,7 +86,7 @@ export default async function StudentsPage({ searchParams }: { searchParams: Pro
                   <td className="whitespace-nowrap px-3 py-3">{formatDate(r.lastActivity)}</td>
                   <td className="px-3 py-3">
                     <div className="flex flex-wrap gap-1">
-                      {r.stagnant && <Badge tone="warning">停滞の可能性</Badge>}
+                      {r.stagnant && <Badge tone="warning">学習停滞の可能性</Badge>}
                       {r.pendingReviews > 0 && <Badge tone="accent">レビュー待ち {r.pendingReviews}</Badge>}
                       {r.struggling.length > 0 && <Badge tone="danger">要フォロー</Badge>}
                     </div>

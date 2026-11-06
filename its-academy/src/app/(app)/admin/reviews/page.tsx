@@ -34,7 +34,12 @@ export default async function ReviewsQueue({ searchParams }: { searchParams: Pro
   // 修正依頼のあと再提出された古い回は「修正依頼中」に出さない (最新の回だけ)
   let subs = found;
   if (current === VIEWS.changes && found.length > 0) {
-    const latest = await db.submission.groupBy({ by: ["assignmentId", "userId"], where: { userId: { in: [...new Set(found.map((s) => s.userId))] } }, _max: { attemptNo: true } });
+    const latest = await db.submission.groupBy({
+      by: ["assignmentId", "userId"],
+      // 下書きは提出ではないため数えない (修正依頼の後に下書きを保存しても、修正依頼中の一覧から消さない)
+      where: { userId: { in: [...new Set(found.map((s) => s.userId))] }, status: { not: "DRAFT" } },
+      _max: { attemptNo: true },
+    });
     const latestNo = new Map(latest.map((l) => [`${l.assignmentId}:${l.userId}`, l._max.attemptNo]));
     subs = found.filter((s) => latestNo.get(`${s.assignmentId}:${s.userId}`) === s.attemptNo);
   }
@@ -42,7 +47,7 @@ export default async function ReviewsQueue({ searchParams }: { searchParams: Pro
   const query = (key: string) => `/admin/reviews?view=${key}${assignment ? `&assignment=${encodeURIComponent(assignment)}` : ""}`;
   return (
     <div>
-      <PageHeader title="レビュー" description="提出の古い順に並んでいます。担当の受講生の提出だけが表示されます。" />
+      <PageHeader title="レビュー" description="未対応の提出は古い順、合格・不合格は新しい順に表示します。講師には担当の受講生の提出だけが表示されます。" />
       <nav aria-label="表示切り替え" className="mb-4 flex flex-wrap gap-2">
         {Object.entries(VIEWS).map(([key, v]) => (
           <Link

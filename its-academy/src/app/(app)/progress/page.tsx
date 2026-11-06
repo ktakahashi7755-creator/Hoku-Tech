@@ -46,7 +46,7 @@ export default async function ProgressPage() {
               </p>
             </div>
           ) : (
-            <p className="mt-3 text-sm text-muted">目標修了日が設定されていません。</p>
+            <p className="mt-3 text-sm text-muted">目標修了日が設定されていません。設定は担当講師または管理者に依頼してください。</p>
           )}
         </Card>
         <Card>
@@ -95,7 +95,7 @@ export default async function ProgressPage() {
               ))}
               {o.struggling.map((a) => (
                 <li key={a.id}>
-                  課題「<Link className="text-accent underline" href={`/assignments/${a.slug}`}>{a.title}</Link>」でコメントが付いています
+                  課題「<Link className="text-accent underline" href={`/assignments/${a.slug}`}>{a.title}</Link>」で講師の指摘があります。コメントを確認して取り組み直しましょう
                 </li>
               ))}
             </ul>
