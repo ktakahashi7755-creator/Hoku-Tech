@@ -20,7 +20,7 @@ export default defineConfig({
     command: `npx next start -p ${PORT}`,
     url: `http://localhost:${PORT}/login`,
     reuseExistingServer: false,
-    env: { DATABASE_URL: TEST_DATABASE_URL },
+    env: { DATABASE_URL: TEST_DATABASE_URL, APP_ENV: "test" }, // 本番ビルドで試験するが、HTTPS ではないため test を明示
     timeout: 120_000,
   },
 });

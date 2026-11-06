@@ -68,3 +68,25 @@ test("キーボードだけでログインでき、本文へスキップでき�
   await expect(page).toHaveURL(/#main$/);
   await logout(page);
 });
+
+test("主要画面でコンソールエラーと CSP 違反が出ない", async ({ page }) => {
+  const problems: string[] = [];
+  page.on("console", (m) => {
+    if (m.type() === "error") problems.push(`${page.url()}: ${m.text()}`);
+  });
+  page.on("pageerror", (e) => problems.push(`${page.url()}: ${e.message}`));
+  await login(page, "student@its.example");
+  await page.waitForURL(/\/home$/);
+  for (const path of ["/home", "/curriculum", "/lessons/l4-javascript", "/assignments", "/progress", "/reviews", "/me"]) {
+    await page.goto(path);
+    await page.waitForLoadState("networkidle");
+  }
+  await logout(page);
+  await login(page, "admin@its.example");
+  await page.waitForURL(/\/admin$/);
+  for (const path of ["/admin", "/admin/students", "/admin/content", "/admin/content/assignments", "/admin/users", "/admin/settings"]) {
+    await page.goto(path);
+    await page.waitForLoadState("networkidle");
+  }
+  expect(problems).toEqual([]);
+});

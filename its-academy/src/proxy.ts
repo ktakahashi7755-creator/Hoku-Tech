@@ -7,7 +7,7 @@ import { guard } from "@/lib/auth/proxy-guard";
  * 2. 管理者・講師のエリアは、セッションとロールを DB で確かめ、権限がなければ 404 を返す
  * 認証・認可の本体は各ページとサーバーアクションの requireUser() でも必ず行う。
  */
-const PUBLIC_PATHS = ["/login"];
+const PUBLIC_PATHS = ["/login", "/api/health"];
 const SESSION_COOKIE = "its_session";
 
 export async function proxy(request: NextRequest) {
