@@ -11,7 +11,11 @@ export default defineConfig({
   reporter: [["list"]],
   globalSetup: "./tests/e2e/global-setup.ts",
   use: { baseURL: `http://localhost:${PORT}`, trace: "off", locale: "ja-JP", timezoneId: "Asia/Tokyo" },
-  projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
+  // 既定は Chromium のみ。PW_BROWSERS=firefox,webkit のように指定すると、そのブラウザでも実行する (CI のクロスブラウザ試験)
+  projects: (process.env.PW_BROWSERS ?? "chromium").split(",").map((name) => ({
+    name,
+    use: { ...devices[{ chromium: "Desktop Chrome", firefox: "Desktop Firefox", webkit: "Desktop Safari" }[name] ?? "Desktop Chrome"] },
+  })),
   webServer: {
     command: `npx next start -p ${PORT}`,
     url: `http://localhost:${PORT}/login`,
