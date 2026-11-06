@@ -163,7 +163,3 @@ export function editorStateOf(v: { title: string; estimatedMinutes: number; cont
   if (c && typeof c === "object" && "editorDraft" in c && c.editorDraft) return { ...emptyDraft(), ...c.editorDraft };
   return toEditorDraft(v);
 }
-
-export function isFinalized(content: unknown): boolean {
-  return LessonContentSchema.safeParse(content).success;
-}

@@ -6,7 +6,7 @@ import { z } from "zod";
  * 5 図解・具体例 / 6 サンプルコード / 7 実行結果 / 8 演習 / 9 理解度チェック /
  * 10 実務での利用場面 / 11 よくあるエラー / 12 復習ポイント / 13 次のレッスン (並び順から自動)
  */
-export const CodeSampleSchema = z.object({
+const CodeSampleSchema = z.object({
   language: z.enum(["java", "bash", "sql", "html", "css", "javascript", "xml", "properties", "text"]),
   filename: z.string().optional(),
   source: z.string().min(1),
@@ -18,7 +18,7 @@ export const CodeSampleSchema = z.object({
   runner: z.string().optional(),
 });
 
-export const QuizQuestionSchema = z.object({
+const QuizQuestionSchema = z.object({
   id: z.string().min(1),
   question: z.string().min(1),
   choices: z.array(z.string().min(1)).min(2),
@@ -51,7 +51,6 @@ export const LessonContentSchema = z
   });
 
 export type LessonContent = z.infer<typeof LessonContentSchema>;
-export type QuizQuestion = z.infer<typeof QuizQuestionSchema>;
 
 export const RubricCriteriaSchema = z
   .array(z.object({ key: z.string().min(1), label: z.string().min(1), weight: z.number().int().positive(), description: z.string().min(1) }))

@@ -1,10 +1,9 @@
 import "server-only";
 import { db } from "@/lib/db";
 
-export const LOGIN_WINDOW_MS = 15 * 60 * 1000;
-export const MAX_FAILS_PER_EMAIL = 5;
-export const MAX_FAILS_PER_IP = 30;
-export const LOCK_MS = 15 * 60 * 1000;
+const LOGIN_WINDOW_MS = 15 * 60 * 1000;
+const MAX_FAILS_PER_EMAIL = 5;
+const MAX_FAILS_PER_IP = 30;
 
 /** 直近 15 分の失敗回数でログイン試行を制限する */
 export async function isLoginThrottled(email: string, ip: string | null): Promise<boolean> {

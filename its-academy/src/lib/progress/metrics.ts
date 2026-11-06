@@ -27,7 +27,7 @@ export type AssignmentTypeValue =
   | "PROJECT"
   | "FINAL_PROJECT";
 
-export const IMPLEMENTATION_TYPES: readonly AssignmentTypeValue[] = ["CODE", "GITHUB_REPO", "PROJECT", "FINAL_PROJECT"];
+const IMPLEMENTATION_TYPES: readonly AssignmentTypeValue[] = ["CODE", "GITHUB_REPO", "PROJECT", "FINAL_PROJECT"];
 
 export type MetricInput = {
   lessons: { id: string; completed: boolean }[];
@@ -53,7 +53,7 @@ export type Metrics = {
   workReadiness: number | null; // E。未評価なら null
 };
 
-export function percent(part: number, total: number): number {
+function percent(part: number, total: number): number {
   if (total <= 0) return 0;
   return Math.round((part / total) * 100);
 }

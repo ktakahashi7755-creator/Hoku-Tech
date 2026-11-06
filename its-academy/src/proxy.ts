@@ -31,5 +31,6 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|.*\\.(?:png|svg|ico)$).*)"],
+  // 静的ファイル (画像・アイコン・robots.txt) はログインなしで返す
+  matcher: ["/((?!_next/static|_next/image|robots\\.txt$|.*\\.(?:png|svg|ico)$).*)"],
 };

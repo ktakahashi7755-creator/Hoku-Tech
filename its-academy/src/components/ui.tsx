@@ -7,7 +7,7 @@ export function cx(...c: (string | false | null | undefined)[]) {
 
 const buttonBase =
   "inline-flex min-h-11 items-center justify-center gap-2 rounded-lg px-4 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50";
-export const buttonStyles = {
+const buttonStyles = {
   primary: cx(buttonBase, "bg-accent text-white hover:bg-accent-strong"),
   secondary: cx(buttonBase, "border border-border bg-bg text-text hover:bg-surface"),
   danger: cx(buttonBase, "bg-danger text-white hover:opacity-90"),

@@ -1,7 +1,7 @@
 import "server-only";
 import { db } from "@/lib/db";
 
-export const DEFAULT_STAGNATION_DAYS = 7;
+const DEFAULT_STAGNATION_DAYS = 7;
 
 export async function getStagnationThreshold(): Promise<number> {
   const row = await db.setting.findUnique({ where: { key: "stagnationThresholdDays" } });

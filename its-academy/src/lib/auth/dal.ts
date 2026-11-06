@@ -5,7 +5,7 @@ import type { Role } from "@prisma/client";
 import { validateSession, type SessionUser } from "./session";
 
 /** 1 リクエスト内で何度呼んでもセッション検証は 1 回 */
-export const getCurrentUser = cache(async (): Promise<SessionUser | null> => {
+const getCurrentUser = cache(async (): Promise<SessionUser | null> => {
   return validateSession();
 });
 

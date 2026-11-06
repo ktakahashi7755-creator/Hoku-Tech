@@ -2,7 +2,7 @@
  * REOrGA 公開教材 72 記事の出典 (docs/source-inventory.csv から生成)。
  * 記事 ID → { url, title }。教材移行時は sourceUrl / sourcePostId をここから引く。
  */
-export const REORGA_SOURCES: Record<number, { url: string; title: string }> = {
+const REORGA_SOURCES: Record<number, { url: string; title: string }> = {
   45: { url: "https://engineer.reorga.co.jp/curriculum/%e3%82%ab%e3%83%aa%e3%82%ad%e3%83%a5%e3%83%a9%e3%83%a0%e3%81%ae%e9%80%b2%e3%82%81%e6%96%b9/", title: "カリキュラムの進め方" },
   46: { url: "https://engineer.reorga.co.jp/curriculum/%e6%bc%94%e7%bf%92%e5%95%8f%e9%a1%8c%e3%81%ab%e3%81%a4%e3%81%84%e3%81%a6/", title: "演習問題について" },
   47: { url: "https://engineer.reorga.co.jp/curriculum/%e3%82%b9%e3%82%ad%e3%83%ab%e3%83%81%e3%82%a7%e3%83%83%e3%82%af%e3%81%ab%e3%81%a4%e3%81%84%e3%81%a6/", title: "スキルチェックについて" },
