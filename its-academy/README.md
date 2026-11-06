@@ -18,15 +18,18 @@ npm run db:seed          # 開発用データ。本番では実行できない
 npm run dev
 ```
 
+本番と同じ構成 (Docker) で動かす手順は [deployment-guide.md](../docs/deployment-guide.md) の §5。
+
 ## よく使うコマンド
 
 | コマンド | 内容 |
 |----------|------|
 | `npm run typecheck` / `npm run lint` | 型検査 / 静的解析 |
 | `npm test` | 単体テスト (Vitest) |
-| `npm run verify:code` | 教材のサンプルコードを JDK 21 / bash で実行し、掲載した実行結果と比較 |
+| `npm run verify:code` | 教材のサンプルコードを JDK 21 / bash / PostgreSQL / Maven / Chromium で実行し、掲載した実行結果と比較 (`DATABASE_URL` が必要) |
 | `npm run build` | 本番ビルド |
 | `npm run test:e2e -- --trace off` | E2E (Playwright)。`TEST_DATABASE_URL` の DB を作り直す |
+| `scripts/backup.sh` / `scripts/restore.sh` | DB のバックアップと復元 (deployment-guide.md §6) |
 
 ## ディレクトリ
 
@@ -40,3 +43,4 @@ npm run dev
 | `src/lib/progress/` | 指標計算・指導提案 (純粋関数) |
 | `src/lib/queries/` | データ取得 (閲覧権限を確認してから取得) |
 | `tests/unit`, `tests/e2e` | 単体・E2E テスト |
+| `Dockerfile`, `docker-compose.yml` | コンテナでの実行 |

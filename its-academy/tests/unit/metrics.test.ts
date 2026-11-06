@@ -6,6 +6,7 @@ import {
   learningStreak,
   nextAction,
   paceAgainstTarget,
+  requiredMetricInput,
   scoreQuiz,
   statusFromDecision,
   totalRubricScore,
@@ -132,5 +133,45 @@ describe("rubric", () => {
     expect(statusFromDecision("PASS")).toBe("PASSED");
     expect(statusFromDecision("CHANGES_REQUESTED")).toBe("CHANGES_REQUESTED");
     expect(statusFromDecision("FAIL")).toBe("FAILED");
+  });
+});
+
+describe("requiredMetricInput (選択モジュールの除外)", () => {
+  const lessons = [
+    { id: "r1", optional: false, completed: true },
+    { id: "r2", optional: false, completed: false },
+    { id: "o1", optional: true, completed: false },
+  ];
+  const assignments = [
+    { id: "a1", type: "CODE" as const, latestStatus: "PASSED" as const, latestReviewScore: 80, optional: false },
+    { id: "a2", type: "CODE" as const, latestStatus: null, latestReviewScore: null, optional: true },
+  ];
+
+  it("選択モジュールのレッスン・課題・理解度チェックは指標に含めない", () => {
+    const input = requiredMetricInput({ lessons, assignments, quizBest: new Map([["r1", 100], ["o1", 0]]), latestSkillLevels: [3] });
+    expect(input.lessons.map((l) => l.id)).toEqual(["r1", "r2"]);
+    expect(input.assignments.map((a) => a.id)).toEqual(["a1"]);
+    expect(input.quizBestScores).toEqual([100]);
+    const m = computeMetrics(input);
+    expect(m.lessonCompletion).toBe(50);
+    expect(m.assignmentCompletion).toBe(100);
+    expect(m.comprehension).toBe(100);
+  });
+
+  it("選択モジュールを進めても必修の指標は変わらない", () => {
+    const before = computeMetrics(requiredMetricInput({ lessons, assignments, quizBest: new Map([["r1", 100]]), latestSkillLevels: [] }));
+    const after = computeMetrics(
+      requiredMetricInput({
+        lessons: lessons.map((l) => (l.optional ? { ...l, completed: true } : l)),
+        assignments: assignments.map((a) => (a.optional ? { ...a, latestStatus: "FAILED" as const, latestReviewScore: 10 } : a)),
+        quizBest: new Map([["r1", 100], ["o1", 20]]),
+        latestSkillLevels: [],
+      }),
+    );
+    expect(after).toEqual(before);
+  });
+
+  it("公開されていないレッスンの理解度チェックは含めない", () => {
+    expect(requiredMetricInput({ lessons, assignments, quizBest: new Map([["gone", 40]]), latestSkillLevels: [] }).quizBestScores).toEqual([]);
   });
 });

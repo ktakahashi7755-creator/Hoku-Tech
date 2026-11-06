@@ -5,6 +5,7 @@ import { canViewStudent } from "@/lib/auth/roles";
 import type { SessionUser } from "@/lib/auth/session";
 import {
   computeMetrics,
+  requiredMetricInput,
   daysSince,
   isStagnant,
   last7Days,
@@ -195,20 +196,20 @@ function buildOverview(studentId: string, data: OverviewData, now: Date) {
   // 理解度: レッスンごとの最高得点 (公開中のレッスンのみ)
   const bestQuiz = new Map<string, number>();
   for (const q of quizBestRows) bestQuiz.set(q.lessonId, Math.max(bestQuiz.get(q.lessonId) ?? 0, q.best));
-  const publishedLessonIds = new Set(lessons.map((l) => l.id));
-  const quizBestScores = [...bestQuiz.entries()].filter(([id]) => publishedLessonIds.has(id)).map(([, s]) => s);
 
   // スキル評価: 観点ごとに最新のもの
   const latestSkill = new Map<string, (typeof skills)[number]>();
   for (const s of skills) if (!latestSkill.has(s.skill)) latestSkill.set(s.skill, s);
 
-  const metrics = computeMetrics({
-    // 任意 (発展) のレッスンは必修の履修率に含めない
-    lessons: lessons.filter((l) => !l.optional).map((l) => ({ id: l.id, completed: l.status === "COMPLETED" })),
-    assignments: assignments.filter((a) => !a.optional).map((a) => ({ id: a.id, type: a.type, latestStatus: a.latestStatus, latestReviewScore: a.latestReviewScore })),
-    quizBestScores,
-    latestSkillLevels: [...latestSkill.values()].map((s) => s.level),
-  });
+  // 指標 A〜E は必修のレッスン・課題・理解度チェックだけで計算する (選択モジュールは含めない)
+  const metrics = computeMetrics(
+    requiredMetricInput({
+      lessons: lessons.map((l) => ({ id: l.id, optional: l.optional, completed: l.status === "COMPLETED" })),
+      assignments,
+      quizBest: bestQuiz,
+      latestSkillLevels: [...latestSkill.values()].map((s) => s.level),
+    }),
+  );
 
   // 最終学習日時と連続学習日数は「何かをした日」から求める (集計済みの日ごとの記録を使う)
   const activity = [

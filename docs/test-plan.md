@@ -1,6 +1,6 @@
 # ITS ENGINEER ACADEMY — テスト計画
 
-> 版: v0.2 (2026-11-06) / 実行場所: `its-academy/` / CI: `.github/workflows/its-academy.yml`
+> 版: v0.3 (2026-11-06) / 実行場所: `its-academy/` / CI: `.github/workflows/its-academy.yml`
 
 ---
 
@@ -10,10 +10,12 @@
 |----|--------|----------|-------------------|------|
 | 型検査 | TypeScript | `npm run typecheck` | — | エラー 0 |
 | 静的解析 | ESLint (next) | `npm run lint` | — | エラー 0 |
-| 単体 | Vitest | `npm test` | 44 件 / 6 ファイル | 全件成功 |
-| 教材コード検証 | JDK 21 / bash / Git / PostgreSQL 16 / Maven / Chromium | `npm run verify:code` | 28 サンプル (Java 単一ファイル 11・bash 6・SQL 3・Maven プロジェクト 6・ブラウザ 2) | 全件一致 |
+| 単体 | Vitest | `npm test` | 69 件 / 8 ファイル | 全件成功 |
+| 教材コード検証 | JDK 21 / bash / Git / PostgreSQL 16 / Maven / Chromium | `npm run verify:code` | 30 サンプル (Java・bash・Git・SQL・Maven で起動する Spring Boot・Chromium でのブラウザ確認。L8 の 2 件を含む) | 全件一致 |
 | ビルド | Next.js | `npm run build` | — | 成功 |
-| E2E | Playwright (Chromium) | `npm run test:e2e -- --trace off` | 16 (01-lms 8・02-cms 4・03-a11y 4) | 全件成功 |
+| E2E | Playwright (Chromium) | `npm run test:e2e -- --trace off` | 27 (01-lms 8・02-cms 4・03-a11y 5・04-accounts 3・05-cms-assignments 4・06-hardening 3) | 全件成功 |
+| E2E (他ブラウザ) | Playwright (Firefox / WebKit) | CI の `cross-browser` ジョブ (`PW_BROWSERS`) | 上と同じ 27 件 × 2 | 全件成功 (CI) |
+| コンテナ | Docker / Compose | CI の `container` ジョブ | 起動・ヘルスチェック・ヘッダー・危険な設定での起動拒否・バックアップと復元 | 成功 (ローカルと CI) |
 | アクセシビリティ | axe-core 4.14 (WCAG 2.2 A/AA) | 03-a11y.spec.ts | 26 画面 (受講生画面は 375px と 1280px) + キーボード操作 | 違反 0 件 |
 
 E2E は専用の DB (`TEST_DATABASE_URL`、既定は `its_academy_test`) を `prisma migrate deploy` + seed で毎回作り直す。
@@ -22,14 +24,16 @@ E2E は専用の DB (`TEST_DATABASE_URL`、既定は `its_academy_test`) を `pr
 
 | ファイル | 検証内容 |
 |----------|----------|
-| `metrics.test.ts` | 指標 A〜E の分離・未評価は null・理解度チェック採点・連続学習日数 (日本時間)・直近 7 日・停滞判定・目標ペース・次にやることの優先順・ルーブリック合計の丸め |
-| `roles.test.ts` | 個人データのアクセス分離 (本人 / 担当講師 / 担当外講師 / 他の受講生 / 管理者)・ロール付与の制限・GitHub URL の検証 |
+| `metrics.test.ts` | 指標 A〜E の分離・未評価は null・理解度チェック採点・連続学習日数 (日本時間)・直近 7 日・停滞判定・目標ペース・次にやることの優先順・ルーブリック合計の丸め・選択モジュール (L8) のレッスン・課題・理解度チェックを指標から除外 |
+| `roles.test.ts` | 個人データのアクセス分離 (本人 / 担当講師 / 担当外講師 / 他の受講生 / 管理者)・ロール付与の制限・アカウント操作の範囲 (自分自身・上位ロールは不可)・proxy のロール判定・GitHub URL の検証 |
 | `token.test.ts` | セッショントークンの長さ・一意性・保存用ハッシュ |
 | `csv.test.ts` | エスケープ・CSV インジェクション対策・BOM |
 | `draft.test.ts` | CMS の入力の変換・必須チェック・正解番号の範囲・実行検証済みの印の引き継ぎ (コード変更で外れる・フォームからの偽装は無効)・往復変換 |
 | `guidance.test.ts` | 指導提案 (停滞を能力不足と表現しない・複数回提出で面談提案・遅れの閾値) |
+| `cms-assign.test.ts` | 版の差分 (追加・削除・変更なし)・課題フォームの変換と検証・ルーブリックの配点合計 100・既存の観点 key の維持・空の下書きの読み込み |
+| `env-check.test.ts` | 起動時の設定確認 (本番は Secure Cookie と開発用以外のパスワードが必須・APP_ENV=test の扱い・メッセージに接続文字列を含めない) |
 
-## 3. E2E シナリオ (`tests/e2e/01-lms.spec.ts` #1〜8 / `02-cms.spec.ts` #9〜12)
+## 3. E2E シナリオ (`tests/e2e/`。ファイル名の番号順に実行)
 
 | # | シナリオ | 主な確認点 |
 |---|----------|------------|
@@ -45,6 +49,17 @@ E2E は専用の DB (`TEST_DATABASE_URL`、既定は `its_academy_test`) を `pr
 | 10 | CMS: 必須チェック | 本文が空の新規レッスンは公開できず、受講生のカリキュラムにも出ない |
 | 11 | CMS: 公開予約 | 予約時刻を過ぎると受講生に新しい版が表示される |
 | 12 | CMS: 権限 | 講師は教材管理を開けない |
+| 13〜17 | アクセシビリティ (03-a11y) | ログイン・受講生 9 画面 (375 / 1280px)・講師管理者 10 画面で axe 違反 0 件、キーボードだけでログイン・スキップリンク、主要画面でコンソールエラーと CSP 違反 0 件 |
+| 18 | 仮パスワード (04-accounts) | 管理者が発行 → 本人が仮パスワードでログイン → 変更を求められ、変更で解除。元のパスワードは無効 |
+| 19 | 利用停止 | 停止中はログインできず、再開で戻る |
+| 20 | 権限の変更 | ロールの変更と、自分自身・上位ロールを操作できないこと |
+| 21 | 合格点の変更 (05-cms-assignments) | 合格点を変えても過去の採点は採点時の合格点のまま |
+| 22 | ルーブリック | 配点の合計が 100 でなければ保存できない |
+| 23 | 新しい課題 | 下書きで作られ、公開するまで受講生に見えない |
+| 24 | 版の差分 | レッスンの版の差分を表示できる |
+| 25 | ログイン試行制限 (06-hardening) | 同じメールアドレスで 5 回失敗すると、正しいパスワードでもログインできない |
+| 26 | 講師・管理者画面の 375px | 11 画面で横スクロールなし |
+| 27 | 死活監視とヘッダー | /api/health がログインなしで `{"status":"ok"}`・no-store。CSP・X-Frame-Options・nosniff・Referrer-Policy があり X-Powered-By がない |
 
 ## 4. 負荷試験 (2026-11-06)
 
@@ -70,10 +85,18 @@ E2E は専用の DB (`TEST_DATABASE_URL`、既定は `its_academy_test`) を `pr
   「次にやること」カードの背景色がスタイルの優先順位で消えていた不具合を発見し、`Card` の `tone` 指定に修正済み。
 * 色のコントラスト比を計算で確認 (全組み合わせ 4.5:1 以上。design-system.md §2)。
 
-## 6. 未実施・残課題
+## 6. 本番構成の確認 (2026-11-06。手順は deployment-guide.md §5・§6)
 
-* スクリーンリーダー (VoiceOver / NVDA) での通し確認、ログイン直後のフォーカス位置の評価 (自動検査は T-12-01 で実施済み)
-* Firefox / WebKit (Safari) での E2E
-* 講師・管理者画面の 375px 表示の自動検証 (受講生画面のみ自動化済み)
-* ログイン試行制限の E2E (単体の閾値は実装済み、E2E 未作成)
-* バックアップからの復元手順の実地訓練 (deployment-guide.md §5)
+* Docker イメージ (standalone・非 root) と docker compose を本番と同じ設定 (APP_ENV=production, COOKIE_SECURE=true) で起動し、
+  ヘルスチェック 200・HEALTHCHECK healthy・Chromium で受講生と管理者がログイン (Secure / HttpOnly Cookie、コンソールエラー 0 件)
+* 開発用パスワードの接続文字列・COOKIE_SECURE なしでは終了コード 1 で起動しない
+* バックアップ → 別 DB に復元して主要 6 テーブルの件数が一致、同じファイルの再復元も成功、保持期間を過ぎたバックアップだけ削除
+* 上記のうち起動・ヘッダー・起動拒否・バックアップと復元は CI の `container` ジョブで毎回実行
+
+## 7. 未実施・残課題
+
+* スクリーンリーダー (VoiceOver / NVDA) での通し確認、ログイン直後のフォーカス位置の評価 (自動検査は実施済み)
+* L1 環境構築の手順の Mac / Windows 実機での確認 (このコンテナは Linux のため未確認)
+* 本番相当の環境 (HTTPS 終端・マネージド DB) での確認と復元訓練 — ホスティング未契約のため (D-03)
+* 負荷試験は 1 台のコンテナ内での計測。本番の構成が決まった後に、同じスクリプトで再計測する
+* 講師による教材内容のレビュー (自動検証はコードと実行結果の一致まで)

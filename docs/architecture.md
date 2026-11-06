@@ -1,6 +1,6 @@
 # ITS ENGINEER ACADEMY — アーキテクチャ
 
-> 版: v0.2 (2026-11-06) / 実装: [`its-academy/`](../its-academy/)
+> 版: v0.3 (2026-11-06) / 実装: [`its-academy/`](../its-academy/)
 
 ---
 
@@ -30,7 +30,8 @@
 | 検証 | zod 4 | |
 | UI | Tailwind CSS 4 + 自作の最小コンポーネント (`src/components/ui.tsx`) | shadcn/ui は導入していない (§5) |
 | テスト | Vitest 5 (単体) / Playwright 1.63 (E2E・Chromium / Firefox / WebKit) / axe-core 4.14 (アクセシビリティ) | |
-| CI | GitHub Actions (`.github/workflows/its-academy.yml`) | PostgreSQL サービス + JDK 21 |
+| CI | GitHub Actions (`.github/workflows/its-academy.yml`) | PostgreSQL サービス + JDK 21。Firefox / WebKit の E2E とコンテナ構成の確認も実行 |
+| 実行形態 | Next.js standalone 出力 + Docker (`its-academy/Dockerfile`, `docker-compose.yml`) | deployment-guide.md §5 |
 
 ## 2. 全体構成
 
@@ -39,11 +40,13 @@
   │  HTTPS (Cookie: its_session  HttpOnly / SameSite=Lax / Secure)
   ▼
 Next.js (Node.js)
-  ├─ src/proxy.ts                 Cookie の有無だけで /login へ誘導 (楽観的チェック)
+  ├─ src/proxy.ts                 未ログインは /login へ。/admin/** はセッションとロールを DB で確認し、権限がなければ 404
   ├─ src/app/(auth)/login         ログイン画面
   ├─ src/app/(app)/...            受講生・講師・管理者の画面 (Server Components)
   ├─ src/app/actions/*.ts         サーバーアクション (更新処理。毎回 requireUser で認可)
   ├─ src/app/admin/export/...     CSV 出力 (Route Handler)
+  ├─ src/app/api/health           死活監視 (ログイン不要。DB に接続できれば 200、できなければ 503)
+  ├─ src/instrumentation*.ts      起動時の設定確認 (問題があれば終了) / サーバーエラーの JSON ログ
   ├─ src/lib/auth/                セッション・パスワード・ロール・試行制限
   ├─ src/lib/queries/             データ取得 (受講生の閲覧権限を検証してから取得)
   └─ src/lib/progress/            指標計算・指導提案 (純粋関数・単体テスト済み)
@@ -69,12 +72,14 @@ PostgreSQL (Prisma)
 | パスワード変更 | 全セッションを失効させてから新しいセッションを発行 | 同上 |
 | 認可 | 全ページ・全サーバーアクション・Route Handler で `requireUser(roles)` | `src/lib/auth/dal.ts` |
 | 個人データの分離 | 受講生本人 / 管理者 / **その受講生の担当講師**のみ閲覧可 (`canViewStudent`) | `src/lib/auth/roles.ts`, `src/lib/queries/student.ts` |
-| ロール付与 | ADMIN は INSTRUCTOR / STUDENT のみ付与可 (`canAssignRole`) | `src/lib/auth/roles.ts` |
+| ロール付与・アカウント操作 | ADMIN は INSTRUCTOR / STUDENT のみ付与・操作可、SUPER_ADMIN はすべて。自分自身は操作できない (`canAssignRole`, `canManageAccount`)。仮パスワード発行時は全セッションを失効し、次回ログインで変更を必須にする | `src/lib/auth/roles.ts`, `src/app/actions/accounts.ts` |
 | CSRF | サーバーアクションは POST のみ + Next.js が Origin と Host を照合 + SameSite=Lax | Next.js 組み込み |
 | XSS | 教材本文は HTML として解釈せず React のエスケープで表示 (`RichText`)。`dangerouslySetInnerHTML` 不使用 | `src/components/lesson/rich-text.tsx` |
 | 入力検証 | すべて zod でサーバー側検証 (長さ・形式・列挙値)。GitHub URL は正規表現で限定 | `src/app/actions/*.ts`, `src/lib/validation.ts` |
 | CSV インジェクション | `= + - @` 等で始まるセルに `'` を付与 | `src/lib/csv.ts` |
-| 監査ログ | ログイン成功/失敗・ログアウト・パスワード変更・提出・採点・コメント・スキル評価・受講設定・設定変更・教材公開・CSV 出力 | `src/lib/audit.ts` |
+| 監査ログ | ログイン成功/失敗・ログアウト・パスワード変更・提出・採点・コメント・スキル評価・受講設定・設定変更・教材公開・課題とルーブリックの編集・ロール変更・仮パスワード発行・利用停止と再開・古い記録の削除・CSV 出力 | `src/lib/audit.ts` |
+| セキュリティヘッダー | CSP (`frame-ancestors 'none'` など)、HSTS (HTTPS 時)、X-Frame-Options、nosniff、Referrer-Policy、Permissions-Policy。Partial Prerender と nonce が両立しないため `script-src` は `'unsafe-inline'` を含む | `src/lib/security-headers.ts` |
+| 起動時の設定確認 | 本番・検証環境で COOKIE_SECURE なし・開発用パスワードの接続文字列なら終了コード 1 で終了 | `src/lib/env-check.ts`, `src/instrumentation-node.ts` |
 
 ### 権限不足時の応答
 
@@ -92,6 +97,7 @@ PostgreSQL (Prisma)
 ## 4. 教材データと進捗データの分離
 
 * 教材: `courses → modules → lessons → lesson_versions`。本文は `lesson_versions.content` (JSON, zod で検証)。
+* 選択モジュール (`modules.optional`、L8) のレッスン・課題・理解度チェックは指標 A〜E の計算から除く (`requiredMetricInput`)。
 * 進捗: `lesson_progress` は `lesson_id` に紐づき、`lesson_version_id` (最後に学習した版) と
   `completed_version_id` (完了時の版) を持つ。
 * 理解度チェックは `lesson_version_id` に紐づくため、教材を改訂すると新しい版の合格が必要になる (過去の合格記録は残る)。
@@ -118,5 +124,5 @@ CMS で編集したコードは自動検証の対象外のため、「自動実�
 |--------|------|------|
 | npm audit | 本番の依存関係は 0 件 (Prisma 7.10.1 への更新で high 3 件を解消、Vitest 5 への更新で開発用の critical 2 件を解消)。残りは開発用の lint ツール (eslint-config-next 経由の minimatch) の moderate 8 件で、利用者に配布されない | eslint-config-next の更新時に再確認 |
 | 受講生一覧の集計 | 一括読み込みと SQL での集計で 200 名 0.25 秒・700 名 0.8 秒 (test-plan.md §4) | 同時アクセスが多い大規模運用では、集計結果を保存する方式を検討 |
-| ログイン試行制限の分散環境 | DB ベースのため複数台構成でも有効だが、`login_attempts` が増え続ける | 定期削除ジョブを STEP 13 で追加 |
+| ログイン試行制限の分散環境 | DB ベースのため複数台構成でも有効だが、`login_attempts` が増え続ける | 管理者が設定画面から 30 日より前の記録と期限切れセッションを削除できる (監査ログに残る)。自動実行は運用先の決定後 |
 | 学習時間の精度 | 画面表示中に 60 秒ごとに記録 (1 回最大 90 秒加算)。複数タブで重複しうる | 指標には使わず参考表示のみ |
