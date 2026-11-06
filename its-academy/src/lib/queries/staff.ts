@@ -4,7 +4,7 @@ import { isAdmin } from "@/lib/auth/roles";
 import type { SessionUser } from "@/lib/auth/session";
 import { suggestGuidance } from "@/lib/progress/guidance";
 import { SKILL_LABEL } from "@/lib/progress/skills";
-import { getStudentOverview, hasEnrollment, type StudentOverview } from "./student";
+import { getStudentOverviews, hasEnrollment, type StudentOverview } from "./student";
 
 /** 閲覧できる受講生の ID。管理者は全員、講師は担当の受講生のみ */
 export async function visibleStudentIds(viewer: SessionUser): Promise<string[]> {
@@ -20,7 +20,7 @@ export type StudentRow = StudentOverview & { pendingReviews: number };
 
 export async function listStudentOverviews(viewer: SessionUser): Promise<StudentRow[]> {
   const ids = await visibleStudentIds(viewer);
-  const overviews = await Promise.all(ids.map((id) => getStudentOverview(id)));
+  const overviews = await getStudentOverviews(ids); // まとめて読み込む (受講生の数によらずクエリ数は一定)
   return overviews.filter(hasEnrollment).map((o) => ({
     ...o,
     pendingReviews: o.assignments.filter((a) => a.latestStatus === "SUBMITTED" || a.latestStatus === "IN_REVIEW" || a.latestStatus === "RESUBMITTED").length,

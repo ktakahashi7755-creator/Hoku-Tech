@@ -10,12 +10,19 @@ export const metadata: Metadata = { title: "受講生" };
 
 const v = (x: number | null) => (x === null ? "—" : x);
 
-export default async function StudentsPage({ searchParams }: { searchParams: Promise<{ filter?: string }> }) {
+const PAGE_SIZE = 50;
+
+export default async function StudentsPage({ searchParams }: { searchParams: Promise<{ filter?: string; page?: string }> }) {
   const viewer = await requireUser(STAFF_ROLES);
-  const { filter } = await searchParams;
-  let rows = await listStudentOverviews(viewer);
-  if (filter === "stagnant") rows = rows.filter((r) => r.stagnant);
-  if (filter === "review") rows = rows.filter((r) => r.pendingReviews > 0);
+  const { filter, page: pageParam } = await searchParams;
+  let all = await listStudentOverviews(viewer);
+  if (filter === "stagnant") all = all.filter((r) => r.stagnant);
+  if (filter === "review") all = all.filter((r) => r.pendingReviews > 0);
+  // 表示は 50 名ずつ (集計と絞り込みは全員を対象に行う)
+  const pages = Math.max(1, Math.ceil(all.length / PAGE_SIZE));
+  const page = Math.min(Math.max(1, Number.parseInt(pageParam ?? "1", 10) || 1), pages);
+  const rows = all.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const pageHref = (n: number) => `/admin/students?${new URLSearchParams({ ...(filter ? { filter } : {}), page: String(n) })}`;
 
   const tabs = [
     ["", "すべて"],
@@ -47,6 +54,9 @@ export default async function StudentsPage({ searchParams }: { searchParams: Pro
           </Link>
         ))}
       </nav>
+      <p className="mb-3 text-sm text-muted" aria-live="polite">
+        {all.length} 名{pages > 1 && ` ・ ${(page - 1) * PAGE_SIZE + 1}〜${Math.min(page * PAGE_SIZE, all.length)} 名目を表示`}
+      </p>
       {rows.length === 0 ? (
         <EmptyState>該当する受講生はいません。</EmptyState>
       ) : (
@@ -86,6 +96,22 @@ export default async function StudentsPage({ searchParams }: { searchParams: Pro
             </tbody>
           </table>
         </ScrollRegion>
+      )}
+      {pages > 1 && (
+        <nav aria-label="ページ送り" className="mt-4 flex flex-wrap items-center gap-2">
+          {page > 1 && <Link href={pageHref(page - 1)} className="inline-flex min-h-11 items-center rounded-lg border border-border px-4 text-sm">前へ</Link>}
+          {Array.from({ length: pages }, (_, i) => i + 1).map((n) => (
+            <Link
+              key={n}
+              href={pageHref(n)}
+              aria-current={n === page ? "page" : undefined}
+              className={`inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg border px-3 text-sm ${n === page ? "border-accent bg-accent-soft font-semibold text-accent-strong" : "border-border"}`}
+            >
+              {n}
+            </Link>
+          ))}
+          {page < pages && <Link href={pageHref(page + 1)} className="inline-flex min-h-11 items-center rounded-lg border border-border px-4 text-sm">次へ</Link>}
+        </nav>
       )}
     </div>
   );

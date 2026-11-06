@@ -47,40 +47,101 @@ export async function getPublishedCurriculum(courseId: string) {
 }
 
 /**
- * 受講生 1 名の進捗をまとめて計算する。呼び出し前に assertCanViewStudent で権限を確認すること。
+ * 複数の受講生の進捗に必要なデータを、テーブルごとに 1 回のクエリでまとめて読み込む
+ * (受講生ごとに読むと、人数に比例してクエリが増えるため)。
  */
-export async function getStudentOverview(studentId: string) {
-  const student = await db.user.findUnique({
-    where: { id: studentId },
-    select: { id: true, name: true, email: true, affiliation: true, joinedAt: true, role: true, lastLoginAt: true, isActive: true },
-  });
-  if (!student) notFound();
+async function loadOverviewData(studentIds: string[]) {
+  const ids = [...new Set(studentIds)];
+  const [students, enrollmentRows, threshold] = await Promise.all([
+    db.user.findMany({
+      where: { id: { in: ids } },
+      select: { id: true, name: true, email: true, affiliation: true, joinedAt: true, role: true, lastLoginAt: true, isActive: true },
+    }),
+    db.enrollment.findMany({
+      where: { userId: { in: ids } },
+      orderBy: { createdAt: "asc" },
+      include: { course: true, instructor: { select: { id: true, name: true } } },
+    }),
+    getStagnationThreshold(),
+  ]);
+  const enrollmentByUser = new Map<string, (typeof enrollmentRows)[number]>();
+  for (const e of enrollmentRows) if (!enrollmentByUser.has(e.userId)) enrollmentByUser.set(e.userId, e);
+  const courseIds = [...new Set([...enrollmentByUser.values()].map((e) => e.courseId))];
 
-  const enrollment = await db.enrollment.findFirst({
-    where: { userId: studentId },
-    orderBy: { createdAt: "asc" },
-    include: { course: true, instructor: { select: { id: true, name: true } } },
-  });
+  const [curricula, progress, submissions, quizAttempts, sessions, skills, comments] = await Promise.all([
+    Promise.all(courseIds.map(async (id) => [id, await getPublishedCurriculum(id)] as const)),
+    db.lessonProgress.findMany({ where: { userId: { in: ids } }, select: { userId: true, lessonId: true, status: true, lastViewedAt: true } }),
+    db.submission.findMany({
+      where: { userId: { in: ids } },
+      orderBy: [{ attemptNo: "desc" }, { createdAt: "desc" }, { id: "asc" }], // 同じ回数の提出の並びも毎回同じにする
+      include: { reviews: { orderBy: { createdAt: "desc" }, include: { reviewer: { select: { name: true } } } } },
+    }),
+    // 理解度チェックと学習時間は行数が多いので、データベース側で集計してから受け取る
+    db.$queryRaw<{ userId: string; lessonId: string; best: number }[]>`
+      SELECT qa."userId", lv."lessonId", MAX(qa.score)::int AS best
+      FROM quiz_attempts qa JOIN lesson_versions lv ON lv.id = qa."lessonVersionId"
+      WHERE qa."userId" = ANY(${ids}) GROUP BY 1, 2`,
+    // 日本時間の日付ごとの活動 (kind: quiz = 理解度チェックを受けた日, ping = 学習画面を開いていた日, start = その日に始めた学習の分数)
+    db.$queryRaw<{ userId: string; kind: string; day: string; last: Date; minutes: number; seconds: number }[]>`
+      SELECT "userId", 'quiz' AS kind, to_char("createdAt" + interval '9 hours', 'YYYY-MM-DD') AS day,
+             MAX("createdAt") AS last, 0::int AS minutes, 0::int AS seconds
+      FROM quiz_attempts WHERE "userId" = ANY(${ids}) GROUP BY 1, 3
+      UNION ALL
+      SELECT "userId", 'ping', to_char("lastPingAt" + interval '9 hours', 'YYYY-MM-DD'),
+             MAX("lastPingAt"), 0, 0
+      FROM learning_sessions WHERE "userId" = ANY(${ids}) GROUP BY 1, 3
+      UNION ALL
+      SELECT "userId", 'start', to_char("startedAt" + interval '9 hours', 'YYYY-MM-DD'),
+             MAX("startedAt"), SUM(ROUND("durationSec" / 60.0))::int, SUM("durationSec")::int
+      FROM learning_sessions WHERE "userId" = ANY(${ids}) GROUP BY 1, 3`,
+    db.skillAssessment.findMany({ where: { userId: { in: ids } }, orderBy: { createdAt: "desc" }, include: { assessor: { select: { name: true } } } }),
+    db.instructorComment.findMany({ where: { studentId: { in: ids } }, orderBy: { createdAt: "desc" }, include: { author: { select: { name: true } } } }),
+  ]);
+
+  const group = <T,>(rows: T[], key: (r: T) => string) => {
+    const m = new Map<string, T[]>();
+    for (const r of rows) {
+      const k = key(r);
+      const list = m.get(k);
+      if (list) list.push(r);
+      else m.set(k, [r]);
+    }
+    return m;
+  };
+  return {
+    students: new Map(students.map((s) => [s.id, s])),
+    enrollmentByUser,
+    curricula: new Map(curricula),
+    progress: group(progress, (r) => r.userId),
+    submissions: group(submissions, (r) => r.userId),
+    quizBest: group(quizAttempts, (r) => r.userId),
+    activityDays: group(sessions, (r) => r.userId),
+    skills: group(skills, (r) => r.userId),
+    comments: group(comments, (r) => r.studentId),
+    threshold,
+  };
+}
+
+type OverviewData = Awaited<ReturnType<typeof loadOverviewData>>;
+
+/** 読み込み済みのデータから、受講生 1 名の進捗を計算する */
+function buildOverview(studentId: string, data: OverviewData, now: Date) {
+  const student = data.students.get(studentId);
+  if (!student) return null;
+  const enrollment = data.enrollmentByUser.get(studentId) ?? null;
   if (!enrollment) {
     return { student, enrollment: null } as const;
   }
+  const modules = data.curricula.get(enrollment.courseId) ?? [];
+  const progress = data.progress.get(studentId) ?? [];
+  const submissions = data.submissions.get(studentId) ?? [];
+  const quizBestRows = data.quizBest.get(studentId) ?? [];
+  const activityDays = data.activityDays.get(studentId) ?? [];
+  const dayStart = (day: string) => new Date(`${day}T00:00:00+09:00`); // 日本時間のその日の 0 時
+  const skills = data.skills.get(studentId) ?? [];
+  const comments = data.comments.get(studentId) ?? [];
+  const threshold = data.threshold;
 
-  const [modules, progress, submissions, quizAttempts, sessions, skills, comments, threshold] = await Promise.all([
-    getPublishedCurriculum(enrollment.courseId),
-    db.lessonProgress.findMany({ where: { userId: studentId } }),
-    db.submission.findMany({
-      where: { userId: studentId },
-      orderBy: [{ attemptNo: "desc" }],
-      include: { reviews: { orderBy: { createdAt: "desc" }, include: { reviewer: { select: { name: true } } } } },
-    }),
-    db.quizAttempt.findMany({ where: { userId: studentId }, include: { lessonVersion: { select: { lessonId: true } } } }),
-    db.learningSession.findMany({ where: { userId: studentId }, orderBy: { startedAt: "desc" } }),
-    db.skillAssessment.findMany({ where: { userId: studentId }, orderBy: { createdAt: "desc" }, include: { assessor: { select: { name: true } } } }),
-    db.instructorComment.findMany({ where: { studentId }, orderBy: { createdAt: "desc" }, include: { author: { select: { name: true } } } }),
-    getStagnationThreshold(),
-  ]);
-
-  const now = new Date();
   const progressByLesson = new Map(progress.map((p) => [p.lessonId, p]));
   const lessonStatus = (lessonId: string): LessonStatus => {
     const p = progressByLesson.get(lessonId);
@@ -131,10 +192,7 @@ export async function getStudentOverview(studentId: string) {
 
   // 理解度: レッスンごとの最高得点 (公開中のレッスンのみ)
   const bestQuiz = new Map<string, number>();
-  for (const q of quizAttempts) {
-    const id = q.lessonVersion.lessonId;
-    bestQuiz.set(id, Math.max(bestQuiz.get(id) ?? 0, q.score));
-  }
+  for (const q of quizBestRows) bestQuiz.set(q.lessonId, Math.max(bestQuiz.get(q.lessonId) ?? 0, q.best));
   const publishedLessonIds = new Set(lessons.map((l) => l.id));
   const quizBestScores = [...bestQuiz.entries()].filter(([id]) => publishedLessonIds.has(id)).map(([, s]) => s);
 
@@ -149,14 +207,17 @@ export async function getStudentOverview(studentId: string) {
     latestSkillLevels: [...latestSkill.values()].map((s) => s.level),
   });
 
+  // 最終学習日時と連続学習日数は「何かをした日」から求める (集計済みの日ごとの記録を使う)
   const activity = [
     ...progress.map((p) => p.lastViewedAt),
-    ...sessions.map((s) => s.lastPingAt),
-    ...quizAttempts.map((q) => q.createdAt),
+    ...activityDays.filter((d) => d.kind !== "start").map((d) => new Date(d.last)),
     ...submissions.filter((s) => s.submittedAt).map((s) => s.submittedAt!),
   ];
   const lastActivity = activity.length ? new Date(Math.max(...activity.map((d) => d.getTime()))) : null;
-  const totalMinutes = Math.round(sessions.reduce((s, x) => s + x.durationSec, 0) / 60);
+  const startDays = activityDays.filter((d) => d.kind === "start");
+  const totalMinutes = Math.round(startDays.reduce((s, x) => s + x.seconds, 0) / 60);
+  // 直近 7 日の集計用: 日ごとの分数を「その日に始めた 1 件の学習」として渡す (分数は学習ごとに丸めてから合計済み)
+  const sessionsByDay = startDays.map((d) => ({ startedAt: dayStart(d.day), durationSec: d.minutes * 60 }));
 
   // 苦手分野: 理解度チェックの最高点が合格点未満のレッスン / 修正依頼・不合格の課題
   const weakLessons = lessons.filter((l) => bestQuiz.has(l.id) && l.status !== "COMPLETED");
@@ -181,7 +242,7 @@ export async function getStudentOverview(studentId: string) {
     stagnant: enrollment.status === "ACTIVE" && isStagnant(lastActivity, enrollment.startedAt, now, threshold),
     threshold,
     streak: learningStreak(activity, now),
-    week: last7Days(sessions, now),
+    week: last7Days(sessionsByDay, now),
     totalMinutes,
     pace: paceAgainstTarget(enrollment.startedAt, enrollment.targetEndDate, metrics.lessonCompletion, now),
     current,
@@ -189,6 +250,22 @@ export async function getStudentOverview(studentId: string) {
     struggling,
     next: nextAction({ lessons, currentLessonId: enrollment.currentLessonId, assignments }),
   } as const;
+}
+
+/** 複数の受講生の進捗 (一覧・CSV 用)。呼び出し前に閲覧権限を確認すること */
+export async function getStudentOverviews(studentIds: string[]) {
+  const data = await loadOverviewData(studentIds);
+  const now = new Date();
+  return studentIds.map((id) => buildOverview(id, data, now)).filter((o): o is NonNullable<typeof o> => o !== null);
+}
+
+/**
+ * 受講生 1 名の進捗をまとめて計算する。呼び出し前に assertCanViewStudent で権限を確認すること。
+ */
+export async function getStudentOverview(studentId: string) {
+  const o = buildOverview(studentId, await loadOverviewData([studentId]), new Date());
+  if (!o) notFound();
+  return o;
 }
 
 export type StudentOverview = Extract<Awaited<ReturnType<typeof getStudentOverview>>, { modules: unknown }>;
