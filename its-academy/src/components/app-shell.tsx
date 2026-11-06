@@ -23,7 +23,7 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
         { href: "/curriculum", label: "カリキュラム" },
         ...(isAdmin(user.role)
           ? [
-              { href: "/admin/content", label: "教材公開" },
+              { href: "/admin/content", label: "教材管理" },
               { href: "/admin/settings", label: "設定" },
             ]
           : []),

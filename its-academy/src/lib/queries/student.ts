@@ -14,6 +14,7 @@ import {
   type SubmissionStatusValue,
 } from "@/lib/progress/metrics";
 import { getStagnationThreshold } from "./settings";
+import { applyScheduledPublishes } from "@/lib/content/publish";
 
 export type LessonStatus = "NOT_STARTED" | "IN_PROGRESS" | "COMPLETED";
 
@@ -26,6 +27,7 @@ export async function assertCanViewStudent(viewer: SessionUser, studentId: strin
 
 /** 公開中のカリキュラム (モジュール → レッスン) を順番どおりに返す */
 export async function getPublishedCurriculum(courseId: string) {
+  await applyScheduledPublishes();
   const modules = await db.module.findMany({
     where: { courseId },
     orderBy: { position: "asc" },

@@ -66,6 +66,7 @@ async function main() {
           estimatedMinutes: l.estimatedMinutes,
           content: buildLessonContent(l),
           changeNote: l.sourceUrl ? "REOrGA 教材を ITS 標準フォーマットで再構成" : "新規作成",
+          publishedAt: new Date(),
           sourceUrl: l.sourceUrl,
           sourcePostId: l.sourcePostId,
           authorId: admin.id,

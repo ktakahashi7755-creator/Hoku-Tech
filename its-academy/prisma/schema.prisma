@@ -168,8 +168,9 @@ model Lesson {
   slug             String        @unique
   position         Int
   status           PublishStatus @default(DRAFT)
-  publishAt        DateTime? // 公開予約
-  currentVersionId String?       @unique
+  publishAt          DateTime? // 公開予約の日時
+  scheduledVersionId String? // 公開予約されている版 (publishAt に currentVersion へ切り替わる)
+  currentVersionId   String?       @unique
   currentVersion   LessonVersion? @relation("CurrentVersion", fields: [currentVersionId], references: [id])
   createdAt        DateTime      @default(now())
   updatedAt        DateTime      @updatedAt
@@ -191,6 +192,7 @@ model LessonVersion {
   estimatedMinutes Int
   content          Json // src/lib/content/schema.ts の LessonContent (13 項目)
   changeNote       String?
+  publishedAt      DateTime? // null の版は下書き (受講生には表示されない)
   sourceUrl        String? // 移行元 (REOrGA) の記事 URL
   sourcePostId     Int?
   authorId         String?

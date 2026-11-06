@@ -5,7 +5,7 @@ export const TEST_DATABASE_URL = process.env.TEST_DATABASE_URL ?? "postgresql://
 
 export default defineConfig({
   testDir: "tests/e2e",
-  fullyParallel: false,
+  fullyParallel: false, // ファイル名の番号順に実行 (02-cms はレッスンの版を変更するため最後)
   workers: 1, // DB を共有するシナリオ試験のため直列に実行
   retries: 0,
   reporter: [["list"]],
