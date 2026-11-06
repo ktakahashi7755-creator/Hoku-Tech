@@ -75,8 +75,10 @@ test("主要画面でコンソールエラーと CSP 違反が出ない", async 
     if (m.type() === "error") problems.push(`${page.url()}: ${m.text()}`);
   });
   page.on("pageerror", (e) => problems.push(`${page.url()}: ${e.message}`));
+  // ログイン後の画面遷移の通信が終わってから次へ進む (途中で移動すると WebKit が中断した通信を "Load failed" と記録するため)
   await login(page, "student@its.example");
   await page.waitForURL(/\/home$/);
+  await page.waitForLoadState("networkidle");
   for (const path of ["/home", "/curriculum", "/lessons/l4-javascript", "/assignments", "/progress", "/reviews", "/me"]) {
     await page.goto(path);
     await page.waitForLoadState("networkidle");
@@ -84,6 +86,7 @@ test("主要画面でコンソールエラーと CSP 違反が出ない", async 
   await logout(page);
   await login(page, "admin@its.example");
   await page.waitForURL(/\/admin$/);
+  await page.waitForLoadState("networkidle");
   for (const path of ["/admin", "/admin/students", "/admin/content", "/admin/content/assignments", "/admin/users", "/admin/settings"]) {
     await page.goto(path);
     await page.waitForLoadState("networkidle");
