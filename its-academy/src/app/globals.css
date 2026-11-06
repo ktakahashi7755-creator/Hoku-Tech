@@ -1,26 +1,78 @@
 @import "tailwindcss";
 
+/*
+ * ITS ENGINEER ACADEMY design tokens (docs/design-system.md)
+ * ライトモード標準。白・淡いグレー + 落ち着いたブルー 1 色。
+ * 文字色はすべて背景に対して WCAG 2.2 AA (4.5:1) 以上。
+ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --bg: #ffffff;
+  --surface: #f6f7f9;
+  --surface-2: #eef0f3;
+  --border: #dde1e6;
+  --text: #1c1f24; /* 16.5:1 on #fff */
+  --muted: #555b65; /* 6.8:1 on #fff */
+  --accent: #1f5fbf; /* 6.1:1 on #fff */
+  --accent-strong: #174a96;
+  --accent-soft: #eaf1fb;
+  --success: #1c6e41;
+  --success-soft: #e8f4ec;
+  --warning: #7a4f00;
+  --warning-soft: #fdf3e1;
+  --danger: #b42318;
+  --danger-soft: #fdecea;
+  --code-bg: #f3f4f6;
+  --focus: #1f5fbf;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-border: var(--border);
+  --color-text: var(--text);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-accent-strong: var(--accent-strong);
+  --color-accent-soft: var(--accent-soft);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-code: var(--code-bg);
+  --font-sans: "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Yu Gothic UI", "Meiryo", system-ui, sans-serif;
+  --font-mono: ui-monospace, "SFMono-Regular", "Menlo", "Consolas", monospace;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  line-height: 1.75;
+  overflow-x: hidden;
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
+
+.prose-lesson p + p {
+  margin-top: 0.75rem;
 }

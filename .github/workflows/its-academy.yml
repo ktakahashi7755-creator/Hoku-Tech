@@ -1,0 +1,57 @@
+name: its-academy
+
+on:
+  push:
+    paths: ["its-academy/**", ".github/workflows/its-academy.yml"]
+  pull_request:
+    paths: ["its-academy/**", ".github/workflows/its-academy.yml"]
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: its-academy
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: its
+          POSTGRES_PASSWORD: ci_only_password
+          POSTGRES_DB: its_academy_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U its" --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL: postgresql://its:ci_only_password@localhost:5432/its_academy_test
+      TEST_DATABASE_URL: postgresql://its:ci_only_password@localhost:5432/its_academy_test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: its-academy/package-lock.json
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+      - run: npm ci
+      - run: npx prisma generate
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Lint
+        run: npm run lint
+      - name: Unit tests
+        run: npm test
+      - name: Verify lesson code samples (run and compare output)
+        run: npm run verify:code
+      - name: Build
+        run: npm run build
+      - name: E2E tests
+        run: |
+          npx playwright install --with-deps chromium
+          npm run test:e2e -- --trace off

@@ -1,36 +1,42 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ITS ENGINEER ACADEMY
 
-## Getting Started
+ITS 合同会社のエンジニア育成プラットフォーム (LMS)。受講生の学習・課題提出、講師のレビュー、
+管理者による進捗把握を 1 つのアプリで行う。
 
-First, run the development server:
+* 設計: [../docs/PRD.md](../docs/PRD.md) / [../docs/architecture.md](../docs/architecture.md) / [../docs/database-schema.md](../docs/database-schema.md)
+* 進捗: [../docs/development-progress.md](../docs/development-progress.md)
+* 起動・運用: [../docs/deployment-guide.md](../docs/deployment-guide.md)
+* テスト: [../docs/test-plan.md](../docs/test-plan.md)
+
+## すぐに動かす
 
 ```bash
+cp .env.example .env     # DATABASE_URL を設定 (PostgreSQL 16)
+npm ci
+npm run db:migrate
+npm run db:seed          # 開発用データ。本番では実行できない
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## よく使うコマンド
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| コマンド | 内容 |
+|----------|------|
+| `npm run typecheck` / `npm run lint` | 型検査 / 静的解析 |
+| `npm test` | 単体テスト (Vitest) |
+| `npm run verify:code` | 教材のサンプルコードを JDK 21 / bash で実行し、掲載した実行結果と比較 |
+| `npm run build` | 本番ビルド |
+| `npm run test:e2e -- --trace off` | E2E (Playwright)。`TEST_DATABASE_URL` の DB を作り直す |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## ディレクトリ
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+| パス | 内容 |
+|------|------|
+| `prisma/` | スキーマ・マイグレーション・seed |
+| `content/` | 初期カリキュラム定義と、実行検証するサンプルコード |
+| `src/app/(app)/` | ログイン後の画面 (受講生・講師・管理者) |
+| `src/app/actions/` | 更新処理 (サーバーアクション。毎回サーバー側で認可) |
+| `src/lib/auth/` | セッション・パスワード・ロール |
+| `src/lib/progress/` | 指標計算・指導提案 (純粋関数) |
+| `src/lib/queries/` | データ取得 (閲覧権限を確認してから取得) |
+| `tests/unit`, `tests/e2e` | 単体・E2E テスト |

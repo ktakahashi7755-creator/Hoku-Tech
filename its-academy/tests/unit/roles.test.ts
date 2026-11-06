@@ -20,3 +20,16 @@ describe("canAssignRole", () => {
     expect(canAssignRole("STUDENT", "STUDENT")).toBe(false);
   });
 });
+
+import { GITHUB_REPO_URL } from "@/lib/validation";
+
+describe("GITHUB_REPO_URL", () => {
+  it("GitHub のリポジトリ URL だけを許可する", () => {
+    expect(GITHUB_REPO_URL.test("https://github.com/hanako/its-profile")).toBe(true);
+    expect(GITHUB_REPO_URL.test("https://github.com/hanako/its-profile/")).toBe(true);
+    expect(GITHUB_REPO_URL.test("http://github.com/hanako/its-profile")).toBe(false);
+    expect(GITHUB_REPO_URL.test("https://evil.example/hanako/repo")).toBe(false);
+    expect(GITHUB_REPO_URL.test("javascript:alert(1)//github.com/a/b")).toBe(false);
+    expect(GITHUB_REPO_URL.test("https://github.com/hanako")).toBe(false);
+  });
+});
