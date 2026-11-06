@@ -4,7 +4,7 @@ ITS 合同会社のエンジニア育成プラットフォーム (LMS)。受講�
 管理者による進捗把握を 1 つのアプリで行う。
 
 * 設計: [../docs/PRD.md](../docs/PRD.md) / [../docs/architecture.md](../docs/architecture.md) / [../docs/database-schema.md](../docs/database-schema.md)
-* 進捗: [../docs/development-progress.md](../docs/development-progress.md)
+* 進捗: [../docs/development-progress.md](../docs/development-progress.md) / 講師レビュー: [../docs/instructor-review-checklist.md](../docs/instructor-review-checklist.md)
 * 起動・運用: [../docs/deployment-guide.md](../docs/deployment-guide.md)
 * テスト: [../docs/test-plan.md](../docs/test-plan.md)
 
