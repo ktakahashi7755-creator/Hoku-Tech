@@ -40,13 +40,14 @@ export default async function ContentPage() {
               {m.lessons.map((l, i) => {
                 const latest = l.versions[0];
                 const hasDraft = latest && !latest.publishedAt && latest.id !== l.scheduledVersionId;
+                const title = l.currentVersion?.title ?? latest?.title ?? l.slug;
                 return (
                   <li key={l.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
                     <div className="flex min-w-0 items-center gap-3">
-                      <MoveButtons lessonId={l.id} first={i === 0} last={i === m.lessons.length - 1} />
+                      <MoveButtons lessonId={l.id} title={title} first={i === 0} last={i === m.lessons.length - 1} />
                       <div className="min-w-0">
                         <Link href={`/admin/content/lessons/${l.id}`} className="font-semibold text-accent underline-offset-2 hover:underline">
-                          {l.currentVersion?.title ?? latest?.title ?? l.slug}
+                          {title}
                         </Link>
                         <p className="text-xs text-muted">
                           {l.slug} ・ {l.status === "PUBLISHED" ? "公開中の版" : "公開に使う版 (非公開中)"} {l.currentVersion?.version ?? "なし"} ・ 更新 {formatDate(latest?.createdAt)}
@@ -60,7 +61,7 @@ export default async function ContentPage() {
                       {hasDraft && <Badge tone="warning">下書き (版 {latest.version})</Badge>}
                       {l.scheduledVersionId && <Badge tone="accent">公開予約 {formatDateTime(l.publishAt)}</Badge>}
                       <Badge tone={l.status === "PUBLISHED" ? "success" : "neutral"}>{l.status === "PUBLISHED" ? "公開中" : "非公開"}</Badge>
-                      {l.currentVersionId && <LessonStatusToggle lessonId={l.id} published={l.status === "PUBLISHED"} />}
+                      {l.currentVersionId && <LessonStatusToggle lessonId={l.id} title={title} published={l.status === "PUBLISHED"} />}
                     </div>
                   </li>
                 );

@@ -82,8 +82,8 @@ const NewLesson = z.object({
   slug: slugSchema("l2-strings"),
 });
 
-/** base: 保存した版 (次の保存で、ほかの画面の保存と衝突していないかを確かめる) */
-export type CmsState = { error?: string; errors?: string[]; ok?: string; lessonId?: string; base?: EditBase } | undefined;
+/** base: 保存した版 (次の保存で、ほかの画面の保存と衝突していないかを確かめる)。version: 作った・公開した版の番号 */
+export type CmsState = { error?: string; errors?: string[]; ok?: string; lessonId?: string; base?: EditBase; version?: number; draftVersion?: number } | undefined;
 
 /**
  * 編集を始めたときの最新の版と、その版を下書きとして保存した日時。
@@ -183,6 +183,7 @@ export async function saveDraft(lessonId: string, rawDraft: EditorDraft, rawBase
     ok: `下書き (版 ${saved.version}) を保存しました。受講生にはまだ表示されません。`,
     errors: check.ok ? undefined : check.errors,
     base: { versionId: saved.id, editedAt: saved.editedAt.toISOString() },
+    draftVersion: saved.version,
   };
 }
 
@@ -192,22 +193,30 @@ function nextEditedAt(previous: Date | undefined): Date {
   return new Date(previous && previous.getTime() >= now ? previous.getTime() + 1 : now);
 }
 
-/** 過去の版を元に新しい下書きを作る (差し戻し) */
-export async function restoreVersionAsDraft(lessonId: string, versionId: string): Promise<void> {
+/**
+ * 過去の版を元に新しい下書きを作る (差し戻し)。下書きがあればその内容を置き換える (画面で確認してから呼ぶ)。
+ * expected: 画面を開いたときの最新の版。その後にほかの画面が下書きを保存していたら、確認していない内容を消さないよう置き換えない
+ */
+export async function restoreVersionAsDraft(lessonId: string, versionId: string, rawExpected?: EditBase): Promise<CmsState> {
   const user = await requireUser(ADMIN_ROLES);
   const id = Id.parse(lessonId);
   const source = await db.lessonVersion.findFirstOrThrow({ where: { id: Id.parse(versionId), lessonId: id } });
   const editorDraft = { ...editorStateOf(source), changeNote: `版 ${source.version} から復元` };
   const data = { title: source.title, estimatedMinutes: source.estimatedMinutes, content: { editorDraft }, changeNote: editorDraft.changeNote, authorId: user.id };
-  await serially(async (tx) => {
+  const expected = rawExpected ? z.object({ versionId: Id, editedAt: z.iso.datetime() }).safeParse(rawExpected) : null;
+  const saved = await serially(async (tx) => {
     const lesson = await tx.lesson.findUniqueOrThrow({ where: { id } });
     const latest = await tx.lessonVersion.findFirstOrThrow({ where: { lessonId: id }, orderBy: { version: "desc" } });
+    if (expected && (!expected.success || latest.id !== expected.data.versionId || latest.editedAt.getTime() !== Date.parse(expected.data.editedAt))) return null;
     const editedAt = nextEditedAt(latest.editedAt);
-    if (isEditableDraft(latest, lesson)) await tx.lessonVersion.update({ where: { id: latest.id }, data: { ...data, editedAt } });
-    else await tx.lessonVersion.create({ data: { ...data, editedAt, lessonId: id, version: latest.version + 1 } });
+    return isEditableDraft(latest, lesson)
+      ? tx.lessonVersion.update({ where: { id: latest.id }, data: { ...data, editedAt } })
+      : tx.lessonVersion.create({ data: { ...data, editedAt, lessonId: id, version: latest.version + 1 } });
   });
-  await audit({ actorId: user.id, action: "lesson.restore_version", targetType: "lesson", targetId: id, metadata: { from: source.version } });
+  if (!saved) return { error: "ほかの画面 (または別の人) が、このレッスンを先に保存しました。その内容を消さないよう、下書きを作っていません。ページを再読み込みして確認してください。" };
+  await audit({ actorId: user.id, action: "lesson.restore_version", targetType: "lesson", targetId: id, metadata: { from: source.version, version: saved.version } });
   revalidateLesson(id);
+  return { ok: `版 ${source.version} の内容で下書き (版 ${saved.version}) を作りました。`, base: { versionId: saved.id, editedAt: saved.editedAt.toISOString() }, version: saved.version };
 }
 
 // ---------------------------------------------------------------- 公開

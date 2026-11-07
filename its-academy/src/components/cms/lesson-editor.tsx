@@ -10,8 +10,22 @@ import { nextNoticeSeq, useNoticeSeq } from "./notice";
 
 /** 同じ画面のほかの操作 (版から下書きを作る など) が、保存していない編集を消さないかを確認するため */
 let editorDirty = false;
+/** エディタが最後に確かめた「編集の元の版」(画面を開いたとき、または自分が保存したとき)。版の履歴の操作でも同じものを使う */
+let editorBase: { lessonId: string; base: EditBase; draftVersion?: number } | null = null;
+export function currentEditBase(lessonId: string): EditBase | null {
+  return editorBase?.lessonId === lessonId ? editorBase.base : null;
+}
+/** この画面で保存した下書きの版 (画面を開いた後に作った下書きも分かるように) */
+export function savedDraftVersion(lessonId: string): number | null {
+  return editorBase?.lessonId === lessonId ? (editorBase.draftVersion ?? null) : null;
+}
 export function hasUnsavedLessonEdits(): boolean {
   return editorDirty;
+}
+/** ほかの操作で確認を済ませてから再読み込みするとき、ブラウザの確認を二重に出さない */
+let leavingConfirmed = false;
+export function allowLeavingWithoutSave() {
+  leavingConfirmed = true;
 }
 
 const LANGS = CODE_LANGUAGES;
@@ -81,8 +95,22 @@ function Repeat<T>({ items, onChange, make, label, render }: { items: T[]; onCha
   );
 }
 
-export function LessonEditor({ lessonId, initial, base }: { lessonId: string; initial: EditorDraft; base: EditBase }) {
+/**
+ * draftId: いま編集の対象になっている下書きの版 (なければ null = 次の保存で新しい版を作る)。
+ * 下書きが公開・予約されて null に変わったら、変更内容のメモを空にする
+ * (前の版のメモが、次の版のメモとしてそのまま残らないように)。
+ */
+export function LessonEditor({ lessonId, initial, base, draftId }: { lessonId: string; initial: EditorDraft; base: EditBase; draftId: string | null }) {
   const [d, setD] = useState<EditorDraft>(initial);
+  const [prevDraftId, setPrevDraftId] = useState(draftId);
+  if (draftId !== prevDraftId) {
+    setPrevDraftId(draftId);
+    if (!draftId) setD((prev) => ({ ...prev, changeNote: "" }));
+  }
+  // 下書きが公開・予約されてなくなったら、この画面で保存した下書きの版の記録も消す (版の履歴の操作の確認に使う)
+  useEffect(() => {
+    if (!draftId && editorBase?.lessonId === lessonId) editorBase = { ...editorBase, draftVersion: undefined };
+  }, [draftId, lessonId]);
   const [saved, setSaved] = useState<{ seq: number; state: CmsState }>({ seq: -1, state: undefined });
   // 保存の後に公開・予約をしたら、保存のメッセージは古くなるので表示しない
   const state = saved.seq === useNoticeSeq() ? saved.state : undefined;
@@ -95,6 +123,13 @@ export function LessonEditor({ lessonId, initial, base }: { lessonId: string; in
   // 同時編集の確認に使う「編集の元の版」。画面を開いたときの値から始め、自分が保存したときだけ更新する
   // (再表示で届く値は使わない。使うと、ほかの画面の保存を自分の保存と取り違えるため)
   const [currentBase, setSavedBase] = useState(base);
+  // 画面を開いたときの値を、版の履歴の操作にも伝える (自分の保存の後は、上の保存の処理で更新する)
+  useEffect(() => {
+    editorBase = { lessonId, base: currentBase, draftVersion: editorBase?.lessonId === lessonId ? editorBase.draftVersion : undefined };
+    return () => {
+      if (editorBase?.lessonId === lessonId) editorBase = null;
+    };
+  }, [lessonId, currentBase]);
   const [pending, start] = useTransition();
   const router = useRouter();
   const set = <K extends keyof EditorDraft>(k: K, v: EditorDraft[K]) => {
@@ -106,7 +141,9 @@ export function LessonEditor({ lessonId, initial, base }: { lessonId: string; in
   useEffect(() => {
     editorDirty = dirty;
     if (!dirty) return;
-    const warn = (e: BeforeUnloadEvent) => e.preventDefault();
+    const warn = (e: BeforeUnloadEvent) => {
+      if (!leavingConfirmed) e.preventDefault();
+    };
     window.addEventListener("beforeunload", warn);
     return () => {
       window.removeEventListener("beforeunload", warn);
@@ -114,8 +151,32 @@ export function LessonEditor({ lessonId, initial, base }: { lessonId: string; in
     };
   }, [dirty]);
 
+  // 広い画面では保存欄が画面の下に固定されるため、キーボードで移った入力欄がその下に隠れることがある。
+  // ブラウザのスクロール (テキストエリアはカーソル位置に合わせるため scroll-margin が効かない) の後で、隠れた分だけずらす
+  const formRef = useRef<HTMLFormElement>(null);
+  const barRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const form = formRef.current;
+    if (!form) return;
+    const onFocus = (e: FocusEvent) => {
+      const target = e.target as HTMLElement;
+      const bar = barRef.current;
+      if (!bar || bar.contains(target) || getComputedStyle(bar).position !== "sticky") return;
+      requestAnimationFrame(() => {
+        const r = target.getBoundingClientRect();
+        const headerBottom = document.querySelector("header")?.getBoundingClientRect().bottom ?? 0;
+        // 下に隠れた分 (+余白) だけ上げる。背の高い欄は、上端が画面上部の見出しに隠れない範囲まで
+        const delta = Math.min(r.bottom - bar.getBoundingClientRect().top + 16, r.top - headerBottom - 16);
+        if (delta > 0) window.scrollBy({ top: delta });
+      });
+    };
+    form.addEventListener("focusin", onFocus);
+    return () => form.removeEventListener("focusin", onFocus);
+  }, []);
+
   return (
     <form
+      ref={formRef}
       className="flex flex-col gap-6"
       onSubmit={(e) => {
         e.preventDefault();
@@ -123,7 +184,10 @@ export function LessonEditor({ lessonId, initial, base }: { lessonId: string; in
           // 失敗しても編集中の内容を失わないよう、エラーは画面に表示する
           const r = await saveDraft(lessonId, d, currentBase).catch((): CmsState => ({ errors: ["保存できませんでした。通信を確認して、もう一度お試しください (入力した内容は画面に残っています)。"] }));
           setSaved({ seq: nextNoticeSeq(), state: r });
-          if (r?.base) setSavedBase(r.base);
+          if (r?.base) {
+            setSavedBase(r.base);
+            editorBase = { lessonId, base: r.base, draftVersion: r.draftVersion };
+          }
           if (r?.ok) {
             setDirty(false);
             router.refresh();
@@ -238,7 +302,7 @@ export function LessonEditor({ lessonId, initial, base }: { lessonId: string; in
       </Section>
 
       {/* スマホでは画面の下に固定しない (入力欄を隠さないように)。広い画面では保存ボタンを常に見える位置に置く */}
-      <div className="z-10 -mx-4 flex flex-col gap-3 border-t border-border bg-bg/95 px-4 py-4 backdrop-blur sm:sticky sm:bottom-0">
+      <div ref={barRef} className="z-10 -mx-4 flex flex-col gap-3 border-t border-border bg-bg/95 px-4 py-4 backdrop-blur sm:sticky sm:bottom-0">
         <Text id="changeNote" label="変更内容のメモ (版の履歴に残ります)" value={d.changeNote} onChange={(v) => set("changeNote", v)} />
         {/* 読み上げの領域は常に置いておき、中身が変わったときに 1 回だけ知らせる */}
         <div ref={messageBox} tabIndex={-1} className="flex flex-col gap-2 outline-none">

@@ -7,6 +7,7 @@ import type { AssignmentForm } from "@/lib/content/assignment-form";
 import { ASSIGNMENT_TYPE_LABEL } from "@/lib/labels";
 import { Button, Card, Field, FormMessage, inputStyles } from "@/components/ui";
 import { ActionForm } from "@/components/action-form";
+import { NETWORK_ERROR, withNetworkFallback } from "@/lib/safe-action";
 
 const FIELDS: { key: keyof AssignmentForm; label: string; rows: number; hint?: string }[] = [
   { key: "purpose", label: "課題の目的", rows: 2 },
@@ -20,13 +21,28 @@ const FIELDS: { key: keyof AssignmentForm; label: string; rows: number; hint?: s
   { key: "interviewPoints", label: "面談で確認すること", rows: 3, hint: "1 行に 1 項目" },
 ];
 
+/** 保存していない変更があるまま画面を離れようとしたら、ブラウザの確認を出す (レッスンの編集と同じ) */
+function useUnsavedWarning(dirty: boolean) {
+  useEffect(() => {
+    if (!dirty) return;
+    const warn = (e: BeforeUnloadEvent) => e.preventDefault();
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [dirty]);
+}
+
 export function AssignmentEditor({ id, initial, rubricId, rubrics }: { id: string; initial: AssignmentForm; rubricId: string; rubrics: { id: string; name: string }[] }) {
   const [f, setF] = useState(initial);
   const [rubric, setRubric] = useState(rubricId);
   const [state, setState] = useState<AssignState>(undefined);
   const [pending, start] = useTransition();
   const router = useRouter();
-  const set = (k: keyof AssignmentForm, v: string | number) => setF((p) => ({ ...p, [k]: v }));
+  const [dirty, setDirty] = useState(false);
+  useUnsavedWarning(dirty);
+  const set = (k: keyof AssignmentForm, v: string | number) => {
+    setF((p) => ({ ...p, [k]: v }));
+    setDirty(true);
+  };
   const [savedStatus, setSavedStatus] = useState(f.status);
   return (
     <form
@@ -39,6 +55,7 @@ export function AssignmentEditor({ id, initial, rubricId, rubrics }: { id: strin
           setState(r);
           if (r?.ok) {
             setSavedStatus(f.status);
+            setDirty(false);
             router.refresh();
           }
         });
@@ -56,7 +73,10 @@ export function AssignmentEditor({ id, initial, rubricId, rubrics }: { id: strin
           </div>
           <div className="flex flex-col gap-1.5">
             <label htmlFor="a-rubric" className="text-sm font-semibold">ルーブリック</label>
-            <select id="a-rubric" value={rubric} onChange={(e) => setRubric(e.target.value)} className={inputStyles}>
+            <select id="a-rubric" value={rubric} onChange={(e) => {
+              setRubric(e.target.value);
+              setDirty(true);
+            }} className={inputStyles}>
               {rubrics.map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}
             </select>
           </div>
@@ -87,7 +107,11 @@ type Criterion = { key: string; label: string; weight: number; description: stri
 export function RubricEditor({ id, name, initial }: { id: string; name: string; initial: Criterion[] }) {
   const [n, setN] = useState(name);
   const [rows, setRows] = useState<Criterion[]>(initial);
-  const [state, setState] = useState<AssignState>(undefined);
+  // サーバーの結果は、そのときの入力と一緒に覚える。入力を変えたら古い結果 (「合計が 100 ではありません (現在 105)」など) は出さない
+  const [result, setResult] = useState<{ state: AssignState; rows: Criterion[]; name: string }>({ state: undefined, rows: initial, name });
+  const state = result.rows === rows && result.name === n ? result.state : undefined;
+  const [saved, setSaved] = useState({ rows: initial, name });
+  useUnsavedWarning(saved.rows !== rows || saved.name !== n);
   const [pending, start] = useTransition();
   const router = useRouter();
   const total = rows.reduce((s, r) => s + (Number(r.weight) || 0), 0);
@@ -99,8 +123,11 @@ export function RubricEditor({ id, name, initial }: { id: string; name: string; 
         e.preventDefault();
         start(async () => {
           const r = await updateRubric(id, n, rows).catch((): AssignState => ({ errors: ["保存できませんでした。通信を確認して、もう一度お試しください (入力した内容は画面に残っています)。"] }));
-          setState(r);
-          if (r?.ok) router.refresh();
+          setResult({ state: r, rows, name: n });
+          if (r?.ok) {
+            setSaved({ rows, name: n });
+            router.refresh();
+          }
         });
       }}
     >
@@ -152,8 +179,9 @@ export function RubricEditor({ id, name, initial }: { id: string; name: string; 
           variant="secondary"
           disabled={pending}
           onClick={() => start(async () => {
-            const r = await duplicateRubric(id);
+            const r = await duplicateRubric(id).catch(() => null);
             if (r?.id) router.push(`/admin/content/rubrics/${r.id}`);
+            else setResult({ state: { errors: ["複製できませんでした。通信を確認して、もう一度お試しください。"] }, rows, name: n });
           })}
         >
           複製して新しいルーブリックを作る
@@ -164,7 +192,7 @@ export function RubricEditor({ id, name, initial }: { id: string; name: string; 
 }
 
 export function NewAssignmentForm({ moduleId, level, lessons }: { moduleId: string; level: string; lessons: { id: string; title: string }[] }) {
-  const [state, action, pending] = useActionState(createAssignment, undefined);
+  const [state, action, pending] = useActionState(withNetworkFallback(createAssignment, { errors: [NETWORK_ERROR] }), undefined);
   const router = useRouter();
   useEffect(() => {
     if (state?.id) router.push(`/admin/content/assignments/${state.id}`);
@@ -172,7 +200,7 @@ export function NewAssignmentForm({ moduleId, level, lessons }: { moduleId: stri
   return (
     <details className="mt-3">
       <summary className="min-h-11 cursor-pointer content-center text-sm font-semibold text-accent">{level} に課題を追加</summary>
-      <ActionForm action={action} className="mt-2 grid gap-3 sm:grid-cols-2">
+      <ActionForm action={action} state={state} className="mt-2 grid gap-3 sm:grid-cols-2">
         <input type="hidden" name="moduleId" value={moduleId} />
         <Field label="タイトル" htmlFor={`na-t-${moduleId}`}>
           <input id={`na-t-${moduleId}`} name="title" className={inputStyles} />

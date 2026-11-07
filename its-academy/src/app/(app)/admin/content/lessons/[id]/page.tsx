@@ -30,7 +30,9 @@ export default async function LessonEditPage({ params }: { params: Promise<{ id:
   const latest = lesson.versions[0];
   const draft = latest && !latest.publishedAt && latest.id !== lesson.scheduledVersionId ? latest : null;
   const scheduled = lesson.versions.find((v) => v.id === lesson.scheduledVersionId) ?? null;
-  const editing = draft ?? lesson.versions.find((v) => v.id === lesson.currentVersionId) ?? latest;
+  const current = lesson.versions.find((v) => v.id === lesson.currentVersionId) ?? null;
+  const editing = draft ?? current ?? latest;
+  const expected = latest && { versionId: latest.id, editedAt: latest.editedAt.toISOString() };
 
   return (
     <div className="flex flex-col gap-6">
@@ -61,8 +63,10 @@ export default async function LessonEditPage({ params }: { params: Promise<{ id:
             <LessonEditor
               key={lesson.id}
               lessonId={lesson.id}
-              initial={editorStateOf(editing)}
-              base={{ versionId: latest.id, editedAt: latest.editedAt.toISOString() }}
+              // 下書きがないときは次の保存で新しい版を作るため、元の版のメモは引き継がない
+              initial={{ ...editorStateOf(editing), ...(draft ? {} : { changeNote: "" }) }}
+              base={expected}
+              draftId={draft?.id ?? null}
             />
           )}
         </div>
@@ -73,7 +77,7 @@ export default async function LessonEditPage({ params }: { params: Promise<{ id:
               {scheduled ? (
                 <div className="flex flex-col gap-3 text-sm">
                   <p>版 {scheduled.version} を {formatDateTime(lesson.publishAt)} に公開する予約があります。</p>
-                  <CancelScheduleButton lessonId={lesson.id} />
+                  <CancelScheduleButton lessonId={lesson.id} version={scheduled.version} becomesDraft={scheduled.id === latest.id} />
                 </div>
               ) : draft ? (
                 <PublishPanel lessonId={lesson.id} versionId={draft.id} version={draft.version} scheduled={false} />
@@ -98,13 +102,26 @@ export default async function LessonEditPage({ params }: { params: Promise<{ id:
                   <p className="mt-1">{v.changeNote ?? "—"}</p>
                   <p className="text-xs text-muted">
                     {v.author?.name ?? "—"} ・ 作成 {formatDateTime(v.createdAt)}
-                    {v.publishedAt && ` ・ 公開 ${formatDateTime(v.publishedAt)}`} ・ 学習記録 {v._count.progress} 件
+                    {/* 公開日時は最初に公開したときのもの (「この版に戻して公開」では変わらない) */}
+                    {v.publishedAt && ` ・ 初回公開 ${formatDateTime(v.publishedAt)}`} ・ 学習記録 {v._count.progress} 件
                   </p>
                   {v.sourceUrl && <a href={v.sourceUrl} target="_blank" rel="noreferrer" className="text-xs underline">移行元の記事</a>}
                   <div className="mt-2 flex flex-wrap items-center gap-2">
                     <Link href={`/admin/content/lessons/${lesson.id}/preview/${v.id}`} className="inline-flex min-h-11 items-center px-2 text-sm text-accent underline">プレビュー</Link>
-                    {v.version > 1 && <Link href={`/admin/content/lessons/${lesson.id}/diff/${v.id}`} className="inline-flex min-h-11 items-center px-2 text-sm text-accent underline">前の版との差分</Link>}
-                    {v.id !== draft?.id && <VersionActions lessonId={lesson.id} versionId={v.id} canRepublish={!!v.publishedAt && v.id !== lesson.currentVersionId} />}
+                    {v.version > 1 && <Link href={`/admin/content/lessons/${lesson.id}/diff/${v.id}`} className="inline-flex min-h-11 items-center px-2 text-sm text-accent underline">前の版との差分 (版 {v.version - 1} → {v.version})</Link>}
+                    {current && v.id !== current.id && v.version - 1 !== current.version && (
+                      <Link href={`/admin/content/lessons/${lesson.id}/diff/${v.id}?against=${current.id}`} className="inline-flex min-h-11 items-center px-2 text-sm text-accent underline">公開中の版 (版 {current.version}) との差分</Link>
+                    )}
+                    {v.id !== draft?.id && (
+                      <VersionActions
+                        lessonId={lesson.id}
+                        versionId={v.id}
+                        version={v.version}
+                        canRepublish={!!v.publishedAt && v.id !== lesson.currentVersionId}
+                        draftVersion={draft?.version ?? null}
+                        expected={expected}
+                      />
+                    )}
                   </div>
                 </li>
               ))}

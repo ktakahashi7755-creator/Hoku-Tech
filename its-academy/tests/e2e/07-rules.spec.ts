@@ -255,11 +255,11 @@ test("お知らせは、まだ見ていないものに「新着」を付け、�
     await page.waitForURL(/\/home$/);
     await page.goto("/reviews");
     const item = page.getByRole("listitem").filter({ hasText: "テストのお知らせ" });
-    await expect(item.getByText("新着")).toBeVisible();
+    await expect(item.getByText("新着", { exact: true })).toBeVisible();
     await expect.poll(async () => (await db.notification.findUniqueOrThrow({ where: { id: notice.id } })).readAt).not.toBeNull();
     await page.reload();
     await expect(item).toBeVisible();
-    await expect(item.getByText("新着")).toHaveCount(0);
+    await expect(item.getByText("新着", { exact: true })).toHaveCount(0);
   } finally {
     await db.notification.delete({ where: { id: notice.id } });
   }

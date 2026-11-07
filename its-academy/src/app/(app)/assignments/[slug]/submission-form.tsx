@@ -23,6 +23,7 @@ export function SubmissionForm({ assignmentId, type, defaults }: { assignmentId:
   return (
     <ActionForm
       action={action}
+      state={state}
       className="flex flex-col gap-5"
       onChange={() => setClientErrors({})}
       confirm={(submitter, form) => {

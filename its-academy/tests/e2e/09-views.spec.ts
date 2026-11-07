@@ -74,21 +74,26 @@ test("過去の提出内容: 受講生は課題の画面で、講師は採点の
 });
 
 test("受講生: 下書きがあれば、再読み込みしても「下書きを保存済み」と表示する", async ({ page }) => {
-  const ken = await userId("student2@its.example");
-  const assignment = await db.assignment.findUniqueOrThrow({ where: { slug: "a2-grade-calculator" } });
-  const last = await db.submission.findFirst({ where: { assignmentId: assignment.id, userId: ken }, orderBy: { attemptNo: "desc" } });
-  test.skip(!last || last.status === "DRAFT", "seed の修正依頼の提出が前提");
+  // ほかのテストの採点に左右されないよう、まだ提出していない課題 (a1) を使う。前提のレッスンは完了にしておく
+  const yota = await userId("student4@its.example");
+  const assignment = await db.assignment.findUniqueOrThrow({ where: { slug: "a1-github-profile" } });
+  const lesson = await db.lesson.findUniqueOrThrow({ where: { slug: "l1-github-setup" } });
+  const existing = await db.lessonProgress.findUnique({ where: { userId_lessonId: { userId: yota, lessonId: lesson.id } } });
+  const progress = existing ? null : await db.lessonProgress.create({
+    data: { userId: yota, lessonId: lesson.id, lessonVersionId: lesson.currentVersionId!, status: "COMPLETED", completedAt: new Date(), completedVersionId: lesson.currentVersionId },
+  });
   const draft = await db.submission.create({
-    data: { assignmentId: assignment.id, userId: ken, attemptNo: last!.attemptNo + 1, status: "DRAFT", text: "// E2E の下書き", note: "" },
+    data: { assignmentId: assignment.id, userId: yota, attemptNo: 1, status: "DRAFT", repoUrl: "https://github.com/yota/its-profile", note: "E2E の下書き" },
   });
   try {
-    await login(page, "student2@its.example");
+    await login(page, "student4@its.example");
     await page.waitForURL(/\/home$/);
-    await page.goto("/assignments/a2-grade-calculator");
+    await page.goto("/assignments/a1-github-profile");
     await expect(page.getByText(/下書きを保存済み \(\d{4}\/\d{2}\/\d{2} \d{2}:\d{2}\)/)).toBeVisible();
-    await expect(page.getByLabel("提出するコード・回答")).toHaveValue("// E2E の下書き");
+    await expect(page.getByLabel("GitHub リポジトリの URL")).toHaveValue("https://github.com/yota/its-profile");
   } finally {
     await db.submission.delete({ where: { id: draft.id } });
+    if (progress) await db.lessonProgress.delete({ where: { id: progress.id } });
   }
 });
 

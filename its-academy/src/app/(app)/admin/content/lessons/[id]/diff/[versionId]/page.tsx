@@ -9,13 +9,19 @@ import { ButtonLink, cx, PageHeader, ScrollRegion } from "@/components/ui";
 // 受講生名などは入れない (ページ名はアクセス権の確認とは別に作られるため)
 export const metadata: Metadata = { title: "版の差分" };
 
-/** 指定した版と、その 1 つ前の版との差分 */
-export default async function DiffPage({ params }: { params: Promise<{ id: string; versionId: string }> }) {
+/** 指定した版と、その 1 つ前の版 (against を付けたときはその版。公開中の版との比較に使う) との差分 */
+export default async function DiffPage({ params, searchParams }: { params: Promise<{ id: string; versionId: string }>; searchParams: Promise<{ against?: string | string[] }> }) {
   const { id, versionId } = await params;
+  const { against } = await searchParams;
   await requireUser(ADMIN_ROLES);
   const after = await db.lessonVersion.findFirst({ where: { id: versionId, lessonId: id } });
   if (!after) notFound();
-  const before = await db.lessonVersion.findFirst({ where: { lessonId: id, version: { lt: after.version } }, orderBy: { version: "desc" } });
+  // 比べる相手は同じレッスンの版だけ
+  const before =
+    typeof against === "string"
+      ? await db.lessonVersion.findFirst({ where: { id: against, lessonId: id } })
+      : await db.lessonVersion.findFirst({ where: { lessonId: id, version: { lt: after.version } }, orderBy: { version: "desc" } });
+  if (typeof against === "string" && !before) notFound();
   const diff = lineDiff(before ? lessonToLines(before) : [], lessonToLines(after));
   const added = diff.filter((d) => d.type === "added").length;
   const removed = diff.filter((d) => d.type === "removed").length;
