@@ -16,7 +16,7 @@ async function publishDue(now = new Date()): Promise<number> {
     const version = await db.lessonVersion.findUnique({ where: { id: l.scheduledVersionId! }, select: { content: true } });
     // 教材の形式になっていない版 (確定前の下書き) は公開しない。予約を外して記録に残す
     if (!version || !LessonContentSchema.safeParse(version.content).success) {
-      const cleared = await db.lesson.updateMany({ where: { id: l.id, scheduledVersionId: l.scheduledVersionId }, data: { scheduledVersionId: null, publishAt: null } });
+      const cleared = await db.lesson.updateMany({ where: { id: l.id, scheduledVersionId: l.scheduledVersionId, publishAt: { lte: now } }, data: { scheduledVersionId: null, publishAt: null } });
       if (cleared.count === 1) {
         await db.auditLog.create({ data: { actorId: null, action: "lesson.scheduled_publish_failed", targetType: "lesson", targetId: l.id, metadata: { versionId: l.scheduledVersionId } } });
       }
@@ -25,7 +25,8 @@ async function publishDue(now = new Date()): Promise<number> {
     // 同時実行で二重に公開しないよう、予約がまだ残っている場合だけ更新する。公開日時の記録と同じトランザクションで行う
     await db.$transaction(async (tx) => {
       const claimed = await tx.lesson.updateMany({
-        where: { id: l.id, scheduledVersionId: l.scheduledVersionId },
+        // 予約の時刻も一致することを確かめる (読み込んだ後に、より後の時刻へ予約し直された場合は公開しない)
+        where: { id: l.id, scheduledVersionId: l.scheduledVersionId, publishAt: { lte: now } },
         data: { scheduledVersionId: null, publishAt: null, currentVersionId: l.scheduledVersionId, status: "PUBLISHED" },
       });
       if (claimed.count === 0) return;

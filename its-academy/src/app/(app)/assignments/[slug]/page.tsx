@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { requireMyOverview } from "@/lib/queries/me";
+import { getSignedInUser } from "@/lib/auth/dal";
 import { AssignmentBodySchema, RubricCriteriaSchema } from "@/lib/content/schema";
 import { Badge, Card, PageHeader } from "@/components/ui";
 import { SubmissionBadge } from "@/components/status-badge";
@@ -27,6 +28,8 @@ function List({ title, items }: { title: string; items: string[] }) {
 /** タブ・読み上げで「どの課題か」が分かるよう、課題名をページ名にする (公開中の課題名のみ) */
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
+  // ログインしていない人には、課題名も課題があるかどうかも見せない
+  if (!(await getSignedInUser())) return { title: "課題" };
   const assignment = await db.assignment.findUnique({ where: { slug }, select: { status: true, title: true } });
   return { title: assignment?.status === "PUBLISHED" ? assignment.title : "課題" };
 }

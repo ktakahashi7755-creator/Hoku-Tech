@@ -84,7 +84,6 @@ export function computeMetrics(input: MetricInput): Metrics {
   };
 }
 
-/** 理解度チェックの採点。全問の正答率 (0〜100) */
 /**
  * 選択 (発展) モジュールのレッスン・課題・理解度チェックを除いた、必修だけの指標の入力を作る。
  * 選択モジュールに取り組まなくても指標が下がらず、取り組んでも必修の評価に混ざらないようにする。
@@ -107,6 +106,7 @@ export function requiredMetricInput(input: {
   };
 }
 
+/** 理解度チェックの採点。全問の正答率 (0〜100) */
 export function scoreQuiz(answerIndexes: readonly number[], given: readonly (number | null)[]): number {
   if (answerIndexes.length === 0) return 0;
   const correct = answerIndexes.filter((a, i) => given[i] === a).length;

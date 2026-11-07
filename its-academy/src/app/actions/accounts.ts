@@ -28,12 +28,18 @@ export async function changeRole(userId: string, newRole: string): Promise<Accou
   if ("error" in r) return { error: r.error };
   if (!canAssignRole(actor.role, role)) return { error: "その権限は付与できません。" };
   if (r.target.role === role) return { ok: "変更はありません。" };
-  await db.user.update({ where: { id: r.target.id }, data: { role } });
+  // 講師でなくなる人が担当していた受講生は「担当なし」に戻す (一覧に元の講師が担当として残り、通知が届かなくなるのを防ぐ)
+  const unassigned = await db.$transaction(async (tx) => {
+    await tx.user.update({ where: { id: r.target.id }, data: { role } });
+    return r.target.role === "INSTRUCTOR" ? (await tx.enrollment.updateMany({ where: { instructorId: r.target.id }, data: { instructorId: null } })).count : 0;
+  });
   // 権限が変わったので、相手のセッションを無効化して再ログインさせる
   await revokeAllSessions(r.target.id);
   await audit({ actorId: actor.id, action: "user.role_change", targetType: "user", targetId: r.target.id, metadata: { from: r.target.role, to: role } });
   revalidatePath("/admin/users");
-  return { ok: `${r.target.name} さんの権限を変更しました。` };
+  return {
+    ok: `${r.target.name} さんの権限を変更しました。${unassigned ? `担当していた受講生 ${unassigned} 名は「担当なし」になりました。受講生の詳細画面で担当講師を設定してください。` : ""}`,
+  };
 }
 
 /** 仮パスワードを発行する (メール送信の仕組みがないため、画面に一度だけ表示する) */

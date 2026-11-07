@@ -1,3 +1,5 @@
+import { createPrismaClient } from "../../src/lib/prisma-client";
+import { TEST_DATABASE_URL } from "../../playwright.config";
 import { expect, test } from "./fixtures";
 import { login, logout } from "./helpers";
 
@@ -24,6 +26,29 @@ test("同じメールアドレスで 5 回失敗すると、その後は正し�
   await login(page, email, temp);
   await expect(page.getByRole("alert").filter({ hasText: "試行回数が上限に達しました" })).toBeVisible();
   await expect(page).toHaveURL(/\/login$/);
+});
+
+test("同時にまとめて送っても、上限を超えてパスワードを照合しない", async ({ browser }) => {
+  const email = `burst-${Date.now()}@its.example`;
+  const context = await browser.newContext();
+  const pages = await Promise.all(Array.from({ length: 10 }, () => context.newPage()));
+  await Promise.all(
+    pages.map(async (p, i) => {
+      await p.goto("/login");
+      await p.getByLabel("メールアドレス").fill(email);
+      await p.getByLabel("パスワード").fill(`wrong-password-${i}-xxxx`);
+    }),
+  );
+  await Promise.all(pages.map((p) => p.getByRole("button", { name: "ログイン" }).click()));
+  await Promise.all(pages.map((p) => expect(p.getByRole("alert").filter({ hasText: /正しくありません|上限に達しました/ })).toBeVisible()));
+  // 照合まで進んだ試行 (= 失敗として残る記録) は、上限の 5 回まで
+  const db = createPrismaClient(TEST_DATABASE_URL);
+  try {
+    expect(await db.loginAttempt.count({ where: { email, success: false } })).toBeLessThanOrEqual(5);
+  } finally {
+    await db.$disconnect();
+    await context.close();
+  }
 });
 
 test("講師・管理者の画面も 375px で横スクロールしない", async ({ page }) => {

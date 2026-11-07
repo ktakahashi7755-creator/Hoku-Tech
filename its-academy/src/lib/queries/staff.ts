@@ -12,7 +12,8 @@ export async function visibleStudentIds(viewer: SessionUser): Promise<string[]> 
     return (await db.user.findMany({ where: { role: "STUDENT" }, select: { id: true }, orderBy: { createdAt: "asc" } })).map((u) => u.id);
   }
   return (
-    await db.enrollment.findMany({ where: { instructorId: viewer.id }, select: { userId: true }, orderBy: { createdAt: "asc" } })
+    // 受講生の権限のままの人だけ (講師・管理者に変わった人の受講の記録は対象にしない)
+    await db.enrollment.findMany({ where: { instructorId: viewer.id, user: { role: "STUDENT" } }, select: { userId: true }, orderBy: { createdAt: "asc" } })
   ).map((e) => e.userId);
 }
 
@@ -20,7 +21,7 @@ type StudentRow = StudentOverview & { pendingReviews: number };
 
 export async function listStudentOverviews(viewer: SessionUser): Promise<StudentRow[]> {
   const ids = await visibleStudentIds(viewer);
-  const overviews = await getStudentOverviews(ids); // まとめて読み込む (受講生の数によらずクエリ数は一定)
+  const overviews = await getStudentOverviews(ids, { comments: false }); // まとめて読み込む (受講生の数によらずクエリ数は一定)
   return overviews.filter(hasEnrollment).map((o) => ({
     ...o,
     pendingReviews: o.assignments.filter((a) => a.latestStatus === "SUBMITTED" || a.latestStatus === "IN_REVIEW" || a.latestStatus === "RESUBMITTED").length,

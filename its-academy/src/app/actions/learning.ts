@@ -49,7 +49,10 @@ export async function pingLearning(rawLessonId: string): Promise<void> {
     orderBy: { lastPingAt: "desc" },
   });
   if (recent) {
-    const credit = Math.min(Math.round((now.getTime() - recent.lastPingAt.getTime()) / 1000), MAX_PING_CREDIT_SEC);
+    // 複数のレッスンを同時に開いていても、同じ時間を二重に数えない (この受講生のどのレッスンでも、最後に記録した時刻から数える)
+    const latestAny = await db.learningSession.findFirst({ where: { userId: user.id }, orderBy: { lastPingAt: "desc" }, select: { lastPingAt: true } });
+    const from = Math.max(recent.lastPingAt.getTime(), latestAny?.lastPingAt.getTime() ?? 0);
+    const credit = Math.max(0, Math.min(Math.round((now.getTime() - from) / 1000), MAX_PING_CREDIT_SEC));
     await db.learningSession.update({ where: { id: recent.id }, data: { lastPingAt: now, durationSec: { increment: credit } } });
   } else {
     await db.learningSession.create({ data: { userId: user.id, lessonId, startedAt: now, lastPingAt: now } });
@@ -57,8 +60,9 @@ export async function pingLearning(rawLessonId: string): Promise<void> {
 }
 
 /**
- * 採点結果。正解の選択肢と解説は合格したときだけ返す
- * (不合格のたびに正解を返すと、答えを写して合格でき、理解度 C と学習完了の条件が意味を失うため)。
+ * 採点結果。問ごとの正誤・正解の選択肢・解説は、合格したときだけ返す。
+ * 不合格のときは点数だけ (問ごとの正誤を返すと、不正解の問だけ選び直す当てずっぽうで合格でき、
+ * 理解度 C と学習完了の条件が意味を失うため)。
  */
 export type QuizResult = {
   score: number;
@@ -66,7 +70,8 @@ export type QuizResult = {
   passed: boolean;
   /** 解いている間に教材が更新された場合 true。採点せず、再読み込みを求める */
   outdated?: boolean;
-  results: { id: string; correct: boolean; answerIndex: number | null; explanation: string | null }[];
+  /** 合格したときだけ中身がある */
+  results: { id: string; correct: boolean; answerIndex: number; explanation: string }[];
 };
 
 const QuizAnswers = z.array(z.number().int().min(0).nullable()).max(50);
@@ -93,12 +98,7 @@ export async function submitQuiz(rawLessonId: string, rawVersionId: string, rawA
     score,
     passScore: content.quiz.passScore,
     passed,
-    results: questions.map((q, i) => ({
-      id: q.id,
-      correct: answers[i] === q.answerIndex,
-      answerIndex: passed ? q.answerIndex : null,
-      explanation: passed ? q.explanation : null,
-    })),
+    results: passed ? questions.map((q, i) => ({ id: q.id, correct: answers[i] === q.answerIndex, answerIndex: q.answerIndex, explanation: q.explanation })) : [],
   };
 }
 

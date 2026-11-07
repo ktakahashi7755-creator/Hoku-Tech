@@ -102,7 +102,7 @@ export function Quiz({ lessonId, versionId, questions, passScore, alreadyPassed 
             {result.score} 点 —{" "}
             {result.passed
               ? "合格です。各問の解説を確認し、下の「学習完了にする」を押しましょう。"
-              : "合格ラインに届きませんでした。不正解の問題に関係する本文を読み直して、もう一度挑戦しましょう (正解と解説は合格すると表示されます)。"}
+              : `合格ラインに届きませんでした (${questions.length} 問中 ${Math.round((result.score / 100) * questions.length)} 問正解)。本文と「よくあるエラー」を読み直して、もう一度挑戦しましょう (問ごとの正解と解説は、合格すると表示されます)。`}
           </p>
         )}
         {error && <p className="text-danger" role="alert">{error}</p>}

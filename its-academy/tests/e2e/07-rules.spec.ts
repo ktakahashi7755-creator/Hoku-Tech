@@ -238,3 +238,29 @@ test("パスワードの変更で現在のパスワードが違うと、その�
   await expect(page.locator("#current-error")).toBeVisible();
   await expect(page.getByLabel("現在のパスワード")).toBeFocused();
 });
+
+test("採点・監査ログ・スキル評価は、データベースでも書き換え・削除できない (追記のみ)", async () => {
+  const review = await db.review.findFirstOrThrow();
+  await expect(db.review.update({ where: { id: review.id }, data: { comment: "書き換え" } })).rejects.toThrow(/追記のみ/);
+  await expect(db.review.delete({ where: { id: review.id } })).rejects.toThrow(/追記のみ/);
+  const log = await db.auditLog.findFirstOrThrow();
+  await expect(db.auditLog.delete({ where: { id: log.id } })).rejects.toThrow(/追記のみ/);
+});
+
+test("お知らせは、まだ見ていないものに「新着」を付け、表示した後は外す", async ({ page }) => {
+  const student = await userId("student2@its.example");
+  const notice = await db.notification.create({ data: { userId: student, title: "テストのお知らせ", body: "新着の確認", link: "/reviews" } });
+  try {
+    await login(page, "student2@its.example");
+    await page.waitForURL(/\/home$/);
+    await page.goto("/reviews");
+    const item = page.getByRole("listitem").filter({ hasText: "テストのお知らせ" });
+    await expect(item.getByText("新着")).toBeVisible();
+    await expect.poll(async () => (await db.notification.findUniqueOrThrow({ where: { id: notice.id } })).readAt).not.toBeNull();
+    await page.reload();
+    await expect(item).toBeVisible();
+    await expect(item.getByText("新着")).toHaveCount(0);
+  } finally {
+    await db.notification.delete({ where: { id: notice.id } });
+  }
+});

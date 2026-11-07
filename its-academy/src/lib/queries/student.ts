@@ -69,7 +69,10 @@ export const getPublishedCurriculum = cache(async (courseId: string) => {
  * 複数の受講生の進捗に必要なデータを、テーブルごとに 1 回のクエリでまとめて読み込む
  * (受講生ごとに読むと、人数に比例してクエリが増えるため)。
  */
-async function loadOverviewData(studentIds: string[]) {
+/** 一覧 (講師・管理者のダッシュボード・CSV) では、講師のコメント本文を読み込まない (一覧では使わず、件数とともに大きくなるため) */
+type OverviewOptions = { comments?: boolean };
+
+async function loadOverviewData(studentIds: string[], options: OverviewOptions = {}) {
   const ids = [...new Set(studentIds)];
   const [students, enrollmentRows, threshold] = await Promise.all([
     db.user.findMany({
@@ -127,7 +130,9 @@ async function loadOverviewData(studentIds: string[]) {
              MAX("startedAt"), SUM(ROUND("durationSec" / 60.0))::int, SUM("durationSec")::int
       FROM learning_sessions WHERE "userId" = ANY(${ids}) GROUP BY 1, 3`,
     db.skillAssessment.findMany({ where: { userId: { in: ids } }, orderBy: { createdAt: "desc" }, include: { assessor: { select: { name: true } } } }),
-    db.instructorComment.findMany({ where: { studentId: { in: ids } }, orderBy: { createdAt: "desc" }, include: { author: { select: { name: true } } } }),
+    options.comments === false
+      ? Promise.resolve([])
+      : db.instructorComment.findMany({ where: { studentId: { in: ids } }, orderBy: { createdAt: "desc" }, include: { author: { select: { name: true } } } }),
   ]);
 
   const group = <T,>(rows: T[], key: (r: T) => string) => {
@@ -300,8 +305,8 @@ function buildOverview(studentId: string, data: OverviewData, now: Date) {
 }
 
 /** 複数の受講生の進捗 (一覧・CSV 用)。呼び出し前に閲覧権限を確認すること */
-export async function getStudentOverviews(studentIds: string[]) {
-  const data = await loadOverviewData(studentIds);
+export async function getStudentOverviews(studentIds: string[], options: OverviewOptions = {}) {
+  const data = await loadOverviewData(studentIds, options);
   const now = new Date();
   return studentIds.map((id) => buildOverview(id, data, now)).filter((o): o is NonNullable<typeof o> => o !== null);
 }

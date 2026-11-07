@@ -13,6 +13,14 @@ const getCurrentUser = cache(async (): Promise<SessionUser | null> => {
  * ログイン必須。roles を指定した場合はロールも検証する。
  * 権限不足は 404 として扱い、画面の存在自体を明かさない。
  */
+/**
+ * ログインしているか (していなければ null)。リダイレクトしない。
+ * ページ名 (generateMetadata) のように、ログイン前にも呼ばれる場所で、ログインした人にだけ教材名を出すために使う
+ */
+export async function getSignedInUser(): Promise<SessionUser | null> {
+  return getCurrentUser();
+}
+
 export async function requireUser(roles?: readonly Role[], options: { allowPendingPasswordChange?: boolean } = {}): Promise<SessionUser> {
   const user = await getCurrentUser();
   if (!user) redirect("/login");

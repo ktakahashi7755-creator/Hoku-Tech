@@ -5,7 +5,7 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { audit, clientIp } from "@/lib/audit";
 import { hashPassword, PASSWORD_MIN_LENGTH, verifyPassword } from "@/lib/auth/password";
-import { isLoginThrottled, recordLoginAttempt } from "@/lib/auth/rate-limit";
+import { finishLoginAttempt, startLoginAttempt } from "@/lib/auth/rate-limit";
 import { createSession, deleteCurrentSession, revokeAllSessions } from "@/lib/auth/session";
 import { requireUser } from "@/lib/auth/dal";
 import { isStaff } from "@/lib/auth/roles";
@@ -32,7 +32,8 @@ export async function login(_prev: FormState, formData: FormData): Promise<FormS
   const { email, password } = parsed.data;
   const ip = await clientIp();
 
-  if (await isLoginThrottled(email, ip)) {
+  const attempt = await startLoginAttempt(email, ip);
+  if (!attempt) {
     return { values, error: "ログインの試行回数が上限に達しました。15 分ほど待ってから再度お試しください。" };
   }
 
@@ -41,13 +42,13 @@ export async function login(_prev: FormState, formData: FormData): Promise<FormS
   const valid = user ? await verifyPassword(user.passwordHash, password) : (await verifyPassword(await dummyHash, password), false);
 
   if (!user || !valid || !user.isActive) {
-    await recordLoginAttempt(email, ip, false);
+    // 失敗の記録は startLoginAttempt で済んでいる
     await audit({ actorId: user?.id ?? null, action: "auth.login_failed" });
     // どちらが間違っているかは伝えない (アカウントの存在を推測されないため)
     return { values, error: "メールアドレスまたはパスワードが正しくありません。" };
   }
 
-  await recordLoginAttempt(email, ip, true);
+  await finishLoginAttempt(attempt);
   await createSession(user.id);
   await db.user.update({ where: { id: user.id }, data: { lastLoginAt: new Date() } });
   await audit({ actorId: user.id, action: "auth.login" });
@@ -81,14 +82,15 @@ export async function changePassword(_prev: FormState, formData: FormData): Prom
   }
   // 盗まれたセッションで現在のパスワードを総当たりされないよう、ログインと同じ回数制限をかける
   const ip = await clientIp();
-  if (await isLoginThrottled(me.email, ip)) {
+  const attempt = await startLoginAttempt(me.email, ip);
+  if (!attempt) {
     return { error: "試行回数が上限に達しました。15 分ほど待ってから再度お試しください。" };
   }
   const user = await db.user.findUniqueOrThrow({ where: { id: me.id } });
   if (!(await verifyPassword(user.passwordHash, parsed.data.current))) {
-    await recordLoginAttempt(me.email, ip, false);
     return { fieldErrors: { current: "現在のパスワードが正しくありません" } };
   }
+  await finishLoginAttempt(attempt);
   if (parsed.data.next === parsed.data.current) {
     return { fieldErrors: { next: "現在のパスワードと違うパスワードにしてください" } };
   }

@@ -50,10 +50,10 @@ test("受講生: 前回の続きから再開し、理解度チェック合格後
   await q(2).getByLabel("速く計算するため").check();
   await q(3).getByLabel("問題ない").check();
   await page.getByRole("button", { name: "採点する" }).click();
-  await expect(page.getByText("0 点 — 合格ラインに届きませんでした")).toBeVisible();
+  await expect(page.getByText("0 点 — 合格ラインに届きませんでした (3 問中 0 問正解)")).toBeVisible();
   await expect(complete).toBeDisabled();
-  // 不合格のときは、どれが正解かと解説を見せない (答えを写して合格できないように)
-  await expect(page.getByText("不正解", { exact: true })).toHaveCount(3);
+  // 不合格のときは、問ごとの正誤・正解・解説を見せない (不正解の問だけ選び直す当てずっぽうで合格できないように)
+  await expect(page.getByText("不正解", { exact: true })).toHaveCount(0);
   await expect(page.getByText("正解", { exact: true })).toHaveCount(0);
 
   // 正解 → 合格 → 完了

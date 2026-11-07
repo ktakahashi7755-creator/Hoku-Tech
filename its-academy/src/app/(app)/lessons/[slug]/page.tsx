@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
-import { requireUser } from "@/lib/auth/dal";
+import { getSignedInUser, requireUser } from "@/lib/auth/dal";
 import { isStaff } from "@/lib/auth/roles";
 import { LessonContentSchema } from "@/lib/content/schema";
 import { getPublishedCurriculum, getStudentOverview, hasEnrollment } from "@/lib/queries/student";
@@ -17,6 +17,8 @@ import { LessonActivity } from "@/components/lesson/lesson-activity";
 /** タブ・読み上げで「どのレッスンか」が分かるよう、レッスン名をページ名にする (公開中のレッスン名のみ。本文や個人の情報は含めない) */
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
+  // ログインしていない人には、レッスン名もレッスンがあるかどうかも見せない (ページ名はログインの確認より先に作られるため)
+  if (!(await getSignedInUser())) return { title: "レッスン" };
   const lesson = await db.lesson.findUnique({ where: { slug }, select: { status: true, currentVersion: { select: { title: true } } } });
   return { title: lesson?.status === "PUBLISHED" && lesson.currentVersion ? lesson.currentVersion.title : "レッスン" };
 }
