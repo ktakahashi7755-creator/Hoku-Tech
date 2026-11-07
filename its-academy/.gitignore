@@ -54,3 +54,6 @@ next-env.d.ts
 
 # DB のバックアップ (scripts/backup.sh。個人情報を含む)
 /backups/
+
+# npm run sheet -- --out の確認用の書き出し
+sheet-preview/
