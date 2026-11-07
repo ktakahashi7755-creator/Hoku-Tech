@@ -174,3 +174,57 @@ test("同じレッスンを 2 つの画面で編集したとき、後から保�
     expect(await db.lessonVersion.count({ where: { lessonId: lesson.id } })).toBe(before);
   }
 });
+
+test("予約した後に編集して保存しても衝突にならず、公開の結果は古い保存のメッセージを置き換える", async ({ page }) => {
+  const lesson = await db.lesson.findUniqueOrThrow({ where: { slug: "l1-terminal-basics" } });
+  const original = { currentVersionId: lesson.currentVersionId, scheduledVersionId: lesson.scheduledVersionId, publishAt: lesson.publishAt, status: lesson.status };
+  const before = await db.lessonVersion.findMany({ where: { lessonId: lesson.id }, select: { id: true } });
+  try {
+    await login(page, "admin@its.example");
+    await page.waitForURL(/\/admin$/);
+    await page.goto(`/admin/content/lessons/${lesson.id}`);
+    await page.locator("#title").fill("ターミナルの基本操作 (予約する版)");
+    await page.getByRole("button", { name: "下書きを保存" }).click();
+    await expect(page.getByRole("status").filter({ hasText: "を保存しました" })).toBeVisible();
+
+    await page.getByLabel("公開を予約する (日本時間)").fill("2099-01-01T09:00");
+    await page.getByRole("button", { name: "予約する" }).click();
+    await expect(page.getByRole("status").filter({ hasText: "公開を予約しました" })).toBeVisible();
+    // 保存のときのメッセージは古くなったので消える
+    await expect(page.getByText(/を保存しました。受講生にはまだ表示されません/)).toHaveCount(0);
+
+    // 予約した版の後に編集して保存しても、自分の予約を「ほかの画面の保存」と取り違えない (再読み込みの後も)
+    await page.reload();
+    await page.locator("#title").fill("ターミナルの基本操作 (次の版)");
+    await page.getByRole("button", { name: "下書きを保存" }).click();
+    await expect(page.getByRole("status").filter({ hasText: "を保存しました" })).toBeVisible();
+    await expect(page.getByText("先に保存しました")).toHaveCount(0);
+
+    // 予約は 1 つだけ。取り消すと、新しい下書きを公開できる。予約していた版は「未公開」として残り、下書きは 1 つだけ
+    await page.getByRole("button", { name: "予約を取り消す" }).click();
+    await expect(page.getByRole("status").filter({ hasText: "公開の予約を取り消しました" })).toBeVisible();
+    await expect(page.getByText("下書き", { exact: true })).toHaveCount(1);
+    await expect(page.getByText("未公開", { exact: true })).toHaveCount(1);
+
+    await page.getByRole("button", { name: "今すぐ公開する" }).click();
+    await expect(page.getByRole("status").filter({ hasText: /版 \d+ を公開しました/ })).toBeVisible();
+    await expect(page.getByText(/を保存しました。受講生にはまだ表示されません/)).toHaveCount(0);
+    // 結果のメッセージにフォーカスが残る (押したボタンが消えても、Tab が先頭からやり直しにならない)
+    expect(await page.evaluate(() => document.activeElement !== document.body)).toBe(true);
+  } finally {
+    await db.lesson.update({ where: { id: lesson.id }, data: original });
+    await db.lessonVersion.deleteMany({ where: { lessonId: lesson.id, id: { notIn: before.map((v) => v.id) } } });
+  }
+});
+
+test("パスワードの変更で現在のパスワードが違うと、その欄にフォーカスが移る", async ({ page }) => {
+  await login(page, "student3@its.example");
+  await page.waitForURL(/\/home$/);
+  await page.goto("/me");
+  await page.getByLabel("現在のパスワード").fill("wrong-password-123");
+  await page.getByLabel("新しいパスワード", { exact: true }).fill("another-password-456");
+  await page.getByLabel("新しいパスワード (確認)").fill("another-password-456");
+  await page.getByRole("button", { name: "変更する" }).click();
+  await expect(page.locator("#current-error")).toBeVisible();
+  await expect(page.getByLabel("現在のパスワード")).toBeFocused();
+});

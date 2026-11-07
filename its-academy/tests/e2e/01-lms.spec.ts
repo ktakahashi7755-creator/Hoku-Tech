@@ -111,6 +111,8 @@ test("修正依頼 → 再提出 → 講師がルーブリックで採点 → �
   await page.getByLabel("備考").fill("境界値 (59, 60, 79, 80) で確認しました。AI は使用していません。");
   await page.getByRole("button", { name: "提出する" }).click();
   await expect(page.getByRole("status").filter({ hasText: "2 回目の提出を受け付けました" })).toBeVisible();
+  // フォームが結果の表示に置き換わっても、フォーカスは結果に移る (Tab が画面の先頭からやり直しにならない)
+  await expect(page.getByRole("status").filter({ hasText: "2 回目の提出を受け付けました" })).toBeFocused();
   await page.reload();
   await expect(page.getByRole("status").filter({ hasText: "2 回目の提出を受け付けました" })).toBeVisible(); // 永続化
   await logout(page);
@@ -130,6 +132,7 @@ test("修正依頼 → 再提出 → 講師がルーブリックで採点 → �
   await page.getByLabel("コメント (受講生に表示されます)").fill("境界値がすべて仕様どおりになりました。次は統計の表示をメソッドに分けてみましょう。");
   await page.getByRole("button", { name: "採点を確定する" }).click();
   await expect(page.getByRole("status").filter({ hasText: "この提出は採点済みです" })).toBeVisible();
+  await expect(page.getByRole("status").filter({ hasText: "この提出は採点済みです" })).toBeFocused();
   await expect(page.getByText("82 点 (合格点 70 点)").first()).toBeVisible();
   await logout(page);
 

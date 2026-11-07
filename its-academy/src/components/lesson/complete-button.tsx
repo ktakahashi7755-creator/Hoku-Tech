@@ -20,8 +20,8 @@ export function CompleteButton({ lessonId, completed, canComplete }: { lessonId:
     return (
       <p
         ref={doneRef}
+        // 読み上げの領域にはしない (ページを開いたときから表示される文のため)。押した後は、フォーカスが移って読み上げられる
         tabIndex={-1}
-        role="status"
         className="rounded-lg bg-success-soft p-3 font-semibold text-success outline-none"
       >
         このレッスンは学習完了です。

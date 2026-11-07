@@ -2,20 +2,26 @@
 
 import { useEffect, useRef, type ReactNode } from "react";
 
-type MessageState = { ok?: string; error?: string; errors?: string[] } | null | undefined;
+type MessageState = { ok?: string; error?: string; errors?: string[]; fieldErrors?: Record<string, string | undefined> } | null | undefined;
 
 /**
  * フォームの結果の表示 (成功・エラー・複数のエラー)。
  * - 読み上げ: 成功は role="status"、エラーは role="alert" の領域で 1 回だけ知らせる (領域は常に置いておく)
  * - フォーカス: 送信中にボタンが無効になるなどしてフォーカスが失われた場合は、結果のメッセージへ移す
- *   (次の Tab が画面の先頭からやり直しにならないように)
+ *   (次の Tab が画面の先頭からやり直しにならないように)。入力欄の誤りだけが返ってきた場合は、最初の誤りの欄へ移す
  */
 export function FormMessage({ state, okExtra }: { state?: MessageState; okExtra?: ReactNode }) {
   const box = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    if (!state || (!state.ok && !state.error && !state.errors?.length)) return;
+    if (!state) return;
     const active = document.activeElement;
-    if (!active || active === document.body) box.current?.focus({ preventScroll: false });
+    if (active && active !== document.body) return;
+    const hasFieldErrors = Object.values(state.fieldErrors ?? {}).some(Boolean);
+    if (!state.ok && !state.error && !state.errors?.length) {
+      if (hasFieldErrors) box.current?.closest("form")?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus();
+      return;
+    }
+    box.current?.focus({ preventScroll: false });
   }, [state]);
   return (
     <div ref={box} tabIndex={-1} className="outline-none">

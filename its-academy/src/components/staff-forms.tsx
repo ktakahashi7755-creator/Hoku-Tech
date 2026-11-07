@@ -156,10 +156,7 @@ export function CleanupButton() {
       >
         {pending ? "削除しています…" : "古い記録を削除する"}
       </Button>
-      <div aria-live="polite">
-        {state?.ok && <p role="status" className="text-sm text-success">{state.ok}</p>}
-        {state?.error && <p role="alert" className="text-sm text-danger">{state.error}</p>}
-      </div>
+      <FormMessage state={state} />
     </div>
   );
 }

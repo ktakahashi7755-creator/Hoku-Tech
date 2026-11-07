@@ -13,8 +13,8 @@
 | 単体 | Vitest | `npm test` | 86 件 / 11 ファイル | 全件成功 |
 | 教材コード検証 | JDK 21 / bash / Git / PostgreSQL 16 / Maven / Chromium | `npm run verify:code` | 30 サンプル (Java・bash・Git・SQL・Maven で起動する Spring Boot・Chromium でのブラウザ確認。L8 の 2 件を含む) | 全件一致 |
 | ビルド | Next.js | `npm run build` | — | 成功 |
-| E2E | Playwright (Chromium) | `npm run test:e2e -- --trace off` | 36 (01-lms 8・02-cms 4・03-a11y 5・04-accounts 3・05-cms-assignments 4・06-hardening 4・07-rules 8) | 全件成功 |
-| E2E (他ブラウザ) | Playwright (Firefox / WebKit) | CI の `cross-browser` ジョブ (`PW_BROWSERS`) | 上と同じ 36 件 × 2 | 全件成功 (CI) |
+| E2E | Playwright (Chromium) | `npm run test:e2e -- --trace off` | 38 (01-lms 8・02-cms 4・03-a11y 5・04-accounts 3・05-cms-assignments 4・06-hardening 4・07-rules 10) | 全件成功 |
+| E2E (他ブラウザ) | Playwright (Firefox / WebKit) | CI の `cross-browser` ジョブ (`PW_BROWSERS`) | 上と同じ 38 件 × 2 | 全件成功 (CI) |
 | コンテナ | Docker / Compose | CI の `container` ジョブ | 起動・ヘルスチェック・ヘッダー・危険な設定での起動拒否・バックアップと復元 | 成功 (ローカルと CI) |
 | アクセシビリティ | axe-core 4.14 (WCAG 2.2 A/AA) | 03-a11y.spec.ts | 20 画面 (ログイン 1・受講生 9 画面は 375px と 1280px の両方・講師と管理者 10 画面。計 29 回の検査) + キーボード操作 | 違反 0 件 |
 

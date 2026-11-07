@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { changeRole, issueTemporaryPassword, setActive, type AccountState } from "@/app/actions/accounts";
 import { Button, inputStyles } from "@/components/ui";
@@ -10,6 +10,11 @@ export function AccountControls({ user, roles }: { user: { id: string; name: str
   const [state, setState] = useState<AccountState>(undefined);
   const [pending, start] = useTransition();
   const router = useRouter();
+  // 操作中にボタンが無効になってフォーカスが失われた場合は、結果のメッセージへ移す
+  const box = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (state && document.activeElement === document.body) box.current?.focus();
+  }, [state]);
   const run = (fn: () => Promise<AccountState>) =>
     start(async () => {
       const r = await fn();
@@ -47,9 +52,9 @@ export function AccountControls({ user, roles }: { user: { id: string; name: str
           {user.isActive ? "利用を停止" : "利用を再開"}
         </Button>
       </div>
-      <div aria-live="polite">
-        {state?.error && <p role="alert" className="text-sm text-danger">{state.error}</p>}
-        {state?.ok && <p role="status" className="text-sm text-success">{state.ok}</p>}
+      <div ref={box} tabIndex={-1} className="outline-none">
+        <div role="alert">{state?.error && <p className="text-sm text-danger">{state.error}</p>}</div>
+        <div role="status">{state?.ok && <p className="text-sm text-success">{state.ok}</p>}</div>
         {state?.tempPassword && (
           <p className="mt-1 rounded-lg border border-warning bg-warning-soft p-2 text-sm">
             仮パスワード (この画面を離れると再表示できません): <span className="font-mono">{state.tempPassword}</span>

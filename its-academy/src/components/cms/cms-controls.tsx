@@ -6,6 +6,7 @@ import { cancelSchedule, createLesson, moveLesson, publishVersion, restoreVersio
 import { Button, Field, FormMessage, inputStyles } from "@/components/ui";
 import { ActionForm } from "@/components/action-form";
 import { hasUnsavedLessonEdits } from "./lesson-editor";
+import { announce } from "./notice";
 
 export function NewLessonForm({ moduleId, level }: { moduleId: string; level: string }) {
   const [state, action, pending] = useActionState(createLesson, undefined);
@@ -42,14 +43,14 @@ export function MoveButtons({ lessonId, first, last }: { lessonId: string; first
 }
 
 export function PublishPanel({ lessonId, versionId, version, scheduled }: { lessonId: string; versionId: string; version: number; scheduled: boolean }) {
-  const [state, setState] = useState<CmsState>(undefined);
   const [at, setAt] = useState("");
   const [pending, start] = useTransition();
   const router = useRouter();
+  // 結果は画面の上部に出す (公開するとこの欄は消えるため)
   const run = (fn: () => Promise<CmsState>) =>
     start(async () => {
-      const r = await fn();
-      setState(r);
+      const r = await fn().catch((): CmsState => ({ error: "操作できませんでした。ページを再読み込みしてください。" }));
+      announce(r);
       if (r?.ok) router.refresh();
     });
   return (
@@ -73,14 +74,13 @@ export function PublishPanel({ lessonId, versionId, version, scheduled }: { less
           }}>予約する</Button>
         </div>
       )}
-      <FormMessage state={state} />
     </div>
   );
 }
 
 export function CancelScheduleButton({ lessonId }: { lessonId: string }) {
   const [pending, start] = useTransition();
-  const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
   return (
     <span className="flex flex-col gap-1">
       <Button
@@ -90,25 +90,25 @@ export function CancelScheduleButton({ lessonId }: { lessonId: string }) {
         onClick={() => {
           if (!window.confirm("公開の予約を取り消します。よろしいですか?")) return;
           start(async () => {
-            setError(null);
             try {
               await cancelSchedule(lessonId);
+              announce({ ok: "公開の予約を取り消しました。予約していた版は、公開されていない版として履歴に残ります。" });
+              router.refresh();
             } catch {
-              setError("予約を取り消せませんでした。ページを再読み込みしてください。");
+              announce({ error: "予約を取り消せませんでした。ページを再読み込みしてください。" });
             }
           });
         }}
       >
         {pending ? "取り消しています…" : "予約を取り消す"}
       </Button>
-      {error && <span role="alert" className="text-sm text-danger">{error}</span>}
     </span>
   );
 }
 
 export function VersionActions({ lessonId, versionId, canRepublish }: { lessonId: string; versionId: string; canRepublish: boolean }) {
   const [pending, start] = useTransition();
-  const [state, setState] = useState<CmsState>(undefined);
+  const router = useRouter();
   return (
     <span className="flex flex-wrap gap-2">
       <button
@@ -125,10 +125,13 @@ export function VersionActions({ lessonId, versionId, canRepublish }: { lessonId
       {canRepublish && (
         <button type="button" disabled={pending} onClick={() => {
             if (!window.confirm("この版を受講生に公開します。よろしいですか?")) return;
-            start(async () => setState(await publishVersion(lessonId, versionId)));
+            start(async () => {
+              const r = await publishVersion(lessonId, versionId).catch((): CmsState => ({ error: "公開できませんでした。ページを再読み込みしてください。" }));
+              announce(r);
+              if (r?.ok) router.refresh();
+            });
           }} className="min-h-11 rounded-lg px-2 text-sm text-accent hover:bg-accent-soft">この版に戻して公開</button>
       )}
-      {state?.error && <span role="alert" className="text-sm text-danger">{state.error}</span>}
     </span>
   );
 }

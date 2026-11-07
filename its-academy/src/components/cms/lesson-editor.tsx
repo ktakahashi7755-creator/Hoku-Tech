@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useState, useTransition, type ReactNode } from "react";
+import { useEffect, useRef, useState, useTransition, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { saveDraft, type CmsState, type EditBase } from "@/app/actions/cms";
 import type { EditorDraft } from "@/lib/content/draft";
 import { CODE_LANGUAGES } from "@/lib/content/languages";
 import { Button, cx, inputStyles } from "@/components/ui";
+import { nextNoticeSeq, useNoticeSeq } from "./notice";
 
 /** 同じ画面のほかの操作 (版から下書きを作る など) が、保存していない編集を消さないかを確認するため */
 let editorDirty = false;
@@ -82,7 +83,14 @@ function Repeat<T>({ items, onChange, make, label, render }: { items: T[]; onCha
 
 export function LessonEditor({ lessonId, initial, base }: { lessonId: string; initial: EditorDraft; base: EditBase }) {
   const [d, setD] = useState<EditorDraft>(initial);
-  const [state, setState] = useState<CmsState>(undefined);
+  const [saved, setSaved] = useState<{ seq: number; state: CmsState }>({ seq: -1, state: undefined });
+  // 保存の後に公開・予約をしたら、保存のメッセージは古くなるので表示しない
+  const state = saved.seq === useNoticeSeq() ? saved.state : undefined;
+  const messageBox = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    // 保存中にボタンが無効になってフォーカスが失われた場合は、結果のメッセージへ移す
+    if (saved.seq >= 0 && document.activeElement === document.body) messageBox.current?.focus();
+  }, [saved]);
   const [dirty, setDirty] = useState(false);
   // 同時編集の確認に使う「編集の元の版」。画面を開いたときの値から始め、自分が保存したときだけ更新する
   // (再表示で届く値は使わない。使うと、ほかの画面の保存を自分の保存と取り違えるため)
@@ -114,7 +122,7 @@ export function LessonEditor({ lessonId, initial, base }: { lessonId: string; in
         start(async () => {
           // 失敗しても編集中の内容を失わないよう、エラーは画面に表示する
           const r = await saveDraft(lessonId, d, currentBase).catch((): CmsState => ({ errors: ["保存できませんでした。通信を確認して、もう一度お試しください (入力した内容は画面に残っています)。"] }));
-          setState(r);
+          setSaved({ seq: nextNoticeSeq(), state: r });
           if (r?.base) setSavedBase(r.base);
           if (r?.ok) {
             setDirty(false);
@@ -232,15 +240,18 @@ export function LessonEditor({ lessonId, initial, base }: { lessonId: string; in
       {/* スマホでは画面の下に固定しない (入力欄を隠さないように)。広い画面では保存ボタンを常に見える位置に置く */}
       <div className="z-10 -mx-4 flex flex-col gap-3 border-t border-border bg-bg/95 px-4 py-4 backdrop-blur sm:sticky sm:bottom-0">
         <Text id="changeNote" label="変更内容のメモ (版の履歴に残ります)" value={d.changeNote} onChange={(v) => set("changeNote", v)} />
-        <div aria-live="polite" className="flex flex-col gap-2">
-          {state?.ok && <p role="status" className="rounded-lg bg-success-soft p-3 text-sm text-success">{state.ok}</p>}
-          {state?.errors && state.errors.length > 0 && (
-            <div role="alert" className="rounded-lg bg-warning-soft p-3 text-sm text-warning">
-              <p className="font-semibold">公開するには次の項目が必要です (下書きは保存できます)</p>
-              <ul className="mt-1 list-disc pl-5">{state.errors.map((e) => <li key={e}>{e}</li>)}</ul>
-            </div>
-          )}
-          {state?.error && <p role="alert" className="rounded-lg bg-danger-soft p-3 text-sm text-danger">{state.error}</p>}
+        {/* 読み上げの領域は常に置いておき、中身が変わったときに 1 回だけ知らせる */}
+        <div ref={messageBox} tabIndex={-1} className="flex flex-col gap-2 outline-none">
+          <div role="status">{state?.ok && <p className="rounded-lg bg-success-soft p-3 text-sm text-success">{state.ok}</p>}</div>
+          <div role="alert" className="flex flex-col gap-2">
+            {state?.errors && state.errors.length > 0 && (
+              <div className="rounded-lg bg-warning-soft p-3 text-sm text-warning">
+                <p className="font-semibold">公開するには次の項目が必要です (下書きは保存できます)</p>
+                <ul className="mt-1 list-disc pl-5">{state.errors.map((e) => <li key={e}>{e}</li>)}</ul>
+              </div>
+            )}
+            {state?.error && <p className="rounded-lg bg-danger-soft p-3 text-sm text-danger">{state.error}</p>}
+          </div>
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <Button type="submit" disabled={pending}>{pending ? "保存しています…" : "下書きを保存"}</Button>

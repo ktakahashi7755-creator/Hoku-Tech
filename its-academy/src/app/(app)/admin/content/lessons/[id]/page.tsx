@@ -9,6 +9,7 @@ import { editorStateOf } from "@/lib/content/draft";
 import { Badge, ButtonLink, Card, PageHeader } from "@/components/ui";
 import { LessonEditor } from "@/components/cms/lesson-editor";
 import { CancelScheduleButton, PublishPanel, VersionActions } from "@/components/cms/cms-controls";
+import { CmsNotice } from "@/components/cms/notice";
 import { formatDateTime } from "@/lib/labels";
 
 // 受講生名などは入れない (ページ名はアクセス権の確認とは別に作られるため)
@@ -50,6 +51,9 @@ export default async function LessonEditPage({ params }: { params: Promise<{ id:
         }
       />
 
+      {/* 公開・予約などの結果 (操作した欄は結果で消えることがあるため、ここに出す) */}
+      <CmsNotice />
+
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
         <div className="min-w-0">
           {editing && (
@@ -87,7 +91,9 @@ export default async function LessonEditPage({ params }: { params: Promise<{ id:
                     <span className="font-semibold">版 {v.version}</span>
                     {v.id === lesson.currentVersionId && <Badge tone="success">公開中</Badge>}
                     {v.id === lesson.scheduledVersionId && <Badge tone="accent">予約</Badge>}
-                    {!v.publishedAt && v.id !== lesson.scheduledVersionId && <Badge tone="warning">下書き</Badge>}
+                    {v.id === draft?.id && <Badge tone="warning">下書き</Badge>}
+                    {/* 新しい版ができた後に残った、公開されなかった版 (予約を取り消した版など)。編集の対象ではない */}
+                    {!v.publishedAt && v.id !== draft?.id && v.id !== lesson.scheduledVersionId && <Badge tone="neutral">未公開</Badge>}
                   </p>
                   <p className="mt-1">{v.changeNote ?? "—"}</p>
                   <p className="text-xs text-muted">

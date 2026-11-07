@@ -26,10 +26,8 @@ export function LessonStatusToggle({ lessonId, published }: { lessonId: string; 
       >
         {pending ? "変更しています…" : published ? "非公開にする" : "公開する"}
       </Button>
-      <span aria-live="polite" className="text-sm">
-        {message?.ok && <span className="text-success">{message.ok}</span>}
-        {message?.error && <span role="alert" className="text-danger">{message.error}</span>}
-      </span>
+      <span role="status" className="text-sm">{message?.ok && <span className="text-success">{message.ok}</span>}</span>
+      <span role="alert" className="text-sm">{message?.error && <span className="text-danger">{message.error}</span>}</span>
     </span>
   );
 }
