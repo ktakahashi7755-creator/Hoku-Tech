@@ -12,7 +12,7 @@ export function CommentForm({ studentId }: { studentId: string }) {
     <ActionForm action={action} state={state} resetOnSuccess className="flex flex-col gap-3">
       <input type="hidden" name="studentId" value={studentId} />
       <Field label="コメント" htmlFor="body" error={state?.fieldErrors?.body}>
-        <textarea id="body" name="body" rows={3} className={inputStyles} />
+        <textarea id="body" name="body" rows={3} className={inputStyles} required maxLength={5000} />
       </Field>
       <fieldset className="flex min-w-0 flex-wrap gap-4 text-sm">
         <legend className="mb-1 font-semibold">公開範囲</legend>
@@ -43,7 +43,7 @@ export function SkillForm({ studentId, areas, levels }: { studentId: string; are
         </Field>
       </div>
       <Field label="根拠・メモ" htmlFor="note" hint="どの課題・面談をもとに評価したかを書いてください。">
-        <input id="note" name="note" className={inputStyles} />
+        <input id="note" name="note" className={inputStyles} maxLength={1000} />
       </Field>
       <FormMessage state={state} />
       <Button type="submit" disabled={pending}>評価を記録</Button>

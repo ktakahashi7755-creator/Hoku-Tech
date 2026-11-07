@@ -60,7 +60,7 @@ export default async function StudentsPage({ searchParams }: { searchParams: Pro
       {rows.length === 0 ? (
         <EmptyState>該当する受講生はいません。</EmptyState>
       ) : (
-        <ScrollRegion label="受講生の一覧" className="rounded-xl border border-border">
+        <ScrollRegion scrollHint label="受講生の一覧" className="rounded-xl border border-border">
           <table className="w-full min-w-[960px] text-left text-sm">
             <thead className="bg-surface text-muted">
               <tr>

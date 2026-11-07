@@ -1,3 +1,4 @@
+import { GITHUB_REPO_URL } from "@/lib/validation";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { db } from "@/lib/db";
@@ -55,7 +56,12 @@ export default async function ReviewDetail({ params }: { params: Promise<{ id: s
             <div className="mt-3 flex flex-col gap-3">
               {sub.repoUrl && (
                 <p className="break-all">
-                  リポジトリ: <a className="text-accent underline" href={sub.repoUrl} target="_blank" rel="noreferrer noopener">{sub.repoUrl}</a>
+                  リポジトリ:{" "}
+                  {GITHUB_REPO_URL.test(sub.repoUrl) ? (
+                    <a className="text-accent underline" href={sub.repoUrl} target="_blank" rel="noreferrer noopener">{sub.repoUrl}</a>
+                  ) : (
+                    sub.repoUrl
+                  )}
                 </p>
               )}
               {sub.text && <CodeBlock code={sub.text} language="java" label="提出コード" />}

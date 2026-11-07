@@ -49,7 +49,7 @@ export default async function ContentPage() {
                           {l.currentVersion?.title ?? latest?.title ?? l.slug}
                         </Link>
                         <p className="text-xs text-muted">
-                          {l.slug} ・ 公開中の版 {l.currentVersion?.version ?? "なし"} ・ 更新 {formatDate(latest?.createdAt)}
+                          {l.slug} ・ {l.status === "PUBLISHED" ? "公開中の版" : "公開に使う版 (非公開中)"} {l.currentVersion?.version ?? "なし"} ・ 更新 {formatDate(latest?.createdAt)}
                           {l.currentVersion?.sourceUrl && (
                             <> ・ <a href={l.currentVersion.sourceUrl} className="underline" target="_blank" rel="noreferrer">移行元の記事</a></>
                           )}

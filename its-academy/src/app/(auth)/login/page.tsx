@@ -12,7 +12,7 @@ export default function LoginPage() {
       <div className="mt-8">
         <LoginForm />
       </div>
-      <p className="mt-6 text-sm text-muted">パスワードを忘れた場合は、担当講師または管理者に連絡してください。</p>
+      <p className="mt-6 text-sm text-muted">パスワードを忘れた場合や、正しく入力してもログインできない場合 (アカウントの利用停止を含む) は、担当講師または管理者に連絡してください。</p>
     </main>
   );
 }

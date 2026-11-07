@@ -21,7 +21,7 @@ export default async function AssignmentsPage() {
       {overview.assignments.length === 0 ? (
         <EmptyState>公開中の課題はまだありません。</EmptyState>
       ) : (
-      <ScrollRegion label="課題の一覧" className="rounded-xl border border-border">
+      <ScrollRegion scrollHint label="課題の一覧" className="rounded-xl border border-border">
         <table className="w-full min-w-[640px] text-left text-sm">
           <thead className="bg-surface text-muted">
             <tr>
@@ -45,7 +45,7 @@ export default async function AssignmentsPage() {
                 <td className="px-4 py-3">{ASSIGNMENT_TYPE_LABEL[a.type]}</td>
                 <td className="px-4 py-3">{a.unlocked ? <SubmissionBadge status={a.latestStatus} /> : <Badge>前提レッスン未完了</Badge>}</td>
                 <td className="px-4 py-3 tabular-nums">{a.attempts}</td>
-                <td className="px-4 py-3 tabular-nums">{a.latestReviewScore === null ? "—" : `${a.latestReviewScore} 点 (合格点 ${a.passScore} 点)`}</td>
+                <td className="px-4 py-3 tabular-nums">{a.latestReviewScore === null ? "—" : `${a.latestReviewScore} 点 (合格点 ${a.latestReviewPassScore ?? a.passScore} 点)`}</td>
                 <td className="whitespace-nowrap px-4 py-3">{formatDate(a.lastSubmittedAt)}</td>
               </tr>
             ))}

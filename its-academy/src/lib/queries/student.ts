@@ -216,6 +216,8 @@ function buildOverview(studentId: string, data: OverviewData, now: Date) {
         unlocked: !a.lessonId || lessonStatus(a.lessonId) === "COMPLETED",
         latestStatus: (latest?.status ?? null) as SubmissionStatusValue | null,
         latestReviewScore: latestReview?.totalScore ?? null,
+        // 採点時点の合格点 (後から課題の合格点が変わっても、その採点の基準は変えずに表示する)
+        latestReviewPassScore: latestReview?.passScore ?? null,
         latestReviewComment: latestReview?.comment ?? null,
         attempts: attemptsByAssignment.get(a.id) ?? 0,
         lastSubmittedAt: latest?.submittedAt ?? null,
@@ -262,7 +264,13 @@ function buildOverview(studentId: string, data: OverviewData, now: Date) {
   const weak = weakLessons(lessons, new Set(bestQuiz.keys()), quizPassed);
   const struggling = strugglingAssignments(assignments);
 
-  const current = lessons.find((l) => l.id === enrollment.currentLessonId) ?? lessons.find((l) => l.status !== "COMPLETED") ?? null;
+  // 現在の学習領域: 最後に開いたレッスン。ただし完了済みなら、次に取り組む必修レッスン (完了後も前のレッスンのままにしない)
+  const lastOpened = lessons.find((l) => l.id === enrollment.currentLessonId);
+  const current =
+    (lastOpened && lastOpened.status !== "COMPLETED" ? lastOpened : null) ??
+    lessons.find((l) => !l.optional && l.status !== "COMPLETED") ??
+    lessons.find((l) => l.status !== "COMPLETED") ??
+    null;
 
   return {
     student,

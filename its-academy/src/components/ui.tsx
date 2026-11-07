@@ -138,10 +138,20 @@ export function Skeleton({ lines = 3 }: { lines?: number }) {
  * relative にして、中の絶対配置の要素 (sr-only のラベルなど) もこの領域で切り取る
  * (付けないと WebKit ではページ全体が横にスクロールする。E2E 06-hardening で検出)
  */
-export function ScrollRegion({ label, className, children }: { label: string; className?: string; children: ReactNode }) {
-  return (
+export function ScrollRegion({ label, className, children, scrollHint = false }: { label: string; className?: string; children: ReactNode; scrollHint?: boolean }) {
+  const region = (
     <div role="region" aria-label={label} tabIndex={0} className={cx("relative overflow-x-auto", className)}>
       {children}
+    </div>
+  );
+  if (!scrollHint) return region;
+  // 幅の広い表は、スマホでは一部の列が画面の外になるため、横に動かせることを伝える
+  return (
+    <div className="min-w-0">
+      <p className="mb-1 text-xs text-muted sm:hidden" aria-hidden="true">
+        表は横にスクロールできます →
+      </p>
+      {region}
     </div>
   );
 }

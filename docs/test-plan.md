@@ -10,7 +10,7 @@
 |----|--------|----------|-------------------|------|
 | 型検査 | TypeScript | `npm run typecheck` | — | エラー 0 |
 | 静的解析 | ESLint (next) | `npm run lint` | — | エラー 0 |
-| 単体 | Vitest | `npm test` | 82 件 / 10 ファイル | 全件成功 |
+| 単体 | Vitest | `npm test` | 83 件 / 10 ファイル | 全件成功 |
 | 教材コード検証 | JDK 21 / bash / Git / PostgreSQL 16 / Maven / Chromium | `npm run verify:code` | 30 サンプル (Java・bash・Git・SQL・Maven で起動する Spring Boot・Chromium でのブラウザ確認。L8 の 2 件を含む) | 全件一致 |
 | ビルド | Next.js | `npm run build` | — | 成功 |
 | E2E | Playwright (Chromium) | `npm run test:e2e -- --trace off` | 34 (01-lms 8・02-cms 4・03-a11y 5・04-accounts 3・05-cms-assignments 4・06-hardening 4・07-rules 6) | 全件成功 |
@@ -32,7 +32,7 @@ E2E は専用の DB (`TEST_DATABASE_URL`、既定は `its_academy_test`) を `pr
 | `client-ip.test.ts` | 利用者の IP の選び方 (信頼するプロキシの段数・偽の先頭の値を使わない・未設定なら記録しない・不自然な値を記録しない) |
 | `draft.test.ts` | CMS の入力の変換・必須チェック・正解番号の範囲・実行検証済みの印と実行スクリプトの引き継ぎ (コード変更で外れる・フォームからの偽装は無効)・往復変換 |
 | `guidance.test.ts` | 指導提案 (停滞を能力不足と表現しない・複数回提出で面談提案・遅れの閾値) |
-| `cms-assign.test.ts` | 版の差分 (追加・削除・変更なし)・課題フォームの変換と検証・ルーブリックの配点合計 100・既存の観点 key の維持・空の下書きの読み込み |
+| `cms-assign.test.ts` | 版の差分 (追加・削除・変更なし。公開済みの版と下書きを同じ形にそろえ、変えた箇所だけが出る)・課題フォームの変換と検証・ルーブリックの配点合計 100・既存の観点 key の維持・空の下書きの読み込み |
 | `env-check.test.ts` | 起動時の設定確認 (本番は Secure Cookie・プロキシの段数・開発用以外のパスワードが必須・Cloud SQL のソケット形式の接続文字列・APP_ENV=test の扱い・メッセージに接続文字列を含めない) |
 
 ## 3. E2E シナリオ (`tests/e2e/`。ファイル名の番号順に実行)

@@ -84,7 +84,7 @@ export default async function StudentDetailPage({ params }: { params: Promise<{ 
 
       <Card>
         <h2 className="font-bold">課題の状況</h2>
-        <ScrollRegion label="課題の状況" className="mt-3">
+        <ScrollRegion scrollHint label="課題の状況" className="mt-3">
           <table className="w-full min-w-[560px] text-left text-sm">
             <thead className="text-muted">
               <tr>
@@ -105,7 +105,7 @@ export default async function StudentDetailPage({ params }: { params: Promise<{ 
                     </td>
                     <td className="py-2">{a.unlocked ? <SubmissionBadge status={a.latestStatus} /> : <Badge>前提レッスン未完了</Badge>}</td>
                     <td className="py-2 tabular-nums">{a.attempts}</td>
-                    <td className="py-2 tabular-nums">{a.latestReviewScore === null ? "—" : `${a.latestReviewScore} 点 (合格点 ${a.passScore} 点)`}</td>
+                    <td className="py-2 tabular-nums">{a.latestReviewScore === null ? "—" : `${a.latestReviewScore} 点 (合格点 ${a.latestReviewPassScore ?? a.passScore} 点)`}</td>
                     <td className="whitespace-nowrap py-2">{formatDate(a.lastSubmittedAt)}</td>
                   </tr>
                 );

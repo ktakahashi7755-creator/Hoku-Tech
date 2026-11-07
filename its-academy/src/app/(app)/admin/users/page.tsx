@@ -25,7 +25,7 @@ export default async function UsersPage() {
         title="アカウント"
         description="権限の変更・仮パスワードの発行・利用停止を行います。自分自身と、自分と同じか上位の権限のアカウントは操作できません。操作はすべて監査ログに残ります。"
       />
-      <ScrollRegion label="アカウントの一覧" className="rounded-xl border border-border">
+      <ScrollRegion scrollHint label="アカウントの一覧" className="rounded-xl border border-border">
         <table className="w-full min-w-[880px] text-left text-sm">
           <thead className="bg-surface text-muted">
             <tr>

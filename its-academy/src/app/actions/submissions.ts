@@ -60,8 +60,8 @@ export async function saveSubmission(_prev: FormState, formData: FormData): Prom
 
   const text = input.text?.trim() || null;
   const repoUrl = input.repoUrl || null;
-  // 下書きでも、入力された URL は形式を確かめる。提出時は必須
-  if ((repoUrl && !GITHUB_REPO_URL.test(repoUrl)) || (input.intent === "submit" && submitsRepository(assignment.type) && !repoUrl)) {
+  // URL の形式は提出時に確かめる (下書きは入力途中でも保存できるようにする。下書きの URL はリンクとして表示しない)
+  if (input.intent === "submit" && submitsRepository(assignment.type) && (!repoUrl || !GITHUB_REPO_URL.test(repoUrl))) {
     return { fieldErrors: { repoUrl: REPO_URL_MESSAGE } };
   }
   if (input.intent === "submit" && !submitsRepository(assignment.type) && !text) {

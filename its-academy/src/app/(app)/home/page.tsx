@@ -31,11 +31,11 @@ export default async function HomePage() {
         <p className="text-muted">{o.enrollment.course.title}</p>
       </div>
 
-      <NextActionCard next={o.next} assignmentSlugs={slugs} />
+      <NextActionCard next={o.next} assignmentSlugs={slugs} firstTime={o.metrics.completedLessons === 0} />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Stat label="教材の履修" value={`${o.metrics.completedLessons} / ${o.metrics.totalLessons}`} hint="理解度チェックに合格して完了したレッスン" />
-        <Stat label="課題の合格" value={`${o.metrics.passedAssignments} / ${o.metrics.totalAssignments}`} />
+        <Stat label="教材の履修" value={`${o.metrics.completedLessons} / ${o.metrics.totalLessons}`} hint="必修レッスンのうち、理解度チェックに合格して完了したもの (L8 選択は含めない)" />
+        <Stat label="課題の合格" value={`${o.metrics.passedAssignments} / ${o.metrics.totalAssignments}`} hint="必修の課題 (L8 選択は含めない)" />
         <Stat label="連続学習" value={`${o.streak} 日`} />
         <Stat label="累計学習時間" value={formatMinutes(o.totalMinutes)} />
       </div>
@@ -92,7 +92,13 @@ export default async function HomePage() {
             <ul className="mt-3 flex flex-col gap-3">
               {visibleComments.map((c) => (
                 <li key={c.id} className="rounded-lg bg-surface p-3">
-                  <p>{c.body}</p>
+                  {/* ホームでは要約だけを表示し、全文は「質問・レビュー」で読む */}
+                  <p className="line-clamp-4 whitespace-pre-wrap">{c.body}</p>
+                  {c.body.length > 160 && (
+                    <Link href="/reviews" className="mt-1 inline-block text-sm text-accent underline">
+                      全文を読む
+                    </Link>
+                  )}
                   <p className="mt-1 text-xs text-muted">
                     {c.author.name} ・ {formatDate(c.createdAt)}
                   </p>

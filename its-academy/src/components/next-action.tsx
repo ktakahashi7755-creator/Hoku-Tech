@@ -1,7 +1,7 @@
 import type { NextAction } from "@/lib/progress/metrics";
 import { ButtonLink, Card } from "./ui";
 
-export function NextActionCard({ next, assignmentSlugs }: { next: NextAction; assignmentSlugs: Record<string, string> }) {
+export function NextActionCard({ next, assignmentSlugs, firstTime = false }: { next: NextAction; assignmentSlugs: Record<string, string>; firstTime?: boolean }) {
   let title = "";
   let body = "";
   let href = "";
@@ -15,7 +15,7 @@ export function NextActionCard({ next, assignmentSlugs }: { next: NextAction; as
       break;
     case "lesson":
       title = next.title;
-      body = next.resume ? "前回の続きから再開できます。" : "次のレッスンに進みましょう。";
+      body = next.resume ? "前回の続きから再開できます。" : firstTime ? "最初のレッスンから始めましょう。学び方と質問の仕方を確認します。" : "次のレッスンに進みましょう。";
       href = `/lessons/${next.slug}`;
       cta = next.resume ? "続きから学習する" : "レッスンを始める";
       break;

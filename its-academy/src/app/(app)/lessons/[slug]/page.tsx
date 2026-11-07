@@ -105,7 +105,7 @@ export default async function LessonPage({ params }: { params: Promise<{ slug: s
       <article className="min-w-0">
         <header className="mb-8 border-b border-border pb-6">
           <p className="text-sm text-muted">
-            {lesson.module.level} {lesson.module.title} ・ レッスン {index + 1} / {flat.length}
+            {lesson.module.level} {lesson.module.title} ・ レッスン {index + 1} / {flat.length} (選択を含む)
           </p>
           <h1 className="mt-1 text-2xl font-bold sm:text-3xl">{version.title}</h1>
           <div className="mt-3 flex flex-wrap items-center gap-3 text-sm">

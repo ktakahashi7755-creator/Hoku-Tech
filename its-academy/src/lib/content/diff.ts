@@ -1,3 +1,5 @@
+import { editorStateOf } from "./draft";
+
 /**
  * 行単位の差分 (最長共通部分列)。CMS で版どうしの変更点を表示するために使う。純粋関数。
  */
@@ -32,35 +34,39 @@ export function lineDiff(before: string[], after: string[]): DiffLine[] {
   return out;
 }
 
-/** レッスンの版を、差分表示用の読みやすい行に変換する */
+/**
+ * レッスンの版を、差分表示用の読みやすい行に変換する。
+ * 公開済みの版 (教材の形式) と下書き (編集画面の形式) を同じ形 (編集画面の項目) にそろえてから行にするため、
+ * 実際に変えた箇所だけが差分に出る。
+ */
 export function lessonToLines(v: { title: string; estimatedMinutes: number; content: unknown }): string[] {
-  const c = v.content as Record<string, unknown>;
-  const lines: string[] = [`タイトル: ${v.title}`, `学習目安時間: ${v.estimatedMinutes} 分`];
-  const push = (label: string, value: unknown) => {
-    if (value === undefined || value === null) return;
-    if (typeof value === "string") {
-      lines.push(`[${label}]`, ...value.split("\n"));
-    } else if (Array.isArray(value)) {
-      lines.push(`[${label}]`);
-      value.forEach((item) => {
-        if (typeof item === "string") lines.push(`- ${item}`);
-        else lines.push(...Object.entries(item as Record<string, unknown>).flatMap(([k, val]) => `${k}: ${String(val)}`.split("\n")));
-      });
-    } else if (typeof value === "object") {
-      lines.push(`[${label}]`, ...JSON.stringify(value, null, 1).split("\n"));
-    }
+  const d = editorStateOf(v);
+  const lines: string[] = [`タイトル: ${d.title}`, `学習目安時間: ${d.estimatedMinutes} 分`];
+  if (d.videoUrl) lines.push(`解説動画: ${d.videoUrl}`);
+  const text = (label: string, value: string) => {
+    if (value.trim()) lines.push(`[${label}]`, ...value.split("\n"));
   };
-  if (c && "editorDraft" in c) {
-    lines.push("(下書き: 入力途中のため、保存されたフォームの内容を表示)");
-    push("下書き", (c as { editorDraft: unknown }).editorDraft);
-    return lines;
-  }
-  for (const [key, label] of [
-    ["objectives", "できるようになること"], ["prerequisites", "前提知識"], ["explanation", "概念の解説"], ["examples", "図解・具体例"],
-    ["code", "サンプルコード"], ["exercises", "演習"], ["quiz", "理解度チェック"], ["workplaceUse", "実務での利用場面"],
-    ["commonErrors", "よくあるエラー"], ["reviewPoints", "復習ポイント"], ["videoUrl", "動画"],
-  ] as const) {
-    push(label, c?.[key]);
-  }
+  text("できるようになること", d.objectives);
+  text("前提知識", d.prerequisites);
+  d.explanation.forEach((e, i) => text(`概念の解説 ${i + 1}: ${e.heading}`, e.body));
+  d.examples.forEach((e, i) => text(`図解・具体例 ${i + 1}: ${e.title}`, e.body));
+  d.code.forEach((c, i) => {
+    text(`サンプルコード ${i + 1}: ${c.filename || c.language}`, c.source);
+    text(`サンプルコード ${i + 1} の実行結果`, c.output);
+  });
+  d.exercises.forEach((e, i) => {
+    text(`演習 ${i + 1}: ${e.title}`, e.task);
+    text(`演習 ${i + 1} のヒント`, e.hint);
+    text(`演習 ${i + 1} の解答例`, e.answer);
+  });
+  lines.push(`[理解度チェック] 合格点 ${d.quiz.passScore} 点`);
+  d.quiz.questions.forEach((q, i) => {
+    lines.push(`問 ${i + 1}. ${q.question}`, ...q.choices.split("\n").map((c, ci) => `  ${ci === Number(q.answerIndex) ? "○" : "・"} ${c}`), `  解説: ${q.explanation}`);
+  });
+  text("実務での利用場面", d.workplaceUse);
+  d.commonErrors.forEach((e, i) => {
+    lines.push(`[よくあるエラー ${i + 1}] ${e.error}`, `原因: ${e.cause}`, `対処: ${e.fix}`);
+  });
+  text("復習ポイント", d.reviewPoints);
   return lines;
 }

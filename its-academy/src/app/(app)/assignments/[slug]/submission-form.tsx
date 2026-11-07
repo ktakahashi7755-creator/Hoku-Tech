@@ -2,7 +2,8 @@
 
 import { useActionState } from "react";
 import { saveSubmission } from "@/app/actions/submissions";
-import { ActionForm } from "@/components/action-form";
+import { ActionForm, reportFieldError } from "@/components/action-form";
+import { GITHUB_REPO_URL } from "@/lib/validation";
 import { Button, Field, FormMessage, inputStyles } from "@/components/ui";
 import { submitsRepository } from "@/lib/validation";
 
@@ -13,22 +14,31 @@ export function SubmissionForm({ assignmentId, type, defaults }: { assignmentId:
     <ActionForm
       action={action}
       className="flex flex-col gap-5"
-      confirm={(submitter) =>
-        submitter?.getAttribute("value") === "submit" ? "提出すると、講師のレビューが終わるまで内容を変更できません。提出しますか?" : null
-      }
+      confirm={(submitter, form) => {
+        if (submitter?.getAttribute("value") !== "submit") return null;
+        // 提出のときだけ必要なチェックは、確認ダイアログより先に行う
+        const data = new FormData(form);
+        if (repo) {
+          const url = String(data.get("repoUrl") ?? "").trim();
+          if (!GITHUB_REPO_URL.test(url)) return reportFieldError(form, "repoUrl", "https://github.com/ユーザー名/リポジトリ名 の形式で入力してください");
+        } else if (!String(data.get("text") ?? "").trim()) {
+          return reportFieldError(form, "text", "提出内容を入力してください");
+        }
+        return "提出すると、講師のレビューが終わるまで内容を変更できません。提出しますか?";
+      }}
     >
       <input type="hidden" name="assignmentId" value={assignmentId} />
       {repo ? (
         <Field label="GitHub リポジトリの URL" htmlFor="repoUrl" hint="例: https://github.com/your-name/its-profile" error={state?.fieldErrors?.repoUrl}>
-          <input id="repoUrl" name="repoUrl" type="url" defaultValue={defaults.repoUrl} className={inputStyles} inputMode="url" />
+          <input id="repoUrl" name="repoUrl" type="text" defaultValue={defaults.repoUrl} className={inputStyles} inputMode="url" maxLength={300} autoComplete="off" />
         </Field>
       ) : (
         <Field label="提出するコード・回答" htmlFor="text" error={state?.fieldErrors?.text}>
-          <textarea id="text" name="text" defaultValue={defaults.text} rows={14} className={`${inputStyles} font-mono text-sm`} spellCheck={false} />
+          <textarea id="text" name="text" defaultValue={defaults.text} rows={14} className={`${inputStyles} font-mono text-sm`} spellCheck={false} maxLength={100000} />
         </Field>
       )}
       <Field label="備考" htmlFor="note" hint="実行結果、工夫した点、AI を使った場合はどこで使ったかを書いてください。パスワードや API キーは書かないでください。" error={state?.fieldErrors?.note}>
-        <textarea id="note" name="note" defaultValue={defaults.note} rows={4} className={inputStyles} />
+        <textarea id="note" name="note" defaultValue={defaults.note} rows={4} className={inputStyles} maxLength={2000} />
       </Field>
       <FormMessage state={state} />
       <div className="flex flex-wrap gap-3">

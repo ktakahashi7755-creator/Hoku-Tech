@@ -2,7 +2,7 @@
 
 import { useActionState, useState, useTransition } from "react";
 import { startReview, submitReview } from "@/app/actions/staff";
-import { ActionForm } from "@/components/action-form";
+import { ActionForm, reportFieldError } from "@/components/action-form";
 import { Button, Field, FormMessage, inputStyles } from "@/components/ui";
 
 type Criterion = { key: string; label: string; weight: number; description: string };
@@ -38,7 +38,17 @@ export function ReviewForm({ submissionId, criteria, passScore }: { submissionId
   const [scores, setScores] = useState<Record<string, number>>(Object.fromEntries(criteria.map((c) => [c.key, 0])));
   const total = criteria.reduce((s, c) => s + Math.min(Math.max(scores[c.key] || 0, 0), c.weight), 0);
   return (
-    <ActionForm action={action} className="flex flex-col gap-4" confirm="採点を確定すると、後から変更できません。受講生に結果が通知されます。確定しますか?">
+    <ActionForm
+      action={action}
+      className="flex flex-col gap-4"
+      confirm={(_submitter, form) => {
+        // 確定できない入力は、確認ダイアログより先に知らせる
+        if (new FormData(form).get("decision") === "PASS" && total < passScore) {
+          return reportFieldError(form, "decision", `合計 ${total} 点は合格点 ${passScore} 点に届いていません。修正依頼または不合格を選んでください。`);
+        }
+        return "採点を確定すると、後から変更できません。受講生に結果が通知されます。確定しますか?";
+      }}
+    >
       <input type="hidden" name="submissionId" value={submissionId} />
       {criteria.map((c) => (
         <Field key={c.key} label={`${c.label} (0〜${c.weight})`} htmlFor={`score_${c.key}`} hint={c.description} error={state?.fieldErrors?.[`score_${c.key}`]}>
@@ -66,7 +76,7 @@ export function ReviewForm({ submissionId, criteria, passScore }: { submissionId
         </select>
       </Field>
       <Field label="コメント (受講生に表示されます)" htmlFor="comment" hint="良かった点と、次に何を直せばよいかを具体的に書いてください。" error={state?.fieldErrors?.comment}>
-        <textarea id="comment" name="comment" rows={6} className={inputStyles} />
+        <textarea id="comment" name="comment" rows={6} className={inputStyles} required minLength={10} maxLength={5000} />
       </Field>
       <FormMessage state={state} />
       <Button type="submit" disabled={pending}>{pending ? "確定しています…" : "採点を確定する"}</Button>

@@ -16,7 +16,10 @@ const STUDENT_NAV: NavItem[] = [
 
 export async function AppShell({ children }: { children: React.ReactNode }) {
   const user = await requireUser(undefined, { allowPendingPasswordChange: true });
-  const nav: NavItem[] = isStaff(user.role)
+  // 仮パスワードのままの間は、パスワード変更 (マイページ) 以外の画面は使えないため、メニューにも出さない
+  const nav: NavItem[] = user.mustChangePassword
+    ? [{ href: "/me", label: "マイページ" }]
+    : isStaff(user.role)
     ? [
         { href: "/admin", label: "ダッシュボード", exact: true },
         { href: "/admin/students", label: "受講生" },

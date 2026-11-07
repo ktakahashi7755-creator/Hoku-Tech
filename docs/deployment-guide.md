@@ -47,6 +47,7 @@ CI (`.github/workflows/its-academy.yml`) は上記に加えて Firefox / WebKit 
 | `NEXT_SERVER_ACTIONS_ENCRYPTION_KEY` | 複数台構成で必須 | サーバーアクションの暗号鍵を全台で揃える |
 | `TRUSTED_PROXY_HOPS` | 本番・検証で必須 | HTTPS を終端するプロキシの段数 (1 以上の整数)。ログイン試行の制限と監査ログの IP に `X-Forwarded-For` の末尾から数えた値を使い、利用者が書いた偽の値を使わない。未設定なら IP を記録しない (ローカル向け。メールアドレス単位の試行制限は常に有効)。Cloud Run は 1 (deploy-gcp.md §5)、docker compose は既定で 1 (手前に HTTPS のリバースプロキシを 1 段置く前提) |
 | `BOOTSTRAP_ADMIN_EMAIL` / `BOOTSTRAP_ADMIN_NAME` / `BOOTSTRAP_ADMIN_PASSWORD` | 初期設定のときだけ | `npm run db:bootstrap` で作る最初のシステム管理者 (§7) |
+| `DB_POOL_MAX` | 任意 | 1 台あたりの DB 接続数の上限 (既定 10)。台数 × この値が DB の `max_connections` を超えないようにする |
 | `SEED_PASSWORD` | 任意 | 開発用 seed のパスワード |
 | `TEST_DATABASE_URL` | 任意 | E2E 用 DB |
 | `POSTGRES_PASSWORD` | docker compose で必須 | §5 の DB コンテナのパスワード |

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { lineDiff, lessonToLines } from "@/lib/content/diff";
+import { editorStateOf } from "@/lib/content/draft";
 import { fromAssignmentForm, validateRubric, type AssignmentForm } from "@/lib/content/assignment-form";
 
 describe("lineDiff", () => {
@@ -19,9 +20,35 @@ describe("lineDiff", () => {
 });
 
 describe("lessonToLines", () => {
-  it("タイトルと各項目を読みやすい行にする", () => {
-    const l = lessonToLines({ title: "配列", estimatedMinutes: 30, content: { objectives: ["作れる"], workplaceUse: "集計" } });
-    expect(l).toEqual(["タイトル: 配列", "学習目安時間: 30 分", "[できるようになること]", "- 作れる", "[実務での利用場面]", "集計"]);
+  const published = {
+    title: "配列",
+    estimatedMinutes: 30,
+    content: {
+      objectives: ["配列を作れる"],
+      prerequisites: ["変数とデータ型"],
+      explanation: [{ heading: "配列", body: "同じ型の値を並べる入れ物" }],
+      examples: [],
+      code: [{ language: "java", filename: "Main.java", source: "class Main {}" }],
+      exercises: [{ title: "合計", task: "合計を求める", hint: "for を使う", answer: "15" }],
+      quiz: { passScore: 100, questions: [{ id: "q1", question: "最初の添え字は?", choices: ["0", "1"], answerIndex: 0, explanation: "0 から始まる" }] },
+      workplaceUse: "一覧データの集計",
+      commonErrors: [{ error: "ArrayIndexOutOfBoundsException", cause: "範囲外", fix: "< length" }],
+      reviewPoints: ["添え字は 0 から"],
+    },
+  };
+  it("項目を読みやすい行にする (正解の選択肢に印を付ける)", () => {
+    const l = lessonToLines(published);
+    expect(l.slice(0, 4)).toEqual(["タイトル: 配列", "学習目安時間: 30 分", "[できるようになること]", "配列を作れる"]);
+    expect(l).toContain("  ○ 0");
+    expect(l).toContain("  ・ 1");
+  });
+  it("公開済みの版と、それを編集した下書きの差分には、変えた箇所だけが出る", () => {
+    const draft = { title: "配列 (改訂)", estimatedMinutes: 30, content: { editorDraft: { ...editorStateOf(published), title: "配列 (改訂)" } } };
+    const diff = lineDiff(lessonToLines(published), lessonToLines(draft)).filter((d) => d.type !== "same");
+    expect(diff).toEqual([
+      { type: "removed", text: "タイトル: 配列" },
+      { type: "added", text: "タイトル: 配列 (改訂)" },
+    ]);
   });
 });
 
