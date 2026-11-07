@@ -17,19 +17,21 @@ on:
       - ".github/workflows/project-sheet.yml"
   workflow_dispatch:
   schedule:
-    - cron: "17 21 * * *" # 毎日 6:17 (日本時間)。更新履歴などを念のため揃える
+    # 毎日 6:17 (日本時間)。GitHub の定時実行は、デフォルトブランチにあるこのファイルからだけ動く
+    - cron: "17 21 * * *"
 
 permissions:
   contents: read
 
-# 書き込みが重ならないよう、1 つずつ実行する (古い実行は止めて新しい方を使う)
+# 書き込みが重ならないよう、1 つずつ順に実行する (書き込みの途中で止めないよう、実行中のものは取り消さない)
 concurrency:
   group: project-sheet
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   sync:
-    if: github.ref_name == (vars.PROJECT_SHEET_BRANCH || github.event.repository.default_branch)
+    # push は反映するブランチへのものだけ。定時・手動の実行は、反映するブランチを取り出して使う
+    if: github.event_name != 'push' || github.ref_name == (vars.PROJECT_SHEET_BRANCH || github.event.repository.default_branch)
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     defaults:
@@ -38,6 +40,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
         with:
+          ref: ${{ vars.PROJECT_SHEET_BRANCH }} # 空ならイベントのブランチ (定時ならデフォルトブランチ)
           fetch-depth: 0 # 実績の日付 (タスクを記録した日) を git の履歴から取るため
       - uses: actions/setup-node@v5
         with:

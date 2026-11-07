@@ -166,11 +166,14 @@ export async function saveDraft(lessonId: string, rawDraft: EditorDraft, rawBase
   const saved = await serially(async (tx) => {
     const lesson = await tx.lesson.findUniqueOrThrow({ where: { id } });
     const latest = await tx.lessonVersion.findFirst({ where: { lessonId: id }, orderBy: { version: "desc" } });
-    // 編集を始めた後に、ほかの画面が新しい下書きを作った・同じ下書きを保存した場合は、上書きしない
-    if (base?.success && latest && (latest.id !== base.data.versionId || latest.editedAt.getTime() > Date.parse(base.data.editedAt))) return null;
+    // 編集を始めた後に、ほかの画面が新しい下書きを作った・同じ下書きを保存した場合は、上書きしない。
+    // 編集の元の値は保存されている値をそのまま返したものなので、一致するかだけを見る (時計のずれに左右されない)。
+    // 形の合わない値 (古い画面から送られた値など) は、確かめられないので衝突として扱う
+    if (base && (!base.success || (latest && (latest.id !== base.data.versionId || latest.editedAt.getTime() !== Date.parse(base.data.editedAt))))) return null;
+    const editedAt = nextEditedAt(latest?.editedAt);
     return latest && isEditableDraft(latest, lesson)
-      ? tx.lessonVersion.update({ where: { id: latest.id }, data: { ...data, editedAt: new Date() } })
-      : tx.lessonVersion.create({ data: { ...data, lessonId: id, version: (latest?.version ?? 0) + 1 } });
+      ? tx.lessonVersion.update({ where: { id: latest.id }, data: { ...data, editedAt } })
+      : tx.lessonVersion.create({ data: { ...data, editedAt, lessonId: id, version: (latest?.version ?? 0) + 1 } });
   });
   if (!saved) return { error: CONFLICT_MESSAGE };
   await audit({ actorId: user.id, action: "lesson.save_draft", targetType: "lesson", targetId: id, metadata: { version: saved.version } });
@@ -183,6 +186,12 @@ export async function saveDraft(lessonId: string, rawDraft: EditorDraft, rawBase
   };
 }
 
+/** 保存のたびに必ず変わる「最終編集日時」(同じミリ秒に続けて保存しても、前の値と同じにならない) */
+function nextEditedAt(previous: Date | undefined): Date {
+  const now = Date.now();
+  return new Date(previous && previous.getTime() >= now ? previous.getTime() + 1 : now);
+}
+
 /** 過去の版を元に新しい下書きを作る (差し戻し) */
 export async function restoreVersionAsDraft(lessonId: string, versionId: string): Promise<void> {
   const user = await requireUser(ADMIN_ROLES);
@@ -193,8 +202,9 @@ export async function restoreVersionAsDraft(lessonId: string, versionId: string)
   await serially(async (tx) => {
     const lesson = await tx.lesson.findUniqueOrThrow({ where: { id } });
     const latest = await tx.lessonVersion.findFirstOrThrow({ where: { lessonId: id }, orderBy: { version: "desc" } });
-    if (isEditableDraft(latest, lesson)) await tx.lessonVersion.update({ where: { id: latest.id }, data: { ...data, editedAt: new Date() } });
-    else await tx.lessonVersion.create({ data: { ...data, lessonId: id, version: latest.version + 1 } });
+    const editedAt = nextEditedAt(latest.editedAt);
+    if (isEditableDraft(latest, lesson)) await tx.lessonVersion.update({ where: { id: latest.id }, data: { ...data, editedAt } });
+    else await tx.lessonVersion.create({ data: { ...data, editedAt, lessonId: id, version: latest.version + 1 } });
   });
   await audit({ actorId: user.id, action: "lesson.restore_version", targetType: "lesson", targetId: id, metadata: { from: source.version } });
   revalidateLesson(id);

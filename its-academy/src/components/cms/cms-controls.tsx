@@ -50,7 +50,7 @@ export function PublishPanel({ lessonId, versionId, version, scheduled }: { less
   const run = (fn: () => Promise<CmsState>) =>
     start(async () => {
       const r = await fn().catch((): CmsState => ({ error: "操作できませんでした。ページを再読み込みしてください。" }));
-      announce(r);
+      announce(lessonId, r);
       if (r?.ok) router.refresh();
     });
   return (
@@ -92,10 +92,10 @@ export function CancelScheduleButton({ lessonId }: { lessonId: string }) {
           start(async () => {
             try {
               await cancelSchedule(lessonId);
-              announce({ ok: "公開の予約を取り消しました。予約していた版は、公開されていない版として履歴に残ります。" });
+              announce(lessonId, { ok: "公開の予約を取り消しました。予約していた版は、公開されていない版として履歴に残ります。" });
               router.refresh();
             } catch {
-              announce({ error: "予約を取り消せませんでした。ページを再読み込みしてください。" });
+              announce(lessonId, { error: "予約を取り消せませんでした。ページを再読み込みしてください。" });
             }
           });
         }}
@@ -127,7 +127,7 @@ export function VersionActions({ lessonId, versionId, canRepublish }: { lessonId
             if (!window.confirm("この版を受講生に公開します。よろしいですか?")) return;
             start(async () => {
               const r = await publishVersion(lessonId, versionId).catch((): CmsState => ({ error: "公開できませんでした。ページを再読み込みしてください。" }));
-              announce(r);
+              announce(lessonId, r);
               if (r?.ok) router.refresh();
             });
           }} className="min-h-11 rounded-lg px-2 text-sm text-accent hover:bg-accent-soft">この版に戻して公開</button>

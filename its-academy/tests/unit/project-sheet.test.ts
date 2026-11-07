@@ -2,7 +2,7 @@ import { createVerify, generateKeyPairSync } from "node:crypto";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { buildTabs, MEMO, stripMarkdown, tableAfter, taskEntries, TEAM_TAB, type Tab } from "../../scripts/project-sheet/build";
-import { accessToken, readMemos, syncSpreadsheet, tableValues } from "../../scripts/project-sheet/sheets";
+import { accessToken, columnLetter, padRows, readMemos, syncSpreadsheet, tableValues } from "../../scripts/project-sheet/sheets";
 
 const ROOT = path.resolve(__dirname, "../../..");
 
@@ -80,6 +80,17 @@ describe("Google スプレッドシートへの反映", () => {
     expect(format.filter((r) => r.deleteProtectedRange)).toEqual([{ deleteProtectedRange: { protectedRangeId: 3 } }]); // 人が付けた保護は残す
     expect(format.filter((r) => r.addConditionalFormatRule)).toHaveLength(5);
     expect(calls.some((c) => c.url.includes("チーム入力") && c.url.includes("batchClear"))).toBe(false);
+    // 先に上書きし、その後で表の外 (下と右) だけを消す (書き込みが失敗してもチームメモが残るように)
+    const writeAt = posts.findIndex((c) => c.url.endsWith("values:batchUpdate"));
+    const clearAt = posts.findIndex((c) => c.url.endsWith("values:batchClear"));
+    expect(clearAt).toBeGreaterThan(writeAt);
+    expect(posts[clearAt].body).toEqual({ ranges: ["'タスク'!A5:ZZ", "'タスク'!E1:ZZ"] });
+    expect(written.data[0].values[0]).toEqual(["自動更新", "", "", ""]); // 空の文字で上書きして、前回の値を残さない
+  });
+
+  it("列の名前と、行の長さのそろえ方", () => {
+    expect([1, 4, 26, 27, 52, 53].map(columnLetter)).toEqual(["A", "D", "Z", "AA", "AZ", "BA"]);
+    expect(padRows([["a"], ["a", "b", "c"]], 3)).toEqual([["a", "", ""], ["a", "b", "c"]]);
   });
 
   it("共有されていないなど、API が拒否したときは原因の候補を示す (トークンは出さない)", async () => {

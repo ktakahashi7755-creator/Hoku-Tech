@@ -10,7 +10,7 @@ import { FormMessage } from "@/components/form-message";
  * 操作のたびに番号を進め、最新の番号を持つメッセージだけを表示する。
  */
 let seq = 0;
-let notice: { seq: number; state: CmsState } | null = null;
+let notice: { seq: number; lessonId: string; state: CmsState } | null = null;
 const listeners = new Set<() => void>();
 const subscribe = (fn: () => void) => {
   listeners.add(fn);
@@ -25,8 +25,8 @@ export function nextNoticeSeq(): number {
 }
 
 /** 公開の操作 (今すぐ公開・予約・予約の取り消し・版を戻して公開) の結果を、画面の上部に表示する */
-export function announce(state: CmsState) {
-  notice = { seq: seq + 1, state };
+export function announce(lessonId: string, state: CmsState) {
+  notice = { seq: seq + 1, lessonId, state };
   nextNoticeSeq();
 }
 
@@ -34,7 +34,8 @@ export function useNoticeSeq(): number {
   return useSyncExternalStore(subscribe, () => seq, () => 0);
 }
 
-export function CmsNotice() {
+/** 画面を移動しても前の結果が残らないよう、そのレッスンの結果だけを表示する */
+export function CmsNotice({ lessonId }: { lessonId: string }) {
   const current = useNoticeSeq();
-  return <FormMessage state={notice && notice.seq === current ? notice.state : undefined} />;
+  return <FormMessage state={notice && notice.seq === current && notice.lessonId === lessonId ? notice.state : undefined} />;
 }

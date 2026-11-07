@@ -18,6 +18,7 @@ export function NavLinks({ items }: { items: NavItem[] }) {
     const measure = () => setMore(nav.scrollLeft + nav.clientWidth < nav.scrollWidth - 1);
     const observer = new ResizeObserver(measure); // 最初の 1 回も、ここで測られる
     observer.observe(nav);
+    if (nav.firstElementChild) observer.observe(nav.firstElementChild); // 中身の幅だけが変わった場合 (文字の読み込みなど)
     nav.addEventListener("scroll", measure, { passive: true });
     return () => {
       observer.disconnect();

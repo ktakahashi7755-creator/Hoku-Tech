@@ -52,7 +52,7 @@ export default async function LessonEditPage({ params }: { params: Promise<{ id:
       />
 
       {/* 公開・予約などの結果 (操作した欄は結果で消えることがあるため、ここに出す) */}
-      <CmsNotice />
+      <CmsNotice lessonId={lesson.id} />
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
         <div className="min-w-0">

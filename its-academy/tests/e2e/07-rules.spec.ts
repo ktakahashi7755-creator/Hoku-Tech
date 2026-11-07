@@ -211,6 +211,15 @@ test("予約した後に編集して保存しても衝突にならず、公開�
     await expect(page.getByText(/を保存しました。受講生にはまだ表示されません/)).toHaveCount(0);
     // 結果のメッセージにフォーカスが残る (押したボタンが消えても、Tab が先頭からやり直しにならない)
     expect(await page.evaluate(() => document.activeElement !== document.body)).toBe(true);
+
+    // 一覧から別のレッスンを開いても、前のレッスンの結果は表示されない (画面内の移動)
+    await page.getByRole("link", { name: "一覧へ戻る" }).click();
+    await page.waitForURL(/\/admin\/content$/);
+    await page.getByRole("link", { name: "変数とデータ型" }).first().click();
+    await page.waitForURL(/\/admin\/content\/lessons\//);
+    // 前の画面は非表示のまま DOM に残ることがある (Next.js が戻る操作のために保持する) ため、表示中のものだけを見る
+    await expect(page.getByRole("heading", { level: 1, name: "変数とデータ型" })).toBeVisible();
+    await expect(page.getByText(/を公開しました/).filter({ visible: true })).toHaveCount(0);
   } finally {
     await db.lesson.update({ where: { id: lesson.id }, data: original });
     await db.lessonVersion.deleteMany({ where: { lessonId: lesson.id, id: { notIn: before.map((v) => v.id) } } });

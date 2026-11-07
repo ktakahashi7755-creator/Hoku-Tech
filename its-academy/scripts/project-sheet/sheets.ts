@@ -94,10 +94,13 @@ export async function syncSpreadsheet(spreadsheetId: string, tabs: Tab[], token:
     memoTabs.forEach((t, i) => memos.set(t.name, readMemos(got.valueRanges[i]?.values ?? [], t.memoColumn!)));
   }
 
-  // 3. 中身を書き直す
-  const data = tabs.map((t) => ({ range: `'${t.name}'!A1`, values: tableValues(t, memos.get(t.name)) }));
-  await call("POST", `${base}/values:batchClear`, { ranges: tabs.map((t) => `'${t.name}'`) });
+  // 3. 中身を書き直す。先に上書きしてから、新しい表の外 (下と右) に残った古い値だけを消す
+  //    (先に全部を消すと、書き込みが失敗したときにチームメモまで失われるため)
+  const data = tabs.map((t) => ({ range: `'${t.name}'!A1`, values: padRows(tableValues(t, memos.get(t.name)), t.header.length) }));
   await call("POST", `${base}/values:batchUpdate`, { valueInputOption: "RAW", data });
+  await call("POST", `${base}/values:batchClear`, {
+    ranges: data.flatMap((d, i) => [`'${tabs[i].name}'!A${d.values.length + 1}:ZZ`, `'${tabs[i].name}'!${columnLetter(tabs[i].header.length + 1)}1:ZZ`]),
+  });
 
   // 4. 見た目と保護 (前回の色分けと保護を消してから付け直すので、何度実行しても増えない)
   const requests: unknown[] = [];
@@ -114,6 +117,18 @@ export async function syncSpreadsheet(spreadsheetId: string, tabs: Tab[], token:
   }
   await call("POST", `${base}:batchUpdate`, { requests });
   return { written: tabs.map((t) => t.name) };
+}
+
+/** すべての行を同じ列数にそろえる (空の文字で上書きして、前回の値を残さない) */
+export function padRows(values: Cell[][], width: number): Cell[][] {
+  return values.map((r) => (r.length >= width ? r : [...r, ...Array<Cell>(width - r.length).fill("")]));
+}
+
+/** 1 → A, 27 → AA */
+export function columnLetter(n: number): string {
+  let s = "";
+  for (let x = n; x > 0; x = Math.floor((x - 1) / 26)) s = String.fromCharCode(65 + ((x - 1) % 26)) + s;
+  return s;
 }
 
 /** シートの値 (1 行目は説明、2 行目は見出し) から、ID → チームメモ を読む */
