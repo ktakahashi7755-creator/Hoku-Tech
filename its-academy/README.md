@@ -14,7 +14,7 @@ ITS 合同会社のエンジニア育成プラットフォーム (LMS)。受講�
 cp .env.example .env     # DATABASE_URL を設定し、ローカルでは APP_ENV=local・COOKIE_SECURE=false にする (変え忘れると起動時に config_invalid で終了する)
 npm ci
 npx prisma generate      # Prisma クライアントを生成 (npm ci の後に毎回必要)
-npm run db:migrate
+npm run db:migrate       # DB ユーザーに CREATEDB 権限がない場合は、先に createdb its_academy
 npm run db:seed          # 開発用データ。本番では実行できない
 npm run dev              # http://localhost:3000 (別のポートは PORT=3400 npm run dev)
 ```

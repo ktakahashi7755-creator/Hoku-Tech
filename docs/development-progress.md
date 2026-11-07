@@ -283,7 +283,7 @@ Hoku Tech 本体のファイル (index.html / assets / data) には一切変更�
 * 開発フェーズ: STEP 12
 * ステータス: 完了
 * 実装内容: CI に Firefox / WebKit の E2E を追加 (`cross-browser` ジョブ)。Prisma 7.10 (ドライバアダプタ方式)・Vitest 5 に更新し、本番の依存関係の npm audit を 0 件にした
-* テスト結果: 3 ブラウザで E2E 全件成功 (CI)。npm audit: 本番 0 件、開発用の moderate 8 件 (eslint-config-next 経由) は利用者に配布されないため保留
+* テスト結果: 3 ブラウザで E2E 全件成功 (CI)。npm audit: 本番 0 件、開発用の moderate 8 件 (eslint-config-next 経由) は利用者に配布されないため保留 (その後 package.json の overrides で解消し、2026-11-07 時点で 0 件)
 * 未解決課題: このコンテナでは Firefox / WebKit をダウンロードできないため、他ブラウザの確認は CI のみ
 
 ### T-12-04 残っていた自動テストの追加

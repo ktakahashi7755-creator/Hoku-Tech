@@ -80,7 +80,7 @@ AI による評価 (L8 以降で導入予定) は補助情報としてのみ扱�
 
 ## 5. 未決定事項
 
-* 開発環境の IDE を VS Code に統一するか、Eclipse を残すか (既存教材は両方が混在)
-* Servlet/JSP をどこまで扱うか (概要のみにして Spring Boot へ時間を回す案を推奨)
-* 使用 DB を PostgreSQL に統一するか (既存教材の JDBC 記事は PostgreSQL ドライバを参照)
+* 開発環境の IDE を VS Code に統一するか、Eclipse を残すか (既存教材は両方が混在) — 仮定: VS Code に統一 (development-progress.md D-04)
+* Servlet/JSP をどこまで扱うか (概要のみにして Spring Boot へ時間を回す案を推奨) — 仮定: 概要 + 1 課題に圧縮 (D-05)
+* 使用 DB を PostgreSQL に統一するか (既存教材の JDBC 記事は PostgreSQL ドライバを参照) — 仮定: PostgreSQL に統一 (D-06)
 * L6 チーム開発を受講生同士で行うか、講師との疑似チームで行うか

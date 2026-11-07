@@ -7,6 +7,9 @@
 
 ## 1. ローカル開発環境 (確認済み)
 
+> DB のユーザーにデータベースを作る権限 (CREATEDB) がない場合は、`npm run db:migrate` の前に `createdb its_academy` で作っておく
+> (権限があれば `prisma migrate deploy` が自動で作る)。
+
 前提: Node.js 22、PostgreSQL 16 (psql クライアントを含む)。教材コードの検証 (`verify:code`) には JDK 21 と Maven 3.9 も使う
 (初回は Maven Central から依存を取得する)。
 
@@ -98,11 +101,12 @@ CSP は `script-src 'unsafe-inline'` を含む。Next.js の Partial Prerender (
 
 ```bash
 cd its-academy
-printf 'POSTGRES_PASSWORD=%s\n' "$(openssl rand -hex 24)" > .env
-docker compose up -d --build --wait          # 既定は APP_ENV=production / COOKIE_SECURE=true
-curl http://127.0.0.1:3000/api/health        # {"status":"ok"}
-docker compose --profile demo run --rm seed  # 評価用のデモデータ (本番では実行しない)
-docker compose down                          # 停止 (-v を付けると DB のデータも消える)
+# §1 の開発用の .env (APP_ENV=local・COOKIE_SECURE=false) を上書き・流用しないよう、コンテナ用の設定は別のファイルに置く
+[ -f .env.docker ] || printf 'POSTGRES_PASSWORD=%s\n' "$(openssl rand -hex 24)" > .env.docker
+docker compose --env-file .env.docker up -d --build --wait          # 既定は APP_ENV=production / COOKIE_SECURE=true
+curl http://127.0.0.1:3000/api/health                               # {"status":"ok"}
+docker compose --env-file .env.docker --profile demo run --rm seed  # 評価用のデモデータ (本番では実行しない)
+docker compose --env-file .env.docker down                          # 停止 (-v を付けると DB のデータも消える)
 ```
 
 確認した内容 (同じ手順を CI の `container` ジョブでも実行):
@@ -119,7 +123,8 @@ docker compose down                          # 停止 (-v を付けると DB の
 * Docker Hub の取得回数制限に当たる場合は `NODE_IMAGE` / `POSTGRES_IMAGE` で取得元を変えられる
   (例: `NODE_IMAGE=mirror.gcr.io/library/node:22-bookworm-slim`)。
 * 社内プロキシなどで独自の CA 証明書が必要な場合は `docker build --secret id=ca,src=<証明書のパス>` を付ける。
-* localhost / 127.0.0.1 以外の HTTP で試す場合だけ `COOKIE_SECURE=false APP_ENV=local docker compose up --build` とする
+* `--env-file` を付けないと、compose は同じフォルダの `.env` (開発用の値) を読み込む。その場合 COOKIE_SECURE=false などの開発用の値で動くため、必ず `.env.docker` を指定する
+* localhost / 127.0.0.1 以外の HTTP で試す場合だけ `COOKIE_SECURE=false APP_ENV=local docker compose --env-file .env.docker up --build` とする
   (Secure Cookie は HTTPS 以外では送られないため)。この設定でインターネットに公開しない。
 * インターネットへは、HTTPS を終端するリバースプロキシ (TLS 1.2 以上) 経由で公開する。
 
@@ -139,7 +144,7 @@ DATABASE_URL=postgresql://... scripts/backup.sh
 DATABASE_URL=postgresql://.../its_academy_restore scripts/restore.sh backups/its_academy-20261106T133726Z.dump
 
 # docker compose の DB を、PostgreSQL イメージに入っているクライアントでバックアップする場合
-. ./.env
+. ./.env.docker
 docker run --rm --network its-academy_default -v "$PWD/scripts:/scripts:ro" -v "$PWD/backups:/backups" \
   -e BACKUP_DIR=/backups -e DATABASE_URL="postgresql://its:$POSTGRES_PASSWORD@db:5432/its_academy" \
   postgres:16 /scripts/backup.sh
@@ -147,7 +152,7 @@ docker run --rm --network its-academy_default -v "$PWD/scripts:/scripts:ro" -v "
 
 確認した内容 (2026-11-06):
 
-* seed 済みの DB をバックアップ → 別の DB に復元し、users / lessons / lesson_progress / submissions / reviews / audit_logs の件数が一致 (8 / 35 / 21 / 3 / 3 / 3)
+* seed 済みの DB をバックアップ → 別の DB に復元し、users / lessons / lesson_progress / submissions / reviews / audit_logs の件数が一致 (8 / 35 / 21 / 3 / 3 / 1)
 * 同じファイルを 2 回続けて復元しても成功する (`--clean --if-exists`)
 * 20 日前の日付の `its_academy-*.dump` は削除され、同じ日付の別名ファイルは残る
 * CI の `container` ジョブで毎回、バックアップ → 復元 → マイグレーション件数の一致を確認する
@@ -178,7 +183,7 @@ Google Cloud の場合の具体的なコマンドは [deploy-gcp.md](deploy-gcp.
 6. 死活監視に `/api/health` を登録し、標準エラーの JSON ログをログ基盤に送る
 7. 初期設定 `npm run db:bootstrap` (tools イメージ、確認済み) で教材を登録し、最初の SUPER_ADMIN を作る (seed は本番で動かない)。
    運用者 2 名で実施し、初回ログイン時にパスワードを変更する。docker compose では
-   `BOOTSTRAP_ADMIN_EMAIL=... docker compose --profile setup run --rm bootstrap`
+   `BOOTSTRAP_ADMIN_EMAIL=... docker compose --env-file .env.docker --profile setup run --rm bootstrap`
 8. 本番公開前チェック: test-plan.md の全項目成功、npm audit の残件の評価、復元訓練 1 回
 
 ## 8. 定期運用

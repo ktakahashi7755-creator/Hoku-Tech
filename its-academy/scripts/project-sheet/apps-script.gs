@@ -1,3 +1,4 @@
+/** @OnlyCurrentDoc */
 /**
  * ITS ENGINEER ACADEMY プロジェクト管理シート — 自動更新のスクリプト (Google Apps Script)
  *

@@ -1,8 +1,8 @@
 # ITS ENGINEER ACADEMY — 1 台のサーバーで動かす構成 (手順は ../docs/deployment-guide.md §5)
 #
-#   cp .env.example .env   # POSTGRES_PASSWORD 等を設定
-#   docker compose up -d --build            … DB 起動 → マイグレーション → アプリ起動
-#   docker compose --profile demo run --rm seed   … 評価用のデモデータ投入 (本番では実行しない)
+#   printf 'POSTGRES_PASSWORD=%s\n' "$(openssl rand -hex 24)" > .env.docker   # 開発用の .env とは別のファイル
+#   docker compose --env-file .env.docker up -d --build              … DB 起動 → マイグレーション → アプリ起動
+#   docker compose --env-file .env.docker --profile demo run --rm seed   … 評価用のデモデータ投入 (本番では実行しない)
 #
 # アプリは 127.0.0.1:3000 で待ち受ける。インターネットへは HTTPS を終端するリバースプロキシ経由で公開する。
 

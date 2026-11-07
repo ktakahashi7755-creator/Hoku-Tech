@@ -52,7 +52,8 @@ git checkout its-academy-final-2026-11-07
 
 # 3. (任意) 新しい GitHub リポジトリに載せ直す
 git remote set-url origin https://github.com/<組織>/<新しいリポジトリ>.git
-git push origin --all && git push origin --tags
+git remote set-head origin -d                                          # 下の push で「HEAD」という名前のブランチを作らないように
+git push origin 'refs/remotes/origin/*:refs/heads/*' && git push origin --tags   # すべてのブランチとタグ (--all では取り出したブランチしか送られない)
 ```
 
 ITS ENGINEER ACADEMY だけを独立したリポジトリにする場合は、取り出した後に
