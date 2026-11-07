@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useActionState } from "react";
 import { changePassword } from "@/app/actions/auth";
 import { ActionForm } from "@/components/action-form";
-import { Button, Field, inputStyles } from "@/components/ui";
+import { Button, Field, FormMessage, inputStyles } from "@/components/ui";
 
 export function PasswordForm({ homeHref }: { homeHref: string }) {
   const [state, action, pending] = useActionState(changePassword, undefined);
@@ -19,17 +19,14 @@ export function PasswordForm({ homeHref }: { homeHref: string }) {
       <Field label="新しいパスワード (確認)" htmlFor="confirm" error={state?.fieldErrors?.confirm}>
         <input id="confirm" name="confirm" type="password" autoComplete="new-password" className={inputStyles} />
       </Field>
-      <div aria-live="polite">
-        {state?.error && <p role="alert" className="rounded-lg bg-danger-soft p-3 text-sm text-danger">{state.error}</p>}
-        {state?.ok && (
-          <p role="status" className="rounded-lg bg-success-soft p-3 text-sm text-success">
-            {state.ok}{" "}
-            <Link href={homeHref} className="font-semibold underline">
-              ホームへ進む
-            </Link>
-          </p>
-        )}
-      </div>
+      <FormMessage
+        state={state}
+        okExtra={
+          <Link href={homeHref} className="font-semibold underline">
+            ホームへ進む
+          </Link>
+        }
+      />
       <Button type="submit" disabled={pending}>{pending ? "変更しています…" : "変更する"}</Button>
     </ActionForm>
   );

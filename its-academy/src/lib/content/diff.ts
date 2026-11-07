@@ -5,6 +5,9 @@ import { editorStateOf } from "./draft";
  */
 type DiffLine = { type: "same" | "added" | "removed"; text: string };
 
+/** 表示用: 変更のない行が続く部分は前後の数行だけを残し、間を「skip」(省略した行数) にまとめる */
+export type DisplayLine = DiffLine | { type: "skip"; count: number };
+
 export function lineDiff(before: string[], after: string[]): DiffLine[] {
   const n = before.length;
   const m = after.length;
@@ -75,4 +78,28 @@ export function lessonToLines(v: { title: string; estimatedMinutes: number; cont
   });
   text("復習ポイント", d.reviewPoints);
   return lines;
+}
+
+/** 変更のない行が長く続く部分を省略する (前後 context 行は残す)。変更のない版どうしでは先頭だけを残す */
+export function collapseUnchanged(diff: DiffLine[], context = 2): DisplayLine[] {
+  const out: DisplayLine[] = [];
+  let i = 0;
+  while (i < diff.length) {
+    if (diff[i].type !== "same") {
+      out.push(diff[i++]);
+      continue;
+    }
+    let j = i;
+    while (j < diff.length && diff[j].type === "same") j++;
+    const run = diff.slice(i, j);
+    const keepHead = i === 0 ? 0 : context; // 先頭の変更のない部分は、後ろの文脈だけ残す
+    const keepTail = j === diff.length ? 0 : context; // 末尾の変更のない部分は、前の文脈だけ残す
+    if (run.length > keepHead + keepTail + 1) {
+      out.push(...run.slice(0, keepHead), { type: "skip", count: run.length - keepHead - keepTail }, ...run.slice(run.length - keepTail));
+    } else {
+      out.push(...run);
+    }
+    i = j;
+  }
+  return out;
 }

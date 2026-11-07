@@ -52,7 +52,15 @@ export default async function LessonEditPage({ params }: { params: Promise<{ id:
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
         <div className="min-w-0">
-          {editing && <LessonEditor key={lesson.id} lessonId={lesson.id} initial={editorStateOf(editing)} />}
+          {editing && (
+            // 保存の後も入力と結果のメッセージを残す (同時編集の確認に使う版は、エディタが新しい方を選ぶ)
+            <LessonEditor
+              key={lesson.id}
+              lessonId={lesson.id}
+              initial={editorStateOf(editing)}
+              base={{ versionId: editing.id, updatedAt: editing.updatedAt.toISOString() }}
+            />
+          )}
         </div>
         <div className="flex flex-col gap-6 xl:sticky xl:top-28 xl:self-start">
           <Card>

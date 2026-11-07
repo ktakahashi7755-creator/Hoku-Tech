@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { lineDiff, lessonToLines } from "@/lib/content/diff";
+import { collapseUnchanged, lineDiff, lessonToLines } from "@/lib/content/diff";
 import { editorStateOf } from "@/lib/content/draft";
 import { fromAssignmentForm, validateRubric, type AssignmentForm } from "@/lib/content/assignment-form";
 
@@ -16,6 +16,22 @@ describe("lineDiff", () => {
   it("同じ内容なら変更なしだけ", () => {
     expect(lineDiff(["a"], ["a"])).toEqual([{ type: "same", text: "a" }]);
     expect(lineDiff([], [])).toEqual([]);
+  });
+});
+
+describe("collapseUnchanged", () => {
+  it("変更のない行が続く部分を省略し、変更の前後 2 行だけを残す", () => {
+    const same = (t: string) => ({ type: "same" as const, text: t });
+    const diff = [same("1"), same("2"), same("3"), same("4"), { type: "added" as const, text: "x" }, same("5"), same("6"), same("7"), same("8"), same("9")];
+    expect(collapseUnchanged(diff)).toEqual([
+      { type: "skip", count: 2 },
+      same("3"),
+      same("4"),
+      { type: "added", text: "x" },
+      same("5"),
+      same("6"),
+      { type: "skip", count: 3 },
+    ]);
   });
 });
 

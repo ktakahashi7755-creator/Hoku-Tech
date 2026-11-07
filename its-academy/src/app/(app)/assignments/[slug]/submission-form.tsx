@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { saveSubmission } from "@/app/actions/submissions";
 import { ActionForm, reportFieldError } from "@/components/action-form";
 import { GITHUB_REPO_URL } from "@/lib/validation";
@@ -10,34 +10,41 @@ import { submitsRepository } from "@/lib/validation";
 export function SubmissionForm({ assignmentId, type, defaults }: { assignmentId: string; type: string; defaults: { text: string; repoUrl: string; note: string } }) {
   const [state, action, pending] = useActionState(saveSubmission, undefined);
   const repo = submitsRepository(type);
+  // 確認ダイアログの前に見つけた入力の誤り (画面に残して表示する)
+  const [clientErrors, setClientErrors] = useState<Record<string, string>>({});
+  const fail = (form: HTMLFormElement, name: string, message: string) => {
+    setClientErrors({ [name]: message });
+    return reportFieldError(form, name, message);
+  };
   return (
     <ActionForm
       action={action}
       className="flex flex-col gap-5"
       confirm={(submitter, form) => {
+        setClientErrors({});
         if (submitter?.getAttribute("value") !== "submit") return null;
         // 提出のときだけ必要なチェックは、確認ダイアログより先に行う
         const data = new FormData(form);
         if (repo) {
           const url = String(data.get("repoUrl") ?? "").trim();
-          if (!GITHUB_REPO_URL.test(url)) return reportFieldError(form, "repoUrl", "https://github.com/ユーザー名/リポジトリ名 の形式で入力してください");
+          if (!GITHUB_REPO_URL.test(url)) return fail(form, "repoUrl", "https://github.com/ユーザー名/リポジトリ名 の形式で入力してください");
         } else if (!String(data.get("text") ?? "").trim()) {
-          return reportFieldError(form, "text", "提出内容を入力してください");
+          return fail(form, "text", "提出内容を入力してください");
         }
         return "提出すると、講師のレビューが終わるまで内容を変更できません。提出しますか?";
       }}
     >
       <input type="hidden" name="assignmentId" value={assignmentId} />
       {repo ? (
-        <Field label="GitHub リポジトリの URL" htmlFor="repoUrl" hint="例: https://github.com/your-name/its-profile" error={state?.fieldErrors?.repoUrl}>
+        <Field label="GitHub リポジトリの URL" htmlFor="repoUrl" hint="例: https://github.com/your-name/its-profile" error={clientErrors.repoUrl ?? state?.fieldErrors?.repoUrl}>
           <input id="repoUrl" name="repoUrl" type="text" defaultValue={defaults.repoUrl} className={inputStyles} inputMode="url" maxLength={300} autoComplete="off" />
         </Field>
       ) : (
-        <Field label="提出するコード・回答" htmlFor="text" error={state?.fieldErrors?.text}>
+        <Field label="提出するコード・回答" htmlFor="text" error={clientErrors.text ?? state?.fieldErrors?.text}>
           <textarea id="text" name="text" defaultValue={defaults.text} rows={14} className={`${inputStyles} font-mono text-sm`} spellCheck={false} maxLength={100000} />
         </Field>
       )}
-      <Field label="備考" htmlFor="note" hint="実行結果、工夫した点、AI を使った場合はどこで使ったかを書いてください。パスワードや API キーは書かないでください。" error={state?.fieldErrors?.note}>
+      <Field label="備考" htmlFor="note" hint="実行結果、工夫した点、AI を使った場合はどこで使ったかを書いてください (2,000 文字まで)。パスワードや API キーは書かないでください。" error={state?.fieldErrors?.note}>
         <textarea id="note" name="note" defaultValue={defaults.note} rows={4} className={inputStyles} maxLength={2000} />
       </Field>
       <FormMessage state={state} />

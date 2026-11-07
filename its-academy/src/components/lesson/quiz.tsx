@@ -36,10 +36,11 @@ export function Quiz({ lessonId, versionId, questions, passScore, alreadyPassed 
         const answer = answers[qi];
         return (
           <fieldset key={q.id} className="min-w-0 rounded-xl border border-border p-4">
-            <legend className="px-1 font-semibold">
+            {/* 長い問題文が枠線に重ならないよう、見出しを枠の内側に置く (float で fieldset の枠から外す) */}
+            <legend className="float-left w-full font-semibold">
               問 {qi + 1}. {q.question}
             </legend>
-            <div className="mt-2 flex flex-col gap-2">
+            <div className="mt-2 flex flex-col gap-2 clear-both">
               {q.choices.map((c, ci) => (
                 <label
                   key={ci}
@@ -76,7 +77,15 @@ export function Quiz({ lessonId, versionId, questions, passScore, alreadyPassed 
           </fieldset>
         );
       })}
-      <div aria-live="polite">
+      <div
+        aria-live="polite"
+        tabIndex={-1}
+        className="outline-none"
+        ref={(el) => {
+          // 採点中にボタンが無効になってフォーカスが失われた場合は、結果へ移す
+          if (el && result && document.activeElement === document.body) el.focus();
+        }}
+      >
         {result?.outdated && (
           <p role="alert" className="rounded-lg bg-warning-soft p-3 font-semibold text-warning">
             このレッスンの内容が更新されました。ページを再読み込みして、新しい問題で解き直してください。

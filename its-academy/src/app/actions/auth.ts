@@ -9,6 +9,7 @@ import { isLoginThrottled, recordLoginAttempt } from "@/lib/auth/rate-limit";
 import { createSession, deleteCurrentSession, revokeAllSessions } from "@/lib/auth/session";
 import { requireUser } from "@/lib/auth/dal";
 import { isStaff } from "@/lib/auth/roles";
+import { safeNextPath } from "@/lib/auth/next-path";
 import { fieldErrors, type FormState } from "@/lib/form-state";
 
 
@@ -53,7 +54,8 @@ export async function login(_prev: FormState, formData: FormData): Promise<FormS
   // 期限切れのセッションをこのタイミングで片付ける
   await db.session.deleteMany({ where: { userId: user.id, expiresAt: { lt: new Date() } } });
   if (user.mustChangePassword) redirect("/me?changePassword=1");
-  redirect(isStaff(user.role) ? "/admin" : "/home");
+  // 開こうとしていたページがあれば戻る (権限はそのページで確かめる)
+  redirect(safeNextPath(formData.get("next")) ?? (isStaff(user.role) ? "/admin" : "/home"));
 }
 
 export async function logout(): Promise<void> {

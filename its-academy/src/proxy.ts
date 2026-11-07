@@ -18,7 +18,10 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL(token ? "/home" : "/login", request.url));
   }
   if (!token && !PUBLIC_PATHS.includes(pathname)) {
-    return NextResponse.redirect(new URL("/login", request.url));
+    // ログインの後に、開こうとしていたページへ戻れるようにする
+    const login = new URL("/login", request.url);
+    login.searchParams.set("next", pathname + request.nextUrl.search);
+    return NextResponse.redirect(login);
   }
 
   const result = await guard(pathname, token);

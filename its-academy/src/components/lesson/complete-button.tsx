@@ -10,7 +10,19 @@ export function CompleteButton({ lessonId, completed, canComplete }: { lessonId:
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
   if (completed) {
-    return <p className="rounded-lg bg-success-soft p-3 font-semibold text-success">このレッスンは学習完了です。</p>;
+    // 押したボタンが消えた後も、キーボードの位置と読み上げがここに残るようにする
+    return (
+      <p
+        ref={(el) => {
+          if (el && document.activeElement === document.body) el.focus();
+        }}
+        tabIndex={-1}
+        role="status"
+        className="rounded-lg bg-success-soft p-3 font-semibold text-success outline-none"
+      >
+        このレッスンは学習完了です。
+      </p>
+    );
   }
   return (
     <div className="flex flex-col gap-2">

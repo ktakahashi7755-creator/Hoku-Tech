@@ -55,12 +55,22 @@ export function PublishPanel({ lessonId, versionId, version, scheduled }: { less
   return (
     <div className="flex flex-col gap-4">
       <p className="text-sm">版 {version} (下書き) を公開します。公開すると受講生の画面がこの版に切り替わります。受講生のこれまでの完了記録は残ります。</p>
-      <Button type="button" disabled={pending} onClick={() => run(() => publishVersion(lessonId, versionId))}>今すぐ公開する</Button>
+      <Button
+        type="button"
+        disabled={pending}
+        onClick={() => {
+          if (window.confirm("この版を今すぐ受講生に公開します。よろしいですか?")) run(() => publishVersion(lessonId, versionId));
+        }}
+      >
+        今すぐ公開する
+      </Button>
       {!scheduled && (
         <div className="flex flex-col gap-2 border-t border-border pt-4">
           <label htmlFor="publishAt" className="text-sm font-semibold">公開を予約する (日本時間)</label>
           <input id="publishAt" type="datetime-local" value={at} onChange={(e) => setAt(e.target.value)} className={inputStyles} />
-          <Button type="button" variant="secondary" disabled={pending || !at} onClick={() => run(() => scheduleVersion(lessonId, versionId, at))}>予約する</Button>
+          <Button type="button" variant="secondary" disabled={pending || !at} onClick={() => {
+            if (window.confirm(`この版を ${at.replace("T", " ")} (日本時間) に公開するよう予約します。よろしいですか?`)) run(() => scheduleVersion(lessonId, versionId, at));
+          }}>予約する</Button>
         </div>
       )}
       <FormMessage state={state} />
@@ -77,7 +87,8 @@ export function CancelScheduleButton({ lessonId }: { lessonId: string }) {
         type="button"
         variant="secondary"
         disabled={pending}
-        onClick={() =>
+        onClick={() => {
+          if (!window.confirm("公開の予約を取り消します。よろしいですか?")) return;
           start(async () => {
             setError(null);
             try {
@@ -85,8 +96,8 @@ export function CancelScheduleButton({ lessonId }: { lessonId: string }) {
             } catch {
               setError("予約を取り消せませんでした。ページを再読み込みしてください。");
             }
-          })
-        }
+          });
+        }}
       >
         {pending ? "取り消しています…" : "予約を取り消す"}
       </Button>

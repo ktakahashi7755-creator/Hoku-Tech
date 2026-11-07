@@ -57,7 +57,7 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
         <NavLinks items={nav} />
       </header>
       <FocusOnArrival />
-      <main id="main" className="mx-auto max-w-6xl px-4 py-8">
+      <main id="main" tabIndex={-1} className="mx-auto max-w-6xl px-4 py-8 outline-none">
         {user.mustChangePassword && (
           <p role="alert" className="mb-6 rounded-lg border border-warning bg-warning-soft p-4 text-warning">
             仮パスワードでログインしています。<Link href="/me#password" className="font-semibold underline">パスワードを変更</Link>すると、すべての画面を使えるようになります。

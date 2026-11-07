@@ -36,15 +36,19 @@ export function StartReviewButton({ submissionId }: { submissionId: string }) {
 export function ReviewForm({ submissionId, criteria, passScore }: { submissionId: string; criteria: Criterion[]; passScore: number }) {
   const [state, action, pending] = useActionState(submitReview, undefined);
   const [scores, setScores] = useState<Record<string, number>>(Object.fromEntries(criteria.map((c) => [c.key, 0])));
+  const [decisionError, setDecisionError] = useState<string | null>(null);
   const total = criteria.reduce((s, c) => s + Math.min(Math.max(scores[c.key] || 0, 0), c.weight), 0);
   return (
     <ActionForm
       action={action}
       className="flex flex-col gap-4"
       confirm={(_submitter, form) => {
+        setDecisionError(null);
         // 確定できない入力は、確認ダイアログより先に知らせる
         if (new FormData(form).get("decision") === "PASS" && total < passScore) {
-          return reportFieldError(form, "decision", `合計 ${total} 点は合格点 ${passScore} 点に届いていません。修正依頼または不合格を選んでください。`);
+          const message = `合計 ${total} 点は合格点 ${passScore} 点に届いていません。修正依頼または不合格を選んでください。`;
+          setDecisionError(message);
+          return reportFieldError(form, "decision", message);
         }
         return "採点を確定すると、後から変更できません。受講生に結果が通知されます。確定しますか?";
       }}
@@ -68,14 +72,14 @@ export function ReviewForm({ submissionId, criteria, passScore }: { submissionId
       <p className="rounded-lg bg-surface p-3 font-semibold tabular-nums" aria-live="polite">
         合計 {total} / 100 点 (合格点 {passScore} 点)
       </p>
-      <Field label="判定" htmlFor="decision">
+      <Field label="判定" htmlFor="decision" error={decisionError ?? undefined}>
         <select id="decision" name="decision" className={inputStyles} defaultValue={total >= passScore ? "PASS" : "CHANGES_REQUESTED"} key={total >= passScore ? "p" : "c"}>
           <option value="PASS">合格</option>
           <option value="CHANGES_REQUESTED">修正依頼</option>
           <option value="FAIL">不合格</option>
         </select>
       </Field>
-      <Field label="コメント (受講生に表示されます)" htmlFor="comment" hint="良かった点と、次に何を直せばよいかを具体的に書いてください。" error={state?.fieldErrors?.comment}>
+      <Field label="コメント (受講生に表示されます)" htmlFor="comment" hint="良かった点と、次に何を直せばよいかを具体的に書いてください (10〜5,000 文字)。" error={state?.fieldErrors?.comment}>
         <textarea id="comment" name="comment" rows={6} className={inputStyles} required minLength={10} maxLength={5000} />
       </Field>
       <FormMessage state={state} />

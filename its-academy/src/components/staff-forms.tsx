@@ -42,7 +42,7 @@ export function SkillForm({ studentId, areas, levels }: { studentId: string; are
           </select>
         </Field>
       </div>
-      <Field label="根拠・メモ" htmlFor="note" hint="どの課題・面談をもとに評価したかを書いてください。">
+      <Field label="根拠・メモ" htmlFor="note" hint="どの課題・面談をもとに評価したかを書いてください (1,000 文字まで)。">
         <input id="note" name="note" className={inputStyles} maxLength={1000} />
       </Field>
       <FormMessage state={state} />

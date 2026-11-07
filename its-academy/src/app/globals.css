@@ -59,8 +59,10 @@ body {
 }
 
 :focus-visible {
-  outline: 2px solid var(--focus);
+  /* 青い枠の内側に背景色の縁を付け、どの背景色のボタンでも見分けられるようにする */
+  outline: 3px solid var(--focus);
   outline-offset: 2px;
+  box-shadow: 0 0 0 2px var(--bg);
   border-radius: 4px;
 }
 

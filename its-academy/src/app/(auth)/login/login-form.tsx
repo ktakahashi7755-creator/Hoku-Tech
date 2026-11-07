@@ -1,13 +1,20 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useSyncExternalStore } from "react";
 import { login } from "@/app/actions/auth";
 import { Button, Field, inputStyles } from "@/components/ui";
 
 export function LoginForm() {
   const [state, action, pending] = useActionState(login, undefined);
+  // ログイン前に開こうとしていたページ (?next=)。戻り先として正しいかはサーバーで確かめる
+  const next = useSyncExternalStore(
+    () => () => {},
+    () => new URLSearchParams(window.location.search).get("next") ?? "",
+    () => "",
+  );
   return (
     <form action={action} className="flex flex-col gap-5" noValidate>
+      <input type="hidden" name="next" value={next} />
       {state?.error && (
         <p role="alert" className="rounded-lg bg-danger-soft p-3 text-sm text-danger">
           {state.error}

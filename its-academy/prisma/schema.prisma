@@ -200,6 +200,7 @@ model LessonVersion {
   authorId         String?
   author           User?     @relation(fields: [authorId], references: [id])
   createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @default(now()) @updatedAt // 同時編集の確認に使う
 
   currentOf    Lesson?          @relation("CurrentVersion")
   progress     LessonProgress[]

@@ -27,15 +27,20 @@ export function AssignmentEditor({ id, initial, rubricId, rubrics }: { id: strin
   const [pending, start] = useTransition();
   const router = useRouter();
   const set = (k: keyof AssignmentForm, v: string | number) => setF((p) => ({ ...p, [k]: v }));
+  const [savedStatus, setSavedStatus] = useState(f.status);
   return (
     <form
       className="flex flex-col gap-5"
       onSubmit={(e) => {
         e.preventDefault();
+        if (savedStatus === "PUBLISHED" && f.status === "DRAFT" && !window.confirm("この課題を非公開にします。受講生は課題を開けず、提出もできなくなります (これまでの提出と採点は残ります)。よろしいですか?")) return;
         start(async () => {
           const r = await updateAssignment(id, f, rubric).catch((): AssignState => ({ errors: ["保存できませんでした。通信を確認して、もう一度お試しください (入力した内容は画面に残っています)。"] }));
           setState(r);
-          if (r?.ok) router.refresh();
+          if (r?.ok) {
+            setSavedStatus(f.status);
+            router.refresh();
+          }
         });
       }}
     >
@@ -110,7 +115,16 @@ export function RubricEditor({ id, name, initial }: { id: string; name: string; 
         <Card key={i} className="flex flex-col gap-3">
           <div className="flex items-center justify-between">
             <span className="text-sm font-semibold text-muted">観点 {i + 1}</span>
-            <button type="button" className="min-h-9 rounded px-2 text-sm text-danger hover:bg-danger-soft" onClick={() => setRows((p) => p.filter((_, j) => j !== i))}>削除</button>
+            <button
+              type="button"
+              className="min-h-11 rounded px-3 text-sm text-danger hover:bg-danger-soft"
+              aria-label={`観点 ${i + 1} を削除`}
+              onClick={() => {
+                if (window.confirm(`観点 ${i + 1} を削除しますか? (保存するまでは、ページを再読み込みすると元に戻せます)`)) setRows((p) => p.filter((_, j) => j !== i));
+              }}
+            >
+              削除
+            </button>
           </div>
           <div className="grid gap-3 sm:grid-cols-[1fr_8rem]">
             <div className="flex flex-col gap-1.5">

@@ -29,15 +29,16 @@ export default async function UsersPage() {
         <table className="w-full min-w-[880px] text-left text-sm">
           <thead className="bg-surface text-muted">
             <tr>
-              {["氏名", "メールアドレス", "権限", "状態", "最終ログイン", "操作"].map((h) => (
-                <th key={h} scope="col" className="px-3 py-3 font-semibold">{h}</th>
+              {["氏名", "メールアドレス", "権限", "状態", "最終ログイン", "操作"].map((h, i) => (
+                <th key={h} scope="col" className={i === 0 ? "sticky left-0 z-[1] bg-surface px-3 py-3 font-semibold" : "px-3 py-3 font-semibold"}>{h}</th>
               ))}
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
             {users.map((u) => (
               <tr key={u.id} className="align-top">
-                <td className="px-3 py-3 font-semibold">{u.name}{u.id === me.id && <span className="ml-1 text-xs text-muted">(自分)</span>}</td>
+                {/* 横にスクロールしても、だれの行かが分かるよう氏名の列を固定する */}
+                <td className="sticky left-0 z-[1] bg-bg px-3 py-3 font-semibold">{u.name}{u.id === me.id && <span className="ml-1 text-xs text-muted">(自分)</span>}</td>
                 <td className="px-3 py-3 break-all">{u.email}</td>
                 <td className="px-3 py-3">{ROLE_LABEL[u.role]}</td>
                 <td className="px-3 py-3">

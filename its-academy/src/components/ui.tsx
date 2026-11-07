@@ -156,30 +156,4 @@ export function ScrollRegion({ label, className, children, scrollHint = false }:
   );
 }
 
-/**
- * フォームの結果の表示 (成功・エラー・複数のエラー)。
- * 読み上げのため、成功は role="status"、エラーは role="alert" で知らせる。
- */
-export function FormMessage({ state }: { state?: { ok?: string; error?: string; errors?: string[] } | null }) {
-  return (
-    <div aria-live="polite">
-      {state?.ok && (
-        <p role="status" className="rounded-lg bg-success-soft p-3 text-sm text-success">
-          {state.ok}
-        </p>
-      )}
-      {state?.error && (
-        <p role="alert" className="rounded-lg bg-danger-soft p-3 text-sm text-danger">
-          {state.error}
-        </p>
-      )}
-      {state?.errors && state.errors.length > 0 && (
-        <ul role="alert" className="list-disc rounded-lg bg-danger-soft p-3 pl-7 text-sm text-danger">
-          {state.errors.map((e) => (
-            <li key={e}>{e}</li>
-          ))}
-        </ul>
-      )}
-    </div>
-  );
-}
+export { FormMessage } from "./form-message";

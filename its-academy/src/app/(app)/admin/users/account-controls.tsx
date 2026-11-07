@@ -27,7 +27,8 @@ export function AccountControls({ user, roles }: { user: { id: string; name: str
         <Button type="button" variant="secondary" disabled={pending || role === user.role} onClick={() => {
             const label = roles.find((r) => r.value === role)?.label ?? role;
             if (window.confirm(`${user.name} さんの権限を「${label}」に変更します。変更すると、その人はすべての端末でログアウトされます。よろしいですか?`)) run(() => changeRole(user.id, role));
-          }}>
+            else setRole(user.role); // 取りやめたら、選択を今の権限に戻す
+          }} className="whitespace-nowrap">
           変更
         </Button>
       </div>

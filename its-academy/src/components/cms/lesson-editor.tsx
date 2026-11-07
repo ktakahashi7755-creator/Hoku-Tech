@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useTransition, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { saveDraft, type CmsState } from "@/app/actions/cms";
+import { saveDraft, type CmsState, type EditBase } from "@/app/actions/cms";
 import type { EditorDraft } from "@/lib/content/draft";
 import { CODE_LANGUAGES } from "@/lib/content/languages";
 import { Button, cx, inputStyles } from "@/components/ui";
@@ -56,11 +56,11 @@ function Repeat<T>({ items, onChange, make, label, render }: { items: T[]; onCha
           <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
             <span className="text-sm font-semibold text-muted">{label} {i + 1}</span>
             <span className="flex gap-1">
-              <button type="button" className="min-h-9 rounded px-2 text-sm text-accent hover:bg-accent-soft disabled:opacity-40" disabled={i === 0} onClick={() => move(i, -1)} aria-label={`${label} ${i + 1} を上へ`}>↑</button>
-              <button type="button" className="min-h-9 rounded px-2 text-sm text-accent hover:bg-accent-soft disabled:opacity-40" disabled={i === items.length - 1} onClick={() => move(i, 1)} aria-label={`${label} ${i + 1} を下へ`}>↓</button>
+              <button type="button" className="min-h-11 min-w-11 rounded px-2 text-sm text-accent hover:bg-accent-soft disabled:opacity-40" disabled={i === 0} onClick={() => move(i, -1)} aria-label={`${label} ${i + 1} を上へ`}>↑</button>
+              <button type="button" className="min-h-11 min-w-11 rounded px-2 text-sm text-accent hover:bg-accent-soft disabled:opacity-40" disabled={i === items.length - 1} onClick={() => move(i, 1)} aria-label={`${label} ${i + 1} を下へ`}>↓</button>
               <button
                 type="button"
-                className="min-h-9 rounded px-2 text-sm text-danger hover:bg-danger-soft"
+                className="min-h-11 rounded px-3 text-sm text-danger hover:bg-danger-soft"
                 aria-label={`${label} ${i + 1} を削除`}
                 onClick={() => {
                   if (window.confirm(`${label} ${i + 1} を削除しますか? (保存するまでは元に戻せます: ページを再読み込み)`)) onChange(items.filter((_, j) => j !== i));
@@ -80,10 +80,13 @@ function Repeat<T>({ items, onChange, make, label, render }: { items: T[]; onCha
   );
 }
 
-export function LessonEditor({ lessonId, initial }: { lessonId: string; initial: EditorDraft }) {
+export function LessonEditor({ lessonId, initial, base }: { lessonId: string; initial: EditorDraft; base: EditBase }) {
   const [d, setD] = useState<EditorDraft>(initial);
   const [state, setState] = useState<CmsState>(undefined);
   const [dirty, setDirty] = useState(false);
+  // 同時編集の確認に使う「編集の元の版」。自分の保存の結果と、再表示で届いた最新の値のうち新しい方を使う
+  const [savedBase, setSavedBase] = useState(base);
+  const currentBase = Date.parse(base.updatedAt) > Date.parse(savedBase.updatedAt) ? base : savedBase;
   const [pending, start] = useTransition();
   const router = useRouter();
   const set = <K extends keyof EditorDraft>(k: K, v: EditorDraft[K]) => {
@@ -110,8 +113,9 @@ export function LessonEditor({ lessonId, initial }: { lessonId: string; initial:
         e.preventDefault();
         start(async () => {
           // 失敗しても編集中の内容を失わないよう、エラーは画面に表示する
-          const r = await saveDraft(lessonId, d).catch((): CmsState => ({ errors: ["保存できませんでした。通信を確認して、もう一度お試しください (入力した内容は画面に残っています)。"] }));
+          const r = await saveDraft(lessonId, d, currentBase).catch((): CmsState => ({ errors: ["保存できませんでした。通信を確認して、もう一度お試しください (入力した内容は画面に残っています)。"] }));
           setState(r);
+          if (r?.base) setSavedBase(r.base);
           if (r?.ok) {
             setDirty(false);
             router.refresh();
@@ -225,7 +229,8 @@ export function LessonEditor({ lessonId, initial }: { lessonId: string; initial:
         <Text id="review" label="復習ポイント" rows={3} value={d.reviewPoints} onChange={(v) => set("reviewPoints", v)} />
       </Section>
 
-      <div className="sticky bottom-0 z-10 -mx-4 flex flex-col gap-3 border-t border-border bg-bg/95 px-4 py-4 backdrop-blur">
+      {/* スマホでは画面の下に固定しない (入力欄を隠さないように)。広い画面では保存ボタンを常に見える位置に置く */}
+      <div className="z-10 -mx-4 flex flex-col gap-3 border-t border-border bg-bg/95 px-4 py-4 backdrop-blur sm:sticky sm:bottom-0">
         <Text id="changeNote" label="変更内容のメモ (版の履歴に残ります)" value={d.changeNote} onChange={(v) => set("changeNote", v)} />
         <div aria-live="polite" className="flex flex-col gap-2">
           {state?.ok && <p role="status" className="rounded-lg bg-success-soft p-3 text-sm text-success">{state.ok}</p>}

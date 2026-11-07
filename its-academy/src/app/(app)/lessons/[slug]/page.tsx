@@ -95,6 +95,13 @@ export default async function LessonPage({ params }: { params: Promise<{ slug: s
 
       {/* 章ナビゲーション: PC は左に常時表示、スマホは折りたたみ (教材を優先表示) */}
       <aside className="lg:sticky lg:top-28 lg:max-h-[calc(100dvh-8rem)] lg:self-start lg:overflow-y-auto">
+        {/* レッスンの一覧 (35 件) を Tab で通らずに本文へ進めるようにする */}
+        <a
+          href="#lesson-content"
+          className="sr-only focus:not-sr-only focus:mb-2 focus:inline-flex focus:min-h-11 focus:items-center focus:rounded-lg focus:bg-accent-soft focus:px-3 focus:font-semibold focus:text-accent-strong"
+        >
+          レッスンの本文へ移動
+        </a>
         <details className="rounded-xl border border-border lg:hidden">
           <summary className="flex min-h-11 cursor-pointer items-center px-4 font-semibold">レッスンの一覧を開く</summary>
           <div className="p-2">{chapterNav}</div>
@@ -102,7 +109,7 @@ export default async function LessonPage({ params }: { params: Promise<{ slug: s
         <div className="hidden lg:block">{chapterNav}</div>
       </aside>
 
-      <article className="min-w-0">
+      <article id="lesson-content" tabIndex={-1} className="min-w-0 outline-none">
         <header className="mb-8 border-b border-border pb-6">
           <p className="text-sm text-muted">
             {lesson.module.level} {lesson.module.title} ・ レッスン {index + 1} / {flat.length} (選択を含む)

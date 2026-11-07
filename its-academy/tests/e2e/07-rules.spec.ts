@@ -148,3 +148,29 @@ test("提出の前に入力の誤りを知らせ (確認ダイアログは出さ
     await db.lessonProgress.delete({ where: { id: progress.id } });
   }
 });
+
+test("同じレッスンを 2 つの画面で編集したとき、後から保存した側は上書きせずに知らせる", async ({ page, context }) => {
+  const lesson = await db.lesson.findUniqueOrThrow({ where: { slug: "l1-terminal-basics" } });
+  const before = await db.lessonVersion.count({ where: { lessonId: lesson.id } });
+  try {
+    await login(page, "admin@its.example");
+    await page.waitForURL(/\/admin$/);
+    const other = await context.newPage();
+    await page.goto(`/admin/content/lessons/${lesson.id}`);
+    await other.goto(`/admin/content/lessons/${lesson.id}`);
+
+    await page.locator("#title").fill("ターミナルの基本操作 (画面 A)");
+    await page.getByRole("button", { name: "下書きを保存" }).click();
+    await expect(page.getByRole("status").filter({ hasText: "を保存しました" })).toBeVisible();
+
+    // 古い内容のままの画面 B から保存すると、上書きせずに知らせる
+    await other.locator("#title").fill("ターミナルの基本操作 (画面 B)");
+    await other.getByRole("button", { name: "下書きを保存" }).click();
+    await expect(other.getByRole("alert").filter({ hasText: "先に保存しました" })).toBeVisible();
+    const latest = await db.lessonVersion.findFirstOrThrow({ where: { lessonId: lesson.id }, orderBy: { version: "desc" } });
+    expect(latest.title).toBe("ターミナルの基本操作 (画面 A)");
+  } finally {
+    await db.lessonVersion.deleteMany({ where: { lessonId: lesson.id, publishedAt: null } });
+    expect(await db.lessonVersion.count({ where: { lessonId: lesson.id } })).toBe(before);
+  }
+});

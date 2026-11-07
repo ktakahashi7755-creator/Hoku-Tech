@@ -1,5 +1,5 @@
 import { expect, test } from "./fixtures";
-import { login, logout } from "./helpers";
+import { login, logout, PASSWORD } from "./helpers";
 
 test.describe.configure({ mode: "serial" });
 
@@ -13,11 +13,17 @@ test("ログイン失敗時は、どちらが誤りかを明かさないメッ�
   await expect(page.getByRole("alert").filter({ hasText: "正しくありません" })).toHaveText("メールアドレスまたはパスワードが正しくありません。");
 });
 
-test("未ログインで保護ページを開くとログイン画面へ", async ({ page }) => {
+test("未ログインで保護ページを開くとログイン画面へ。ログインすると開こうとしたページに戻る", async ({ page }) => {
   await page.goto("/home");
-  await expect(page).toHaveURL(/\/login$/);
+  await expect(page).toHaveURL(/\/login\?next=%2Fhome$/);
   await page.goto("/admin/students");
-  await expect(page).toHaveURL(/\/login$/);
+  await expect(page).toHaveURL(/\/login\?next=%2Fadmin%2Fstudents$/);
+  await page.goto("/lessons/l2-conditionals");
+  await page.getByLabel("メールアドレス").fill("student@its.example");
+  await page.getByLabel("パスワード").fill(PASSWORD);
+  await page.getByRole("button", { name: "ログイン" }).click();
+  await page.waitForURL(/\/lessons\/l2-conditionals$/);
+  await logout(page);
 });
 
 test("受講生: 前回の続きから再開し、理解度チェック合格後に学習完了できる (DB に保存される)", async ({ page }) => {

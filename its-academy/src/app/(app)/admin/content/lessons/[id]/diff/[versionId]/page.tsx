@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
 import { requireUser } from "@/lib/auth/dal";
 import { ADMIN_ROLES } from "@/lib/auth/roles";
-import { lessonToLines, lineDiff } from "@/lib/content/diff";
+import { collapseUnchanged, lessonToLines, lineDiff } from "@/lib/content/diff";
 import { ButtonLink, cx, PageHeader, ScrollRegion } from "@/components/ui";
 
 // 受講生名などは入れない (ページ名はアクセス権の確認とは別に作られるため)
@@ -28,7 +28,13 @@ export default async function DiffPage({ params }: { params: Promise<{ id: strin
       />
       <ScrollRegion label="版の差分" className="rounded-xl border border-border">
         <ol className="min-w-[640px] font-mono text-sm">
-          {diff.map((d, i) => (
+          {/* 変更のない行が長く続く部分は省略し、変えた箇所の前後だけを表示する */}
+          {collapseUnchanged(diff).map((d, i) =>
+            d.type === "skip" ? (
+              <li key={i} className="bg-surface px-4 py-1 text-xs text-muted">
+                … 変更のない {d.count} 行 …
+              </li>
+            ) : (
             <li
               key={i}
               className={cx(
@@ -41,7 +47,8 @@ export default async function DiffPage({ params }: { params: Promise<{ id: strin
               <span aria-hidden>{d.type === "added" ? "+ " : d.type === "removed" ? "- " : "  "}</span>
               {d.text}
             </li>
-          ))}
+            ),
+          )}
         </ol>
       </ScrollRegion>
     </div>

@@ -9,7 +9,11 @@ export type NavItem = { href: string; label: string; exact?: boolean };
 export function NavLinks({ items }: { items: NavItem[] }) {
   const pathname = usePathname();
   return (
-    <nav aria-label="メインメニュー" className="mx-auto max-w-6xl overflow-x-auto px-2">
+    // スマホでは右端を薄くして、横にスクロールすると続きのメニューがあることを示す
+    <nav
+      aria-label="メインメニュー"
+      className="mx-auto max-w-6xl overflow-x-auto px-2 [mask-image:linear-gradient(to_right,black_85%,transparent)] sm:[mask-image:none]"
+    >
       <ul className="flex gap-1">
         {items.map((item) => {
           const active = item.exact ? pathname === item.href : pathname === item.href || pathname.startsWith(item.href + "/");
