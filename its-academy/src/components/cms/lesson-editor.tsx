@@ -124,12 +124,16 @@ export function LessonEditor({ lessonId, initial, base, draftId }: { lessonId: s
   // (再表示で届く値は使わない。使うと、ほかの画面の保存を自分の保存と取り違えるため)
   const [currentBase, setSavedBase] = useState(base);
   // 画面を開いたときの値を、版の履歴の操作にも伝える (自分の保存の後は、上の保存の処理で更新する)
+  // (保存した下書きの版は残す。片付けは画面を離れたときだけ。値が変わるたびに消すと、保存した下書きの版の記録まで消えるため)
   useEffect(() => {
     editorBase = { lessonId, base: currentBase, draftVersion: editorBase?.lessonId === lessonId ? editorBase.draftVersion : undefined };
-    return () => {
-      if (editorBase?.lessonId === lessonId) editorBase = null;
-    };
   }, [lessonId, currentBase]);
+  useEffect(
+    () => () => {
+      if (editorBase?.lessonId === lessonId) editorBase = null;
+    },
+    [lessonId],
+  );
   const [pending, start] = useTransition();
   const router = useRouter();
   const set = <K extends keyof EditorDraft>(k: K, v: EditorDraft[K]) => {
