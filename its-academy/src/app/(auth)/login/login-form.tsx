@@ -1,19 +1,28 @@
 "use client";
 
-import { useActionState, useSyncExternalStore } from "react";
+import { useActionState, useEffect, useRef, useSyncExternalStore } from "react";
 import { login } from "@/app/actions/auth";
 import { Button, Field, inputStyles } from "@/components/ui";
+import { NETWORK_ERROR, withNetworkFallback } from "@/lib/safe-action";
 
 export function LoginForm() {
-  const [state, action, pending] = useActionState(login, undefined);
+  const [state, action, pending] = useActionState(withNetworkFallback(login, { error: NETWORK_ERROR }), undefined);
   // ログイン前に開こうとしていたページ (?next=)。戻り先として正しいかはサーバーで確かめる
   const next = useSyncExternalStore(
     () => () => {},
     () => new URLSearchParams(window.location.search).get("next") ?? "",
     () => "",
   );
+  // 失敗したら、直す場所へフォーカスを移す (入力の誤りはその欄、メールアドレスかパスワードの誤りはパスワード欄)。
+  // 送信中にボタンが無効になり、フォーカスが画面の先頭に戻ってしまうため
+  const form = useRef<HTMLFormElement>(null);
+  useEffect(() => {
+    if (!state || !form.current) return;
+    const target = form.current.querySelector<HTMLInputElement>('[aria-invalid="true"]') ?? (state.error ? form.current.querySelector<HTMLInputElement>("#password") : null);
+    target?.focus();
+  }, [state]);
   return (
-    <form action={action} className="flex flex-col gap-5" noValidate>
+    <form ref={form} action={action} className="flex flex-col gap-5" noValidate>
       <input type="hidden" name="next" value={next} />
       {state?.error && (
         <p role="alert" className="rounded-lg bg-danger-soft p-3 text-sm text-danger">

@@ -21,11 +21,16 @@ type Props = Omit<FormHTMLAttributes<HTMLFormElement>, "action" | "onSubmit"> & 
  * React 19 の `<form action>` は送信が終わると入力欄を初期値に戻すため、エラーで戻ってきたときに
  * 書いた内容 (提出のコード・採点コメントなど) が消えてしまう。送信を onSubmit で行い、入力を保つ。
  */
-export function ActionForm({ action, state, resetOnSuccess = false, confirm, children, ...props }: Props) {
+export function ActionForm(allProps: Props) {
+  const { action, state, resetOnSuccess = false, confirm, children, ...props } = allProps;
+  // state を渡したフォームか (初めは undefined のため、値ではなく渡したかどうかで見分ける)
+  const hasState = "state" in allProps;
   const ref = useRef<HTMLFormElement>(null);
 
   useEffect(() => {
     if (resetOnSuccess && state?.ok) ref.current?.reset();
+    // 送信の結果が届いたら、入力し直して隠した誤りの表示を戻す (同じ誤りが続いていれば再び見える。直っていれば React が消している)
+    if (ref.current) restoreClearedErrors(ref.current);
   }, [state, resetOnSuccess]);
 
   function onSubmit(e: FormEvent<HTMLFormElement>) {
@@ -42,16 +47,41 @@ export function ActionForm({ action, state, resetOnSuccess = false, confirm, chi
     const message = typeof confirm === "function" ? confirm(submitter, form) : confirm;
     if (message === false) return;
     if (message && !window.confirm(message)) return;
+    // state を受け取らないフォームでは、結果を知る方法がないため、送信の時点で隠した表示を戻す
+    if (!hasState) restoreClearedErrors(form);
     // 押されたボタンの name / value (例: intent=submit) も送る
     const formData = new FormData(form, submitter);
     startTransition(() => action(formData));
   }
 
   return (
-    <form ref={ref} onSubmit={onSubmit} {...props}>
+    <form ref={ref} onSubmit={onSubmit} onInput={clearFieldError} {...props}>
       {children}
     </form>
   );
+}
+
+/**
+ * 入力欄を直したら、その欄の下に出ているサーバーからの誤りの表示 (Field の error) を隠す。
+ * 隠さないと、ブラウザの入力チェックで送信が止まったときに、直した欄に古い誤りが残って見える
+ */
+function clearFieldError(e: FormEvent<HTMLFormElement>) {
+  const el = e.target;
+  if (!(el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement || el instanceof HTMLSelectElement) || !el.id) return;
+  const message = document.getElementById(`${el.id}-error`);
+  if (!message || message.hidden) return;
+  message.hidden = true;
+  el.removeAttribute("aria-invalid");
+  el.dataset.errorCleared = "1";
+}
+
+function restoreClearedErrors(form: HTMLFormElement) {
+  for (const el of Array.from(form.querySelectorAll<HTMLElement>("[data-error-cleared]"))) {
+    delete el.dataset.errorCleared;
+    el.setAttribute("aria-invalid", "true");
+    const message = document.getElementById(`${el.id}-error`);
+    if (message) message.hidden = false;
+  }
 }
 
 /**

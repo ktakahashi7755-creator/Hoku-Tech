@@ -264,3 +264,39 @@ test("お知らせは、まだ見ていないものに「新着」を付け、�
     await db.notification.delete({ where: { id: notice.id } });
   }
 });
+
+test("通信が切れて送信に失敗しても、画面は消えず入力も残る", async ({ page }) => {
+  await login(page, "student2@its.example");
+  await page.waitForURL(/\/home$/);
+  await page.goto("/me");
+  await page.getByLabel("現在のパスワード").fill("typed-current-password");
+  // サーバーアクションの送信 (POST) だけを失敗させる
+  await page.route("**/me*", (route) => (route.request().method() === "POST" ? route.abort("internetdisconnected") : route.continue()));
+  await page.getByLabel("新しいパスワード", { exact: true }).fill("another-password-456");
+  await page.getByLabel("新しいパスワード (確認)").fill("another-password-456");
+  await page.getByRole("button", { name: "変更する" }).click();
+  await expect(page.getByRole("alert").filter({ hasText: "送信できませんでした" })).toBeVisible();
+  await expect(page.getByLabel("現在のパスワード")).toHaveValue("typed-current-password");
+  await expect(page.getByText("画面を表示できませんでした")).toHaveCount(0);
+});
+
+test("ログインに失敗したら、パスワード欄にフォーカスが移る", async ({ page }) => {
+  await login(page, "student2@its.example", "wrong-password-focus");
+  await expect(page.getByRole("alert").filter({ hasText: "正しくありません" })).toBeVisible();
+  await expect(page.getByLabel("パスワード")).toBeFocused();
+});
+
+test("目標修了日は入校日より後の日付だけ受け付ける", async ({ page }) => {
+  await login(page, "admin@its.example");
+  await page.waitForURL(/\/admin$/);
+  await page.goto("/admin/students/new");
+  await page.getByLabel("氏名").fill("日付 確認");
+  await page.getByLabel("メールアドレス").fill(`date-${Date.now()}@its.example`);
+  await page.getByLabel("入校日").fill("2026-11-07");
+  await page.getByLabel("目標修了日 (学習期限)").fill("2026-10-01");
+  await page.getByRole("button", { name: "追加する" }).click();
+  await expect(page.getByText("入校日より後の日付にしてください")).toBeVisible();
+  // 直すと、古い誤りの表示は消える
+  await page.getByLabel("目標修了日 (学習期限)").fill("2027-02-01");
+  await expect(page.getByText("入校日より後の日付にしてください")).toBeHidden();
+});

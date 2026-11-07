@@ -128,11 +128,21 @@ test("修正依頼 → 再提出 → 講師がルーブリックで採点 → �
     await page.getByLabel(new RegExp(`^${label} \\(0〜`)).fill(v);
   }
   await expect(page.getByText("合計 82 / 100 点")).toBeVisible();
+  // 講師が選んだ判定は、点数を変えても勝手に切り替わらない
+  await page.getByLabel("判定").selectOption("FAIL");
+  await page.getByLabel(/^説明能力 \(0〜/).fill("6");
+  await expect(page.getByText("合計 81 / 100 点")).toBeVisible();
+  await expect(page.getByLabel("判定")).toHaveValue("FAIL");
+  await page.getByLabel(/^説明能力 \(0〜/).fill("7");
   await page.getByLabel("判定").selectOption("PASS");
+  // 確認には判定と点数が出る (ダイアログは fixtures が OK で進める)
+  const confirmed: string[] = [];
+  page.on("dialog", (d) => confirmed.push(d.message()));
   await page.getByLabel("コメント (受講生に表示されます)").fill("境界値がすべて仕様どおりになりました。次は統計の表示をメソッドに分けてみましょう。");
   await page.getByRole("button", { name: "採点を確定する" }).click();
   await expect(page.getByRole("status").filter({ hasText: "この提出は採点済みです" })).toBeVisible();
   await expect(page.getByRole("status").filter({ hasText: "この提出は採点済みです" })).toBeFocused();
+  expect(confirmed.some((m) => m.includes("判定「合格」・合計 82 点"))).toBe(true);
   await expect(page.getByText("82 点 (合格点 70 点)").first()).toBeVisible();
   await logout(page);
 

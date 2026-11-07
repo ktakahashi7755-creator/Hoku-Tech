@@ -36,7 +36,7 @@ export function CompleteButton({ lessonId, completed, canComplete }: { lessonId:
         onClick={() =>
           start(async () => {
             clicked.current = true;
-            const r = await completeLesson(lessonId);
+            const r = await completeLesson(lessonId).catch(() => ({ error: "記録できませんでした。通信を確認して、もう一度お試しください。" }));
             if (r.error) setError(r.error);
             else router.refresh();
           })

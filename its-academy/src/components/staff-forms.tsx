@@ -5,9 +5,10 @@ import { cleanupStaleRecords } from "@/app/actions/accounts";
 import { addComment, addSkillAssessment, createStudent, updateEnrollment, updateSettings, type NewStudentState } from "@/app/actions/staff";
 import { ActionForm } from "./action-form";
 import { Button, Field, FormMessage, inputStyles } from "./ui";
+import { NETWORK_ERROR, withNetworkFallback } from "@/lib/safe-action";
 
 export function CommentForm({ studentId }: { studentId: string }) {
-  const [state, action, pending] = useActionState(addComment, undefined);
+  const [state, action, pending] = useActionState(withNetworkFallback(addComment, { error: NETWORK_ERROR }), undefined);
   return (
     <ActionForm action={action} state={state} resetOnSuccess className="flex flex-col gap-3">
       <input type="hidden" name="studentId" value={studentId} />
@@ -26,7 +27,7 @@ export function CommentForm({ studentId }: { studentId: string }) {
 }
 
 export function SkillForm({ studentId, areas, levels }: { studentId: string; areas: readonly { key: string; label: string }[]; levels: Record<number, string> }) {
-  const [state, action, pending] = useActionState(addSkillAssessment, undefined);
+  const [state, action, pending] = useActionState(withNetworkFallback(addSkillAssessment, { error: NETWORK_ERROR }), undefined);
   return (
     <ActionForm action={action} state={state} resetOnSuccess className="flex flex-col gap-3">
       <input type="hidden" name="studentId" value={studentId} />
@@ -52,10 +53,11 @@ export function SkillForm({ studentId, areas, levels }: { studentId: string; are
 }
 
 export function EnrollmentForm({ enrollment, instructors }: { enrollment: { id: string; instructorId: string | null; targetEndDate: string; status: string }; instructors: { id: string; name: string }[] }) {
-  const [state, action, pending] = useActionState(updateEnrollment, undefined);
+  const [state, action, pending] = useActionState(withNetworkFallback(updateEnrollment, { error: NETWORK_ERROR }), undefined);
   return (
     <ActionForm
       action={action}
+      state={state}
       className="flex flex-col gap-3"
       confirm={(_submitter, form) => {
         const next = new FormData(form).get("status");
@@ -73,7 +75,7 @@ export function EnrollmentForm({ enrollment, instructors }: { enrollment: { id: 
           {instructors.map((i) => <option key={i.id} value={i.id}>{i.name}</option>)}
         </select>
       </Field>
-      <Field label="目標修了日 (学習期限)" htmlFor="targetEndDate">
+      <Field label="目標修了日 (学習期限)" htmlFor="targetEndDate" error={state?.fieldErrors?.targetEndDate}>
         <input id="targetEndDate" name="targetEndDate" type="date" defaultValue={enrollment.targetEndDate} className={inputStyles} />
       </Field>
       <Field label="受講状態" htmlFor="status">
@@ -91,7 +93,7 @@ export function EnrollmentForm({ enrollment, instructors }: { enrollment: { id: 
 }
 
 export function NewStudentForm({ instructors }: { instructors: { id: string; name: string }[] }) {
-  const [state, action, pending] = useActionState<NewStudentState, FormData>(createStudent, undefined);
+  const [state, action, pending] = useActionState<NewStudentState, FormData>(withNetworkFallback(createStudent, { error: NETWORK_ERROR }), undefined);
   return (
     <ActionForm action={action} state={state} resetOnSuccess className="flex flex-col gap-4">
       <div className="grid gap-4 sm:grid-cols-2">
@@ -105,7 +107,7 @@ export function NewStudentForm({ instructors }: { instructors: { id: string; nam
             {instructors.map((i) => <option key={i.id} value={i.id}>{i.name}</option>)}
           </select>
         </Field>
-        <Field label="目標修了日 (学習期限)" htmlFor="targetEndDate"><input id="targetEndDate" name="targetEndDate" type="date" className={inputStyles} /></Field>
+        <Field label="目標修了日 (学習期限)" htmlFor="targetEndDate" error={state?.fieldErrors?.targetEndDate}><input id="targetEndDate" name="targetEndDate" type="date" className={inputStyles} /></Field>
       </div>
       <FormMessage state={state} />
       {state?.tempPassword && (
@@ -121,9 +123,9 @@ export function NewStudentForm({ instructors }: { instructors: { id: string; nam
 }
 
 export function SettingsForm({ threshold }: { threshold: number }) {
-  const [state, action, pending] = useActionState(updateSettings, undefined);
+  const [state, action, pending] = useActionState(withNetworkFallback(updateSettings, { error: NETWORK_ERROR }), undefined);
   return (
-    <ActionForm action={action} className="flex flex-col gap-3">
+    <ActionForm action={action} state={state} className="flex flex-col gap-3">
       <Field label="学習停滞とみなす日数" htmlFor="stagnationThresholdDays" hint="最終学習日からこの日数以上経過した受講生をダッシュボードに表示します (1〜60 日)。" error={state?.fieldErrors?.stagnationThresholdDays}>
         <input id="stagnationThresholdDays" name="stagnationThresholdDays" type="number" min={1} max={60} defaultValue={threshold} className={`${inputStyles} max-w-40`} />
       </Field>

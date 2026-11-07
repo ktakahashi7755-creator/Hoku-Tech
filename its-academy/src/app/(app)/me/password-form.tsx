@@ -5,9 +5,10 @@ import { useActionState } from "react";
 import { changePassword } from "@/app/actions/auth";
 import { ActionForm } from "@/components/action-form";
 import { Button, Field, FormMessage, inputStyles } from "@/components/ui";
+import { NETWORK_ERROR, withNetworkFallback } from "@/lib/safe-action";
 
 export function PasswordForm({ homeHref }: { homeHref: string }) {
-  const [state, action, pending] = useActionState(changePassword, undefined);
+  const [state, action, pending] = useActionState(withNetworkFallback(changePassword, { error: NETWORK_ERROR }), undefined);
   return (
     <ActionForm action={action} state={state} resetOnSuccess className="flex flex-col gap-4">
       <Field label="現在のパスワード" htmlFor="current" hint="初回は、講師・管理者から受け取ったパスワードです。" error={state?.fieldErrors?.current}>

@@ -15,6 +15,7 @@ import { assertCanActOnStudent } from "@/lib/queries/student";
 import { fieldErrors, type FormState } from "@/lib/form-state";
 import { DECISION_LABEL } from "@/lib/labels";
 import { isUniqueViolation } from "@/lib/db-errors";
+import { jstDayKey } from "@/lib/progress/metrics";
 
 const issues = (e: z.ZodError) => ({ fieldErrors: fieldErrors(e) });
 
@@ -169,7 +170,10 @@ export async function updateEnrollment(_prev: FormState, formData: FormData): Pr
   if (instructorId) {
     if (!(await isActiveInstructor(instructorId))) return { fieldErrors: { instructorId: "講師を選択してください" } };
   }
-  const before = await db.enrollment.findUniqueOrThrow({ where: { id: enrollmentId } });
+  const before = await db.enrollment.findUniqueOrThrow({ where: { id: enrollmentId }, include: { user: { select: { joinedAt: true } } } });
+  // 目標修了日は、入校日 (なければ学習開始日) より後の日付だけ (過去の日付では、目標ペースの目安が出せないため)
+  const start = jstDayKey(before.user.joinedAt ?? before.startedAt);
+  if (targetEndDate && targetEndDate <= start) return { fieldErrors: { targetEndDate: `入校日 (${start}) より後の日付にしてください` } };
   await db.enrollment.update({
     where: { id: enrollmentId },
     data: {
@@ -208,6 +212,11 @@ export async function createStudent(_prev: NewStudentState, formData: FormData):
   });
   if (!parsed.success) return issues(parsed.error);
   const input = parsed.data;
+  // 目標修了日は、入校日 (未入力なら今日) より後の日付だけ
+  const start = input.joinedAt || jstDayKey(new Date());
+  if (input.targetEndDate && input.targetEndDate <= start) {
+    return { fieldErrors: { targetEndDate: input.joinedAt ? "入校日より後の日付にしてください" : "今日より後の日付にしてください" } };
+  }
   if (await db.user.findUnique({ where: { email: input.email } })) return { fieldErrors: { email: "このメールアドレスはすでに登録されています" } };
   if (input.instructorId && !(await isActiveInstructor(input.instructorId))) {
     return { fieldErrors: { instructorId: "講師を選択してください" } };

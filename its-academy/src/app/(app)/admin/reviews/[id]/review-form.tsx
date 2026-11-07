@@ -4,6 +4,8 @@ import { useActionState, useState, useTransition } from "react";
 import { startReview, submitReview } from "@/app/actions/staff";
 import { ActionForm, reportFieldError } from "@/components/action-form";
 import { Button, Field, FormMessage, inputStyles } from "@/components/ui";
+import { NETWORK_ERROR, withNetworkFallback } from "@/lib/safe-action";
+import { DECISION_LABEL } from "@/lib/labels";
 
 type Criterion = { key: string; label: string; weight: number; description: string };
 
@@ -34,13 +36,18 @@ export function StartReviewButton({ submissionId }: { submissionId: string }) {
 }
 
 export function ReviewForm({ submissionId, criteria, passScore }: { submissionId: string; criteria: Criterion[]; passScore: number }) {
-  const [state, action, pending] = useActionState(submitReview, undefined);
+  const [state, action, pending] = useActionState(withNetworkFallback(submitReview, { error: NETWORK_ERROR }), undefined);
   const [scores, setScores] = useState<Record<string, number>>(Object.fromEntries(criteria.map((c) => [c.key, 0])));
   const [decisionError, setDecisionError] = useState<string | null>(null);
   const total = criteria.reduce((s, c) => s + Math.min(Math.max(scores[c.key] || 0, 0), c.weight), 0);
+  // 判定は、講師が選ぶまでは合計点から提案する。選んだ後は、点数を変えても勝手に切り替えない (知らないうちに結果が変わらないように)
+  const [chosen, setChosen] = useState<string | null>(null);
+  const decision = chosen ?? (total >= passScore ? "PASS" : "CHANGES_REQUESTED");
+  const over = criteria.filter((c) => (scores[c.key] || 0) > c.weight);
   return (
     <ActionForm
       action={action}
+      state={state}
       className="flex flex-col gap-4"
       onChange={() => setDecisionError(null)}
       confirm={(_submitter, form) => {
@@ -51,7 +58,8 @@ export function ReviewForm({ submissionId, criteria, passScore }: { submissionId
           setDecisionError(message);
           return reportFieldError(form, "decision", message);
         }
-        return "採点を確定すると、後から変更できません。受講生に結果が通知されます。確定しますか?";
+        const label = DECISION_LABEL[decision as keyof typeof DECISION_LABEL] ?? decision;
+        return `判定「${label}」・合計 ${total} 点 (合格点 ${passScore} 点) で採点を確定します。後から変更できません。受講生に結果が通知されます。確定しますか?`;
       }}
     >
       <input type="hidden" name="submissionId" value={submissionId} />
@@ -72,9 +80,10 @@ export function ReviewForm({ submissionId, criteria, passScore }: { submissionId
       ))}
       <p className="rounded-lg bg-surface p-3 font-semibold tabular-nums" aria-live="polite">
         合計 {total} / 100 点 (合格点 {passScore} 点)
+        {over.length > 0 && <span className="block text-sm text-danger">配点を超えている観点があります: {over.map((c) => `${c.label} (最大 ${c.weight})`).join("、")}</span>}
       </p>
       <Field label="判定" htmlFor="decision" error={decisionError ?? undefined}>
-        <select id="decision" name="decision" className={inputStyles} defaultValue={total >= passScore ? "PASS" : "CHANGES_REQUESTED"} key={total >= passScore ? "p" : "c"}>
+        <select id="decision" name="decision" className={inputStyles} value={decision} onChange={(e) => setChosen(e.target.value)}>
           <option value="PASS">合格</option>
           <option value="CHANGES_REQUESTED">修正依頼</option>
           <option value="FAIL">不合格</option>
