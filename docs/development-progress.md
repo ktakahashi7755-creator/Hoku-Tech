@@ -452,8 +452,8 @@ Hoku Tech 本体のファイル (index.html / assets / data) には一切変更�
 
 * 担当: Claude Code
 * ステータス: 完了
-* 実施内容: この時点の全ファイルと履歴に確定版のタグ `its-academy-final-2026-11-07` を付けて GitHub に保存。全履歴を 1 ファイルにした git bundle とチェックサムを作り、依頼者に渡した。呼び出し方は [backup-and-restore.md](backup-and-restore.md)
-* テスト結果: bundle の検証 (git bundle verify)・チェックサムの確認・bundle から取り出したリポジトリで単体テストと型検査が成功することを確認
+* 実施内容: この時点の全ファイルと履歴に確定版のタグ `its-academy-final-2026-11-07` を付け、全履歴を 1 ファイルにした git bundle とチェックサムを作って依頼者に渡した。ブランチは GitHub に保存済み。タグは開発の環境から GitHub へ送れなかったため、依頼者が GitHub の画面から作る (手順は [backup-and-restore.md](backup-and-restore.md) §2)
+* テスト結果: チェックサムの確認・bundle から取り出したリポジトリでの git bundle verify・型検査・単体テスト 92 件が成功
 
 ## 確認が必要な事項 (重要な意思決定)
 
