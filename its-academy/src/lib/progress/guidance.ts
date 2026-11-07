@@ -11,6 +11,10 @@ export type GuidanceInput = {
   struggling: { title: string; attempts: number; status: string | null }[];
   lowSkills: string[];
   pendingReviews: number;
+  /** 今すぐ取り組める (前提レッスン完了済み・未合格・レビュー待ちでない) 課題の数 */
+  openAssignments: number;
+  /** 完了していない必修レッスンの数 */
+  remainingLessons: number;
 };
 
 export type Guidance = { priority: "high" | "medium" | "low"; text: string };
@@ -45,7 +49,14 @@ export function suggestGuidance(i: GuidanceInput): Guidance[] {
     out.push({ priority: "low", text: `スキル評価が 2 以下の観点: ${i.lowSkills.join("、")}。次の課題で重点的に確認してください。` });
   }
   if (out.length === 0) {
-    out.push({ priority: "low", text: "順調に進んでいます。次の課題の提出を促し、取り組みを認めるコメントを送ってください。" });
+    // 取り組める課題がないのに「課題の提出を促す」提案をしないよう、受講生の今の状況に合わせて言い分ける
+    const text =
+      i.openAssignments > 0
+        ? `順調に進んでいます。取り組める課題が ${i.openAssignments} 件あります。次の課題の提出を促し、取り組みを認めるコメントを送ってください。`
+        : i.remainingLessons > 0
+        ? "順調に進んでいます。今取り組める課題はないため、次のレッスンへ進むよう声をかけ、取り組みを認めるコメントを送ってください。"
+        : "必修のレッスンと取り組める課題をすべて終えています。取り組みを認めるコメントを送り、今後の学習について相談してください。";
+    out.push({ priority: "low", text });
   }
   return out;
 }

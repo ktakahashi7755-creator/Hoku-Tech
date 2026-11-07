@@ -5,10 +5,18 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { cx } from "./ui";
 
-export type NavItem = { href: string; label: string; exact?: boolean };
+/** badge: 未読のお知らせの件数 (サーバー側でログイン中の本人の分だけを数えて渡す。0 なら印を出さない) */
+export type NavItem = { href: string; label: string; exact?: boolean; badge?: number };
 
 export function NavLinks({ items }: { items: NavItem[] }) {
   const pathname = usePathname();
+  const isActive = (item: NavItem) => (item.exact ? pathname === item.href : pathname === item.href || pathname.startsWith(item.href + "/"));
+  // お知らせを表示した画面では、その件数の印を消す (メニューは画面を移動しても読み込み直されないため、
+  // 表示したときの件数を覚えておき、サーバーから届く件数が変わる (新しいお知らせ・再読み込み) まで出さない)
+  const [seen, setSeen] = useState<Record<string, number>>({});
+  for (const item of items) {
+    if (item.badge && isActive(item) && seen[item.href] !== item.badge) setSeen({ ...seen, [item.href]: item.badge });
+  }
   // 右に続きのメニューがあるときだけ右端を薄くし、横にスクロールできることを示す (端まで動かしたら消す)
   const ref = useRef<HTMLElement>(null);
   const [more, setMore] = useState(false);
@@ -25,6 +33,18 @@ export function NavLinks({ items }: { items: NavItem[] }) {
       nav.removeEventListener("scroll", measure);
     };
   }, []);
+  // 狭い画面では、今いる画面のメニュー (右側の「質問・レビュー」「マイページ」など) が横にはみ出して見えないため、
+  // 画面を開いたとき・移動したときに見える位置まで横にだけ動かす (フォーカスは動かさず、縦にも動かさない)
+  useEffect(() => {
+    const nav = ref.current;
+    const link = nav?.querySelector<HTMLElement>('[aria-current="page"]');
+    if (!nav || !link) return;
+    const box = nav.getBoundingClientRect();
+    const r = link.getBoundingClientRect();
+    const fade = nav.clientWidth * 0.15; // 右端を薄くしている幅 (mask-image の 85% 以降) に重ならないようにする
+    if (r.left < box.left) nav.scrollLeft -= box.left - r.left + 8;
+    else if (r.right > box.right - fade) nav.scrollLeft += r.right - (box.right - fade);
+  }, [pathname]);
   return (
     <nav
       ref={ref}
@@ -33,7 +53,8 @@ export function NavLinks({ items }: { items: NavItem[] }) {
     >
       <ul className="flex gap-1">
         {items.map((item) => {
-          const active = item.exact ? pathname === item.href : pathname === item.href || pathname.startsWith(item.href + "/");
+          const active = isActive(item);
+          const badge = item.badge && seen[item.href] !== item.badge ? item.badge : 0;
           return (
             <li key={item.href}>
               <Link
@@ -45,6 +66,15 @@ export function NavLinks({ items }: { items: NavItem[] }) {
                 )}
               >
                 {item.label}
+                {badge > 0 && (
+                  <>
+                    {/* 見た目は件数だけの印、読み上げでは「新着 N 件」と伝える */}
+                    <span aria-hidden="true" className="ml-1.5 inline-flex min-w-5 items-center justify-center rounded-full bg-accent px-1.5 text-xs font-bold leading-5 text-white">
+                      {badge > 99 ? "99+" : badge}
+                    </span>
+                    <span className="sr-only">{` (新着 ${badge} 件)`}</span>
+                  </>
+                )}
               </Link>
             </li>
           );

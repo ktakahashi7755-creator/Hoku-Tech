@@ -12,7 +12,7 @@ import { MetricCards } from "@/components/metric-cards";
 import { WeekChart } from "@/components/week-chart";
 import { SubmissionBadge } from "@/components/status-badge";
 import { CommentForm, EnrollmentForm, SkillForm } from "@/components/staff-forms";
-import { formatDate, formatDateTime, formatMinutes } from "@/lib/labels";
+import { formatDate, formatDateTime, formatMinutes, formatStreak } from "@/lib/labels";
 
 // 受講生名などは入れない (ページ名はアクセス権の確認とは別に作られるため)
 export const metadata: Metadata = { title: "受講生の詳細" };
@@ -69,7 +69,7 @@ export default async function StudentDetailPage({ params }: { params: Promise<{ 
             <dt className="text-muted">最終学習</dt>
             <dd>{formatDateTime(o.lastActivity)}</dd>
             <dt className="text-muted">連続学習</dt>
-            <dd>{o.streak} 日</dd>
+            <dd>{formatStreak(o.streak, o.streakIncludesToday)}</dd>
             <dt className="text-muted">累計学習時間</dt>
             <dd>{formatMinutes(o.totalMinutes)}</dd>
             <dt className="text-muted">最終ログイン</dt>
@@ -103,7 +103,7 @@ export default async function StudentDetailPage({ params }: { params: Promise<{ 
                     <td className="py-2">
                       {latest ? <Link className="text-accent underline" href={`/admin/reviews/${latest.id}`}>{a.title}</Link> : a.title}
                     </td>
-                    <td className="py-2">{a.unlocked ? <SubmissionBadge status={a.latestStatus} /> : <Badge>前提レッスン未完了</Badge>}</td>
+                    <td className="py-2"><SubmissionBadge status={a.latestStatus} locked={!a.unlocked} /></td>
                     <td className="py-2 tabular-nums">{a.attempts}</td>
                     <td className="py-2 tabular-nums">{a.latestReviewScore === null ? "—" : `${a.latestReviewScore} 点 (合格点 ${a.latestReviewPassScore ?? a.passScore} 点)`}</td>
                     <td className="whitespace-nowrap py-2">{formatDate(a.lastSubmittedAt)}</td>

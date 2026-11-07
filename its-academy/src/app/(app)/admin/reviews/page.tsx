@@ -30,7 +30,17 @@ export default async function ReviewsQueue({ searchParams }: { searchParams: Pro
     // 未対応は古い提出から順に。採点済みは新しい順に直近 100 件
     orderBy: { submittedAt: done ? "desc" : "asc" },
     ...(done ? { take: DONE_LIMIT } : {}),
-    include: { user: { select: { name: true } }, assignment: { select: { title: true, passScore: true, slug: true } } },
+    // 一覧では提出の本文 (コード・備考) を読み込まない (大きくなりうるため、採点画面で読む)
+    select: {
+      id: true,
+      userId: true,
+      assignmentId: true,
+      attemptNo: true,
+      status: true,
+      submittedAt: true,
+      user: { select: { name: true } },
+      assignment: { select: { title: true, passScore: true, slug: true } },
+    },
   });
   // 修正依頼のあと再提出された古い回は「修正依頼中」に出さない (最新の回だけ)
   let subs = found;

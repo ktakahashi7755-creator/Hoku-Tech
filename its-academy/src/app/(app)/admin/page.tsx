@@ -73,7 +73,7 @@ export default async function AdminDashboard() {
               ))}
             </ul>
           )}
-          <Link href="/admin/reviews" className="mt-3 inline-block text-sm text-accent underline">レビュー一覧へ</Link>
+          <Link href="/admin/reviews" className="mt-3 inline-flex min-h-11 items-center text-sm text-accent underline">レビュー一覧へ</Link>
         </Card>
       </div>
 

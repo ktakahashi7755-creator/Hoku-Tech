@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { requireMyOverview } from "@/lib/queries/me";
-import { Badge, EmptyState, PageHeader, ScrollRegion } from "@/components/ui";
+import { EmptyState, PageHeader, ScrollRegion } from "@/components/ui";
 import { SubmissionBadge } from "@/components/status-badge";
 import { ASSIGNMENT_TYPE_LABEL, formatDate } from "@/lib/labels";
 
@@ -43,7 +43,7 @@ export default async function AssignmentsPage() {
                   </Link>
                 </td>
                 <td className="px-4 py-3">{ASSIGNMENT_TYPE_LABEL[a.type]}</td>
-                <td className="px-4 py-3">{a.unlocked ? <SubmissionBadge status={a.latestStatus} /> : <Badge>前提レッスン未完了</Badge>}</td>
+                <td className="px-4 py-3"><SubmissionBadge status={a.latestStatus} locked={!a.unlocked} /></td>
                 <td className="px-4 py-3 tabular-nums">{a.attempts}</td>
                 <td className="px-4 py-3 tabular-nums">{a.latestReviewScore === null ? "—" : `${a.latestReviewScore} 点 (合格点 ${a.latestReviewPassScore ?? a.passScore} 点)`}</td>
                 <td className="whitespace-nowrap px-4 py-3">{formatDate(a.lastSubmittedAt)}</td>

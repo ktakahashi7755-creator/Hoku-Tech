@@ -45,7 +45,9 @@ test("管理者: 公開中のレッスンを編集 → 下書きは受講生に�
   await page.waitForURL(/\/home$/);
   await page.goto("/lessons/l2-conditionals");
   await expect(page.getByRole("heading", { name: "条件分岐 (if / switch 式)", level: 1 })).toBeVisible();
-  await expect(page.getByText("版 2")).toBeVisible();
+  // 公開した版の内容が出る (版の番号は講師・管理者向けの情報なので、受講生には出さない)
+  await expect(page.getByText("switch 式で多分岐を書ける")).toBeVisible();
+  await expect(page.getByText(/^版 \d+$/)).toHaveCount(0);
   await expect(page.getByText("下の実行結果と一致することを自動で確認しています")).toBeVisible();
   await logout(page);
 });

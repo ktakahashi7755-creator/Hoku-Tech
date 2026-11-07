@@ -33,7 +33,7 @@ export default async function CurriculumPage() {
       <PageHeader title={course.title} description={`${course.description} (標準 ${course.weeks} 週間)`} />
       {hasEnrollment(overview) && (
         <div className="mb-8 max-w-md">
-          <ProgressBar value={overview.metrics.lessonCompletion} label="教材の履修率" />
+          <ProgressBar value={overview.metrics.lessonCompletion} label={`教材の履修率 (必修 ${overview.metrics.completedLessons} / ${overview.metrics.totalLessons})`} />
         </div>
       )}
       <ol className="flex flex-col gap-6">
@@ -73,7 +73,7 @@ export default async function CurriculumPage() {
                         <Link href={staff ? `/admin/reviews?assignment=${a.slug}` : `/assignments/${a.slug}`} className="font-semibold text-accent underline-offset-2 hover:underline">
                           課題: {a.title}
                         </Link>
-                        {!staff && <SubmissionBadge status={aStatus.get(a.id)?.latestStatus ?? null} />}
+                        {!staff && <SubmissionBadge status={aStatus.get(a.id)?.latestStatus ?? null} locked={aStatus.get(a.id)?.unlocked === false} />}
                       </li>
                     ))}
                   </ul>

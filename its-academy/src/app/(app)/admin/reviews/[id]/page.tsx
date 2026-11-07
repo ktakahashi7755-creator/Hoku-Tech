@@ -1,4 +1,3 @@
-import { GITHUB_REPO_URL } from "@/lib/validation";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { db } from "@/lib/db";
@@ -8,8 +7,7 @@ import { assertCanActOnStudent } from "@/lib/queries/student";
 import { AssignmentBodySchema, RubricCriteriaSchema } from "@/lib/content/schema";
 import { Card, PageHeader } from "@/components/ui";
 import { SubmissionBadge } from "@/components/status-badge";
-import { ReviewView } from "@/components/review-view";
-import { CodeBlock } from "@/components/lesson/code-block";
+import { ReviewView, SubmissionContent } from "@/components/review-view";
 import { formatDateTime } from "@/lib/labels";
 import { ReviewForm, StartReviewButton } from "./review-form";
 import { notFound } from "next/navigation";
@@ -28,6 +26,7 @@ export default async function ReviewDetail({ params }: { params: Promise<{ id: s
   // 採点画面は、採点できる相手 (自分以外の受講生) の提出だけを開ける
   await assertCanActOnStudent(viewer, sub.userId);
 
+  // 同じ受講生・同じ課題の過去の回 (この提出の閲覧権限は上で確認済み。前回からの変化を比べられるよう、本文も読む)
   const history = await db.submission.findMany({
     where: { assignmentId: sub.assignmentId, userId: sub.userId, status: { not: "DRAFT" } },
     orderBy: { attemptNo: "desc" },
@@ -53,24 +52,8 @@ export default async function ReviewDetail({ params }: { params: Promise<{ id: s
         <div className="flex min-w-0 flex-col gap-6">
           <Card>
             <h2 className="font-bold">提出内容</h2>
-            <div className="mt-3 flex flex-col gap-3">
-              {sub.repoUrl && (
-                <p className="break-all">
-                  リポジトリ:{" "}
-                  {GITHUB_REPO_URL.test(sub.repoUrl) ? (
-                    <a className="text-accent underline" href={sub.repoUrl} target="_blank" rel="noreferrer noopener">{sub.repoUrl}</a>
-                  ) : (
-                    sub.repoUrl
-                  )}
-                </p>
-              )}
-              {sub.text && <CodeBlock code={sub.text} language="java" label="提出コード" />}
-              {sub.note && (
-                <div>
-                  <h3 className="text-sm font-semibold">受講生の備考</h3>
-                  <p className="mt-1 whitespace-pre-wrap rounded-lg bg-surface p-3 text-sm">{sub.note}</p>
-                </div>
-              )}
+            <div className="mt-3">
+              <SubmissionContent submission={sub} noteLabel="受講生の備考" />
             </div>
           </Card>
           <Card>
@@ -87,6 +70,17 @@ export default async function ReviewDetail({ params }: { params: Promise<{ id: s
                   <p className="flex items-center gap-2 text-sm">
                     <span className="font-semibold">{h.attemptNo} 回目</span> <SubmissionBadge status={h.status} /> <span className="text-muted">{formatDateTime(h.submittedAt)}</span>
                   </p>
+                  {h.id === sub.id ? (
+                    <p className="mt-2 text-sm text-muted">この画面で表示している提出です。</p>
+                  ) : (
+                    // 過去の回の内容は折りたたんでおき、必要なときに開いて今回と見比べる
+                    <details className="mt-2 rounded-lg border border-border">
+                      <summary className="flex min-h-11 cursor-pointer items-center px-3 text-sm font-semibold">{h.attemptNo} 回目の提出内容を見る</summary>
+                      <div className="border-t border-border p-3">
+                        <SubmissionContent submission={h} label={`${h.attemptNo} 回目の提出コード`} noteLabel="受講生の備考" />
+                      </div>
+                    </details>
+                  )}
                   {h.reviews.map((r) => <div key={r.id} className="mt-2"><ReviewView review={r} /></div>)}
                 </li>
               ))}

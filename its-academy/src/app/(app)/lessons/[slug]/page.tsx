@@ -43,8 +43,11 @@ export default async function LessonPage({ params }: { params: Promise<{ slug: s
   const content = LessonContentSchema.parse(version.content);
   const overview = staff ? null : await getStudentOverview(user.id);
   const modules = await getPublishedCurriculum(lesson.module.courseId);
-  const flat = modules.flatMap((m) => m.lessons.map((l) => ({ slug: l.slug, title: l.currentVersion.title, level: m.level })));
+  const flat = modules.flatMap((m) => m.lessons.map((l) => ({ slug: l.slug, title: l.currentVersion.title, level: m.level, optional: m.optional })));
   const index = flat.findIndex((l) => l.slug === slug);
+  // 「何番目のレッスンか」は、必修と選択 (L8) を分けて数える (履修率・ホームの「必修 N / M」と同じ数え方にする)
+  const group = flat.filter((l) => l.optional === lesson.module.optional);
+  const groupIndex = group.findIndex((l) => l.slug === slug);
   const prev = index > 0 ? flat[index - 1] : null;
   const next = index >= 0 && index < flat.length - 1 ? flat[index + 1] : null;
 
@@ -114,17 +117,19 @@ export default async function LessonPage({ params }: { params: Promise<{ slug: s
       <article id="lesson-content" tabIndex={-1} className="min-w-0 outline-none">
         <header className="mb-8 border-b border-border pb-6">
           <p className="text-sm text-muted">
-            {lesson.module.level} {lesson.module.title} ・ レッスン {index + 1} / {flat.length} (選択を含む)
+            {lesson.module.level} {lesson.module.title} ・ {lesson.module.optional ? "選択レッスン" : "必修レッスン"} {groupIndex + 1} / {group.length}
+            {lesson.module.optional && " (履修率には含めません)"}
           </p>
           <h1 className="mt-1 text-2xl font-bold sm:text-3xl">{version.title}</h1>
           <div className="mt-3 flex flex-wrap items-center gap-3 text-sm">
             <Badge tone="accent">学習目安 {version.estimatedMinutes} 分</Badge>
             {!staff && <LessonBadge status={myStatus} />}
-            <span className="text-muted">版 {version.version}</span>
+            {/* 版の番号は教材管理の情報のため、講師・管理者にだけ表示する */}
+            {staff && <span className="text-muted">版 {version.version}</span>}
           </div>
           {hasEnrollment(overview) && (
             <div className="mt-4 max-w-sm">
-              <ProgressBar value={overview.metrics.lessonCompletion} label="教材の履修率" />
+              <ProgressBar value={overview.metrics.lessonCompletion} label={`教材の履修率 (必修 ${overview.metrics.completedLessons} / ${overview.metrics.totalLessons})`} />
             </div>
           )}
           {content.videoUrl && (

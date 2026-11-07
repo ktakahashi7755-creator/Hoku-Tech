@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { requireMyOverview } from "@/lib/queries/me";
+import { countUnreadNotices, requireMyOverview } from "@/lib/queries/me";
 import { Card, EmptyState, PageHeader, ProgressBar, Stat } from "@/components/ui";
 import { NextActionCard } from "@/components/next-action";
 import { WeekChart } from "@/components/week-chart";
 import { SubmissionBadge } from "@/components/status-badge";
-import { formatDate, formatMinutes } from "@/lib/labels";
+import { formatDate, formatMinutes, formatStreak } from "@/lib/labels";
 
 export const metadata: Metadata = { title: "ホーム" };
 
@@ -23,6 +23,8 @@ export default async function HomePage() {
   const slugs = Object.fromEntries(o.assignments.map((a) => [a.id, a.slug]));
   const openAssignments = o.assignments.filter((a) => a.unlocked && a.latestStatus !== "PASSED");
   const visibleComments = o.comments.filter((c) => c.visibility === "STUDENT").slice(0, 3);
+  // まだ見ていないレビュー結果・講師コメントがあれば、「次にやること」の前に知らせる
+  const unread = await countUnreadNotices(user.id);
 
   return (
     <div className="flex flex-col gap-6">
@@ -31,12 +33,21 @@ export default async function HomePage() {
         <p className="text-muted">{o.enrollment.course.title}</p>
       </div>
 
+      {unread > 0 && (
+        <p role="status" className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg border border-accent/40 bg-accent-soft p-4 text-accent-strong">
+          <span className="font-semibold">まだ見ていないお知らせ (レビュー結果・講師コメント) が {unread} 件あります。</span>
+          <Link href="/reviews" className="inline-flex min-h-11 items-center font-semibold underline">
+            質問・レビューで確認する
+          </Link>
+        </p>
+      )}
+
       <NextActionCard next={o.next} assignmentSlugs={slugs} firstTime={o.metrics.completedLessons === 0} />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Stat label="教材の履修" value={`${o.metrics.completedLessons} / ${o.metrics.totalLessons}`} hint="必修レッスンのうち、理解度チェックに合格して完了したもの (L8 選択は含めない)" />
-        <Stat label="課題の合格" value={`${o.metrics.passedAssignments} / ${o.metrics.totalAssignments}`} hint="必修の課題 (L8 選択は含めない)" />
-        <Stat label="連続学習" value={`${o.streak} 日`} />
+        <Stat label="教材の履修" value={`必修 ${o.metrics.completedLessons} / ${o.metrics.totalLessons}`} hint="必修レッスンのうち、理解度チェックに合格して完了したもの (L8 選択は含めない)" />
+        <Stat label="課題の合格" value={`必修 ${o.metrics.passedAssignments} / ${o.metrics.totalAssignments}`} hint="必修の課題 (L8 選択は含めない)" />
+        <Stat label="連続学習" value={formatStreak(o.streak, o.streakIncludesToday)} hint={o.streak > 0 && !o.streakIncludesToday ? "今日学習すると、連続日数がつながります" : undefined} />
         <Stat label="累計学習時間" value={formatMinutes(o.totalMinutes)} />
       </div>
 

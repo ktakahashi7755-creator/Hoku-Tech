@@ -6,7 +6,7 @@ import { MetricCards } from "@/components/metric-cards";
 import { WeekChart } from "@/components/week-chart";
 import { LessonBadge } from "@/components/status-badge";
 import { SKILL_LABEL, SKILL_LEVEL_LABEL } from "@/lib/progress/skills";
-import { formatDate, formatMinutes } from "@/lib/labels";
+import { formatDate, formatMinutes, formatStreak } from "@/lib/labels";
 
 export const metadata: Metadata = { title: "学習進捗" };
 
@@ -39,7 +39,7 @@ export default async function ProgressPage() {
           <h2 className="font-bold">目標に対する進み具合</h2>
           {o.pace ? (
             <div className="mt-4 flex flex-col gap-3">
-              <ProgressBar value={o.metrics.lessonCompletion} label="教材の履修率" />
+              <ProgressBar value={o.metrics.lessonCompletion} label={`教材の履修率 (必修 ${o.metrics.completedLessons} / ${o.metrics.totalLessons})`} />
               <ProgressBar value={o.pace.expected} label="今日時点の目安" />
               <p className="text-sm text-muted">
                 {o.pace.diff >= 0 ? "目安どおり、または目安より進んでいます。" : `目安より ${-o.pace.diff} ポイント遅れています。週の学習計画を講師と見直しましょう。`}
@@ -52,7 +52,7 @@ export default async function ProgressPage() {
         <Card>
           <h2 className="font-bold">直近 7 日間の学習</h2>
           <p className="mt-1 text-sm text-muted">
-            連続 {o.streak} 日 ・ 累計 {formatMinutes(o.totalMinutes)} ・ 最終学習 {formatDate(o.lastActivity)}
+            連続 {formatStreak(o.streak, o.streakIncludesToday)} ・ 累計 {formatMinutes(o.totalMinutes)} ・ 最終学習 {formatDate(o.lastActivity)}
           </p>
           <div className="mt-4">
             <WeekChart week={o.week} />

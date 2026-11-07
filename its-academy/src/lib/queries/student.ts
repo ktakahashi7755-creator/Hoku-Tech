@@ -14,6 +14,7 @@ import {
   nextAction,
   paceAgainstTarget,
   jstDayStart,
+  jstDayKey,
   latestSubmissionByAssignment,
   reachableAssignments,
   type SubmissionStatusValue,
@@ -294,6 +295,8 @@ function buildOverview(studentId: string, data: OverviewData, now: Date) {
     stagnant: enrollment.status === "ACTIVE" && isStagnant(lastActivity, enrollment.startedAt, now, threshold),
     threshold,
     streak: learningStreak(activity, now),
+    // 今日すでに学習したか (連続日数が「昨日まで」の数え方かどうかを画面に添えるため。日数の定義は変えない)
+    streakIncludesToday: activity.some((d) => jstDayKey(d) === jstDayKey(now)),
     week: last7Days(sessionsByDay, now),
     totalMinutes,
     pace: paceAgainstTarget(enrollment.startedAt, enrollment.targetEndDate, metrics.lessonCompletion, now),

@@ -11,6 +11,9 @@ export const SUBMISSION_STATUS_LABEL: Record<SubmissionStatusValue | "NOT_STARTE
   FAILED: "不合格",
 };
 
+/** 前提のレッスンを完了していないため、まだ取り組めない課題の状態 (一覧・詳細・講師の画面で同じ表示にする) */
+export const ASSIGNMENT_LOCKED_LABEL = "前提レッスン未完了";
+
 /** 採点の判定 */
 export const DECISION_LABEL = { PASS: "合格", CHANGES_REQUESTED: "修正依頼", FAIL: "不合格" } as const;
 
@@ -38,6 +41,14 @@ export function formatMinutes(min: number): string {
   const h = Math.floor(min / 60);
   const m = min % 60;
   return m ? `${h} 時間 ${m} 分` : `${h} 時間`;
+}
+
+/**
+ * 連続学習日数の表示。今日まだ学習していない間は、昨日までの連続を数えているため「(昨日まで)」と添える
+ * (日数の数え方は learningStreak のまま変えない)。
+ */
+export function formatStreak(days: number, includesToday: boolean): string {
+  return days > 0 && !includesToday ? `${days} 日 (昨日まで)` : `${days} 日`;
 }
 
 /** 監査ログの操作の表示名 (記録上のコードは変えずに、画面でだけ読みやすくする) */

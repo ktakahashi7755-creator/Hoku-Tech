@@ -7,7 +7,7 @@ import { getSignedInUser } from "@/lib/auth/dal";
 import { AssignmentBodySchema, RubricCriteriaSchema } from "@/lib/content/schema";
 import { Badge, Card, PageHeader } from "@/components/ui";
 import { SubmissionBadge } from "@/components/status-badge";
-import { ReviewView } from "@/components/review-view";
+import { ReviewView, SubmissionContent } from "@/components/review-view";
 import { ASSIGNMENT_TYPE_LABEL, formatDateTime } from "@/lib/labels";
 import { SubmissionForm } from "./submission-form";
 
@@ -63,7 +63,7 @@ export default async function AssignmentPage({ params }: { params: Promise<{ slu
           <span className="flex flex-wrap items-center gap-2">
             <Badge tone="accent">{ASSIGNMENT_TYPE_LABEL[assignment.type]}</Badge>
             <span>合格点 {assignment.passScore} 点 (100 点満点)</span>
-            <SubmissionBadge status={summary.latestStatus} />
+            <SubmissionBadge status={summary.latestStatus} locked={!summary.unlocked} />
           </span>
         }
       />
@@ -134,6 +134,10 @@ export default async function AssignmentPage({ params }: { params: Promise<{ slu
       {canEdit && (
         <Card>
           <h2 className="font-bold">{lastFeedback ? "修正版を再提出する" : "提出する"}</h2>
+          {draft && (
+            // 再読み込みしたあとも、保存した下書きが入力欄に入っていることが分かるようにする
+            <p className="mt-2 text-sm text-muted">下書きを保存済み ({formatDateTime(draft.updatedAt)})。続きから編集して、提出するまで講師には届きません。</p>
+          )}
           <div className="mt-4">
             <SubmissionForm
               assignmentId={assignment.id}
@@ -159,7 +163,13 @@ export default async function AssignmentPage({ params }: { params: Promise<{ slu
                     <SubmissionBadge status={s.status} />
                     <span className="text-sm text-muted">{formatDateTime(s.submittedAt)}</span>
                   </div>
-                  {s.repoUrl && <p className="mt-2 break-all text-sm">{s.repoUrl}</p>}
+                  {/* 提出した内容は折りたたんでおき、開くと確認できる (前回からどこを直したかを見返すため) */}
+                  <details className="mt-3 rounded-lg border border-border">
+                    <summary className="flex min-h-11 cursor-pointer items-center px-3 text-sm font-semibold">{s.attemptNo} 回目の提出内容を見る</summary>
+                    <div className="border-t border-border p-3">
+                      <SubmissionContent submission={s} label={`${s.attemptNo} 回目の提出コード`} />
+                    </div>
+                  </details>
                   {s.reviews.map((r) => (
                     <div key={r.id} className="mt-3 border-t border-border pt-3">
                       <ReviewView review={r} />

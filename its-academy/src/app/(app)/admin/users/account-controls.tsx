@@ -17,9 +17,9 @@ export function AccountControls({ user, roles }: { user: { id: string; name: str
   }, [state]);
   const run = (fn: () => Promise<AccountState>) =>
     start(async () => {
-      const r = await fn();
+      const r = await fn().catch((): AccountState => ({ error: "操作できませんでした。通信を確認して、もう一度お試しください。" }));
       setState(r);
-      router.refresh();
+      if (!r?.error) router.refresh();
     });
 
   return (
@@ -33,17 +33,18 @@ export function AccountControls({ user, roles }: { user: { id: string; name: str
             const label = roles.find((r) => r.value === role)?.label ?? role;
             if (window.confirm(`${user.name} さんの権限を「${label}」に変更します。変更すると、その人はすべての端末でログアウトされます。よろしいですか?`)) run(() => changeRole(user.id, role));
             else setRole(user.role); // 取りやめたら、選択を今の権限に戻す
-          }} className="whitespace-nowrap">
+          }} className="whitespace-nowrap" aria-label={`${user.name} さんの権限を変更`}>
           変更
         </Button>
       </div>
       <div className="flex flex-wrap gap-2">
-        <Button type="button" variant="secondary" disabled={pending} onClick={() => {
+        {/* 一覧で同じ名前のボタンが並ぶため、読み上げでは誰に対する操作かを含める (見た目の文字は変えない) */}
+        <Button type="button" variant="secondary" disabled={pending} aria-label={`${user.name} さんの仮パスワードを発行`} onClick={() => {
           if (window.confirm(`${user.name} さんの仮パスワードを発行します。今のパスワードは使えなくなり、すべての端末でログアウトされます。よろしいですか?`)) run(() => issueTemporaryPassword(user.id));
         }}>
           仮パスワードを発行
         </Button>
-        <Button type="button" variant={user.isActive ? "danger" : "secondary"} disabled={pending} onClick={() => {
+        <Button type="button" variant={user.isActive ? "danger" : "secondary"} disabled={pending} aria-label={`${user.name} さんの${user.isActive ? "利用を停止" : "利用を再開"}`} onClick={() => {
           const message = user.isActive
             ? `${user.name} さんの利用を停止します。ログインできなくなり、すべての端末でログアウトされます。よろしいですか?`
             : `${user.name} さんの利用を再開します。よろしいですか?`;

@@ -1,5 +1,5 @@
 import { Badge } from "./ui";
-import { SUBMISSION_STATUS_LABEL } from "@/lib/labels";
+import { ASSIGNMENT_LOCKED_LABEL, SUBMISSION_STATUS_LABEL } from "@/lib/labels";
 import type { SubmissionStatusValue } from "@/lib/progress/metrics";
 
 const TONE: Record<SubmissionStatusValue | "NOT_STARTED", "neutral" | "accent" | "success" | "warning" | "danger"> = {
@@ -13,7 +13,9 @@ const TONE: Record<SubmissionStatusValue | "NOT_STARTED", "neutral" | "accent" |
   FAILED: "danger",
 };
 
-export function SubmissionBadge({ status }: { status: SubmissionStatusValue | null }) {
+/** 提出の状態。locked (前提レッスン未完了) のときは、提出の状態より先にそれを示す (一覧と詳細で同じ表示にする) */
+export function SubmissionBadge({ status, locked = false }: { status: SubmissionStatusValue | null; locked?: boolean }) {
+  if (locked) return <Badge>{ASSIGNMENT_LOCKED_LABEL}</Badge>;
   const s = status ?? "NOT_STARTED";
   return <Badge tone={TONE[s]}>{SUBMISSION_STATUS_LABEL[s]}</Badge>;
 }

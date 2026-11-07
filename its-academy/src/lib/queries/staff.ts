@@ -38,6 +38,9 @@ export function guidanceFor(o: StudentRow) {
     struggling: o.struggling.map((a) => ({ title: a.title, attempts: a.attempts, status: a.latestStatus })),
     lowSkills: o.skills.filter((s) => s.level <= 2).map((s) => SKILL_LABEL[s.skill] ?? s.skill),
     pendingReviews: o.pendingReviews,
+    // 受講生が今すぐ手を付けられる課題 (未着手・下書き・修正依頼・不合格)。レビュー待ちと合格は含めない
+    openAssignments: o.assignments.filter((a) => a.unlocked && (a.latestStatus === null || a.latestStatus === "DRAFT" || a.latestStatus === "CHANGES_REQUESTED" || a.latestStatus === "FAILED")).length,
+    remainingLessons: o.metrics.totalLessons - o.metrics.completedLessons,
   });
 }
 

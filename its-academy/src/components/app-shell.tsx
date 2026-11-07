@@ -5,24 +5,28 @@ import { logout } from "@/app/actions/auth";
 import { NavLinks, type NavItem } from "./nav-links";
 import { FocusOnArrival } from "./focus-on-arrival";
 import { FocusRescue } from "./focus-rescue";
+import { countUnreadNotices } from "@/lib/queries/me";
 
-const STUDENT_NAV: NavItem[] = [
+/** 受講生のメニュー。お知らせは「質問・レビュー」に表示されるため、未読の件数をそこに付ける */
+const studentNav = (unread: number): NavItem[] => [
   { href: "/home", label: "ホーム" },
   { href: "/curriculum", label: "カリキュラム" },
   { href: "/assignments", label: "課題" },
   { href: "/progress", label: "学習進捗" },
-  { href: "/reviews", label: "質問・レビュー" },
+  { href: "/reviews", label: "質問・レビュー", badge: unread },
   { href: "/me", label: "マイページ" },
 ];
 
 export async function AppShell({ children }: { children: React.ReactNode }) {
   const user = await requireUser(undefined, { allowPendingPasswordChange: true });
+  // 未読のお知らせの件数 (ログイン中の本人の分だけ。お知らせを表示する画面 = 受講生は「質問・レビュー」、講師・管理者はダッシュボードに付ける)
+  const unread = user.mustChangePassword ? 0 : await countUnreadNotices(user.id);
   // 仮パスワードのままの間は、パスワード変更 (マイページ) 以外の画面は使えないため、メニューにも出さない
   const nav: NavItem[] = user.mustChangePassword
     ? [{ href: "/me", label: "マイページ" }]
     : isStaff(user.role)
     ? [
-        { href: "/admin", label: "ダッシュボード", exact: true },
+        { href: "/admin", label: "ダッシュボード", exact: true, badge: unread },
         { href: "/admin/students", label: "受講生" },
         { href: "/admin/reviews", label: "レビュー" },
         { href: "/curriculum", label: "カリキュラム" },
@@ -35,7 +39,7 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
           : []),
         { href: "/me", label: "マイページ" },
       ]
-    : STUDENT_NAV;
+    : studentNav(unread);
 
   return (
     <div className="min-h-dvh">

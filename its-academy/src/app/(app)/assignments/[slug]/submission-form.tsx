@@ -6,12 +6,16 @@ import { ActionForm, reportFieldError } from "@/components/action-form";
 import { GITHUB_REPO_URL } from "@/lib/validation";
 import { Button, Field, FormMessage, inputStyles } from "@/components/ui";
 import { submitsRepository } from "@/lib/validation";
+import { NETWORK_ERROR, withNetworkFallback } from "@/lib/safe-action";
 
 export function SubmissionForm({ assignmentId, type, defaults }: { assignmentId: string; type: string; defaults: { text: string; repoUrl: string; note: string } }) {
-  const [state, action, pending] = useActionState(saveSubmission, undefined);
+  const [state, action, pending] = useActionState(withNetworkFallback(saveSubmission, { error: NETWORK_ERROR }), undefined);
   const repo = submitsRepository(type);
   // 確認ダイアログの前に見つけた入力の誤り (画面に残して表示する)
   const [clientErrors, setClientErrors] = useState<Record<string, string>>({});
+  // 押したボタンにだけ「…しています」を出す (下書き保存で「提出しています…」と表示しない)。
+  // Enter キーでの送信も既定のボタン (提出する) の click として届く
+  const [pressed, setPressed] = useState<"submit" | "draft">("submit");
   const fail = (form: HTMLFormElement, name: string, message: string) => {
     setClientErrors({ [name]: message });
     return reportFieldError(form, name, message);
@@ -50,11 +54,11 @@ export function SubmissionForm({ assignmentId, type, defaults }: { assignmentId:
       </Field>
       <FormMessage state={state} />
       <div className="flex flex-wrap gap-3">
-        <Button type="submit" name="intent" value="submit" disabled={pending}>
-          {pending ? "提出しています…" : "提出する"}
+        <Button type="submit" name="intent" value="submit" disabled={pending} onClick={() => setPressed("submit")}>
+          {pending && pressed === "submit" ? "提出しています…" : "提出する"}
         </Button>
-        <Button type="submit" name="intent" value="draft" variant="secondary" disabled={pending} formNoValidate>
-          下書き保存
+        <Button type="submit" name="intent" value="draft" variant="secondary" disabled={pending} formNoValidate onClick={() => setPressed("draft")}>
+          {pending && pressed === "draft" ? "保存しています…" : "下書き保存"}
         </Button>
       </div>
     </ActionForm>

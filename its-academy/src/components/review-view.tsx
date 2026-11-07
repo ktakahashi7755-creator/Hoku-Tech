@@ -1,5 +1,7 @@
 import { DECISION_LABEL, formatDateTime } from "@/lib/labels";
 import { ReviewScoresSchema } from "@/lib/content/schema";
+import { GITHUB_REPO_URL } from "@/lib/validation";
+import { CodeBlock } from "@/components/lesson/code-block";
 
 type ReviewLike = {
   totalScore: number;
@@ -11,6 +13,44 @@ type ReviewLike = {
   reviewer: { name: string };
 };
 
+/**
+ * 提出した内容 (リポジトリ URL・コード / 回答・備考)。採点画面と提出履歴で共通。
+ * 呼び出し側で、その提出を見てよい人か (本人・担当講師・管理者) を確認してから渡すこと。
+ * コードは横に長くなるため、キーボードでもスクロールできる領域 (ScrollRegion) に入れる
+ */
+export function SubmissionContent({
+  submission,
+  label = "提出コード",
+  noteLabel = "備考",
+}: {
+  submission: { repoUrl: string | null; text: string | null; note: string | null };
+  label?: string;
+  noteLabel?: string;
+}) {
+  const { repoUrl, text, note } = submission;
+  if (!repoUrl && !text && !note) return <p className="text-sm text-muted">提出内容は記録されていません。</p>;
+  return (
+    <div className="flex flex-col gap-3">
+      {repoUrl && (
+        <p className="break-all">
+          リポジトリ:{" "}
+          {GITHUB_REPO_URL.test(repoUrl) ? (
+            <a className="text-accent underline" href={repoUrl} target="_blank" rel="noreferrer noopener">{repoUrl}</a>
+          ) : (
+            repoUrl
+          )}
+        </p>
+      )}
+      {text && <CodeBlock code={text} language="java" label={label} />}
+      {note && (
+        <div>
+          <h3 className="text-sm font-semibold">{noteLabel}</h3>
+          <p className="mt-1 whitespace-pre-wrap rounded-lg bg-surface p-3 text-sm">{note}</p>
+        </div>
+      )}
+    </div>
+  );
+}
 
 /** 採点結果 (採点時点のルーブリックのスナップショットを表示する) */
 export function ReviewView({ review }: { review: ReviewLike }) {
