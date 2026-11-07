@@ -42,8 +42,10 @@ export function NavLinks({ items }: { items: NavItem[] }) {
     const box = nav.getBoundingClientRect();
     const r = link.getBoundingClientRect();
     const fade = nav.clientWidth * 0.15; // 右端を薄くしている幅 (mask-image の 85% 以降) に重ならないようにする
-    if (r.left < box.left) nav.scrollLeft -= box.left - r.left + 8;
-    else if (r.right > box.right - fade) nav.scrollLeft += r.right - (box.right - fade);
+    // 小数点以下の端数で数ピクセル欠けないよう切り上げる。最後のメニューなら右端まで動かす (ブラウザにより余白の扱いが違うため)
+    if (r.left < box.left) nav.scrollLeft -= Math.ceil(box.left - r.left) + 8;
+    else if (link.parentElement === link.closest("ul")?.lastElementChild) nav.scrollLeft = nav.scrollWidth;
+    else if (r.right > box.right - fade) nav.scrollLeft += Math.ceil(r.right - (box.right - fade)) + 1;
   }, [pathname]);
   return (
     <nav
@@ -51,7 +53,7 @@ export function NavLinks({ items }: { items: NavItem[] }) {
       aria-label="メインメニュー"
       className={cx("mx-auto max-w-6xl overflow-x-auto px-2", more && "[mask-image:linear-gradient(to_right,black_85%,transparent)]")}
     >
-      <ul className="flex gap-1">
+      <ul className="flex gap-1 after:block after:w-2 after:shrink-0 after:content-['']">
         {items.map((item) => {
           const active = isActive(item);
           const badge = item.badge && seen[item.href] !== item.badge ? item.badge : 0;
