@@ -6,13 +6,16 @@
  * - code[].source は verifiedBy のファイルから読み込むため、ここには書かない。
  * - REOrGA 教材を元にしたレッスンは sourceUrl に元記事を記録する。
  */
-import type { AssignmentBody, LessonContent, RubricCriteria } from "@/lib/content/schema";
+import type { AssignmentBody, LessonContent } from "@/lib/content/schema";
 import { L3_L4_ASSIGNMENTS, L3_LESSONS, L4_LESSONS } from "./lessons-l3-l4";
 import { L4_HTTP, L4_JDBC, L5_ASSIGNMENT, L5_LESSONS } from "./lessons-l4-l5";
 import { L5_SECURITY, L7_FINAL, L7_GUIDE } from "./lessons-l5-l7";
 import { FE_L6_ASSIGNMENTS, L4_FRONTEND, L6_LESSONS } from "./lessons-fe-l6";
 import { L1_GITHUB, L1_SETUP } from "./lessons-l1-setup";
 import { L8_ASSIGNMENT, L8_MODULE } from "./lessons-l8";
+import { README_RUBRIC, STANDARD_RUBRIC, type RubricDef } from "./rubrics";
+
+export { STANDARD_RUBRIC };
 
 export type CodeRef = Omit<LessonContent["code"][number], "source"> & { verifiedBy: string };
 
@@ -42,23 +45,12 @@ export type AssignmentDef = {
   title: string;
   type: "CODE" | "GITHUB_REPO" | "PROJECT" | "FINAL_PROJECT";
   passScore: number;
+  /** 採点に使うルーブリック。省略時は STANDARD_RUBRIC (コード課題向け) */
+  rubric?: RubricDef;
   body: AssignmentBody;
 };
 
 const REORGA = "https://engineer.reorga.co.jp/curriculum/";
-
-export const STANDARD_RUBRIC: { name: string; criteria: RubricCriteria } = {
-  name: "標準ルーブリック (コード課題)",
-  criteria: [
-    { key: "requirements", label: "要件充足", weight: 25, description: "必須要件をすべて満たしているか" },
-    { key: "correctness", label: "正確性", weight: 20, description: "境界値や異常な入力でも正しく動くか" },
-    { key: "readability", label: "可読性", weight: 15, description: "命名・インデント・コメントが読み手に優しいか" },
-    { key: "maintainability", label: "保守性", weight: 10, description: "重複がなく、変更しやすい構造か" },
-    { key: "testing", label: "テスト", weight: 10, description: "動作確認の手順と結果 (境界値を含む) が、README・備考欄・テストコードのいずれかで示されているか" },
-    { key: "security", label: "セキュリティ", weight: 10, description: "秘密情報を含めていないか。入力を検証しているか" },
-    { key: "explanation", label: "説明能力", weight: 10, description: "README (リポジトリ提出) または備考欄 (コード提出) で、目的・使い方・工夫を説明できているか" },
-  ],
-};
 
 export const COURSE = {
   slug: "java-engineer",
@@ -114,7 +106,7 @@ export const MODULES: ModuleDef[] = [
             {
               title: "悪い質問と良い質問",
               body:
-                "悪い例: 「Java が動きません」\n良い例: 「「変数とデータ型」のサンプルを動かそうとしています。javac Main.java の後に java Main を実行すると『エラー: メイン・クラスMainを検出およびロードできませんでした』と表示されます。ファイル名は Main.java で、ターミナルは同じフォルダで開いています。Windows 11 + WSL2 (Ubuntu 24.04)、Java 21 です。」",
+                "悪い例: 「Java が動きません」\n良い例: 「「変数とデータ型」のサンプルを動かそうとしています。javac Main.java の後に java Main を実行すると『エラー: メイン・クラスMainを検出およびロードできませんでした』と表示されます。ファイル名は Main.java で、ターミナルは同じフォルダで開いています。Windows 11 + WSL2 (Ubuntu 24.04)、Java 21 です。」\nWSL2 の Ubuntu は英語の表示が標準のため、同じエラーが「Error: Could not find or load main class Main」と表示されます。英語のメッセージも、訳さずにそのまま全文を貼ります。",
             },
           ],
           code: [],
@@ -430,7 +422,7 @@ export const MODULES: ModuleDef[] = [
             {
               heading: "計算のルール",
               body:
-                "整数 ÷ 整数の結果は整数になり、小数点以下は切り捨てられます (7 / 2 は 3)。% は割り算の余りです。どちらかが小数 (7.0) なら結果も小数になります。\n(int) のように型を指定して変換することをキャストと呼びます。",
+                "整数 ÷ 整数の結果は整数になり、小数点以下は切り捨てられます (7 / 2 は 3)。% は割り算の余りです。どちらかが小数 (7.0) なら結果も小数になります。\n(int) のように型を指定して変換することをキャストと呼びます。小数を (int) で整数にすると、小数点以下は切り捨てられます ((int) 3.9 は 3)。\nお金の計算は、サンプルの price * 110 / 100 のように整数で行います。先に掛けてから割ると、割り算での切り捨てが最後の 1 回だけになります。",
             },
             {
               heading: "変数名のルール",
@@ -447,7 +439,7 @@ export const MODULES: ModuleDef[] = [
             {
               language: "java",
               filename: "Main.java",
-              output: "Java入門書 の税込価格: 1320円\n会員ですか: true\n7 / 2 = 3\n7 % 2 = 1\n7.0 / 2 = 3.5",
+              output: "Java入門書 の税込価格: 1320円\n評価: 4.5\n会員ですか: true\n7 / 2 = 3\n7 % 2 = 1\n7.0 / 2 = 3.5\n(int) 3.9 = 3",
               verifiedBy: "content/code/l2-variables/Main.java",
             },
           ],
@@ -935,6 +927,7 @@ export const ASSIGNMENTS: AssignmentDef[] = [
     title: "GitHub に自己紹介リポジトリを公開する",
     type: "GITHUB_REPO",
     passScore: 70,
+    rubric: README_RUBRIC,
     body: {
       purpose: "Git の基本操作 (コミット・ブランチ) と、GitHub でリポジトリを公開する流れを一通り経験する。",
       scenario: "配属初日に「自己紹介を README にまとめてチームのリポジトリに PR を出して」と頼まれた想定です。",
@@ -946,7 +939,7 @@ export const ASSIGNMENTS: AssignmentDef[] = [
       ],
       recommended: ["README に見出し (#) と箇条書きを使う", "PR の説明欄に変更内容を書く"],
       steps: [
-        "GitHub でリポジトリを作成し、手元に git clone する",
+        "GitHub でリポジトリを作成し (作成画面で「Add a README file」にチェックを入れて main ブランチを作る)、手元に git clone する",
         "git switch -c feature/profile でブランチを作る",
         "README.md を編集してコミットする (3 回以上に分ける)",
         "git push -u origin feature/profile で送る",

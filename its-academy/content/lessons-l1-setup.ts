@@ -30,7 +30,11 @@ export const L1_SETUP: LessonDef = {
       },
       {
         heading: "必要なソフトを入れる",
-        body: "Ubuntu (WSL2):\nsudo apt install -y openjdk-21-jdk maven git postgresql\nsudo service postgresql start\nMac (Homebrew を入れた後):\nbrew install openjdk@21 maven git postgresql@16\nbrew services start postgresql@16\n(Mac の openjdk@21 は、インストール後に表示される「PATH を通す」案内に従ってください)\nJDK は「Java の開発キット」で、実行環境 (JRE) とコンパイラ (javac) を含みます。JRE だけでは Java のプログラムを作れません。",
+        body: "Ubuntu (WSL2):\nsudo apt install -y openjdk-21-jdk maven git postgresql\nsudo service postgresql start\nMac (Homebrew を入れた後):\nbrew install openjdk@21 maven git postgresql@16\necho 'export PATH=\"$(brew --prefix postgresql@16)/bin:$PATH\"' >> ~/.zprofile\nbrew services start postgresql@16\n(Mac の postgresql@16 は、そのままでは psql・createuser・createdb・pg_isready が PATH に入らないため、2 行目で PATH に追加します。追加した後はターミナルを開き直してください。openjdk@21 も、インストール後に表示される「PATH を通す」案内に従ってください)\nJDK は「Java の開発キット」で、実行環境 (JRE) とコンパイラ (javac) を含みます。JRE だけでは Java のプログラムを作れません。",
+      },
+      {
+        heading: "Git の名前とメールアドレス",
+        body: "コミットには「だれが記録したか」として名前とメールアドレスが残ります。インストールした後に 1 回だけ設定します (Windows は Ubuntu のターミナル、Mac はターミナルで実行します)。\ngit config --global user.name \"Yamada Hanako\"\ngit config --global user.email \"hanako@example.com\"\nメールアドレスは GitHub のアカウントに登録するものと同じにします。git config --global --list で設定を確かめられます。確認スクリプトの「Git の名前とメールアドレス」は、この設定があるかを見ています。",
       },
       {
         heading: "PostgreSQL の自分用ユーザー",
@@ -105,6 +109,11 @@ export const L1_SETUP: LessonDef = {
         fix: "Ubuntu は openjdk-21-jdk (jre ではなく jdk) を入れます。Mac はインストール時に表示された PATH の設定を行い、ターミナルを開き直します。",
       },
       {
+        error: "zsh: command not found: psql (Mac)",
+        cause: "Homebrew の postgresql@16 は、そのままでは PATH に追加されない",
+        fix: "echo 'export PATH=\"$(brew --prefix postgresql@16)/bin:$PATH\"' >> ~/.zprofile を実行し、ターミナルを開き直します。createuser・createdb・pg_isready も同じ理由で見つからなくなります。",
+      },
+      {
         error: "psql: error: connection to server at \"localhost\" (127.0.0.1), port 5432 failed: Connection refused",
         cause: "PostgreSQL のサーバーが起動していない",
         fix: "Ubuntu は sudo service postgresql start、Mac は brew services start postgresql@16 で起動します。",
@@ -138,7 +147,7 @@ export const L1_GITHUB: LessonDef = {
       },
       {
         heading: "SSH 鍵: 公開鍵と秘密鍵",
-        body: "git push のたびにパスワードを入力しないよう、SSH 鍵で認証します。ssh-keygen -t ed25519 -C \"メールアドレス\" を実行すると、2 つのファイルができます。\nid_ed25519.pub (公開鍵): GitHub の Settings → SSH and GPG keys に登録する方。人に見せても問題ありません\nid_ed25519 (秘密鍵): 自分のパソコンだけに置く方。だれにも渡さず、チャットや AI に貼ってはいけません。権限が 600 (自分だけが読める) になっていることを確認します\n実際に作るときはパスフレーズ (鍵のパスワード) を設定します。",
+        body: "git push のたびにパスワードを入力しないよう、SSH 鍵で認証します。ssh-keygen -t ed25519 -C \"メールアドレス\" を実行すると、2 つのファイルができます。\nid_ed25519.pub (公開鍵): GitHub の Settings → SSH and GPG keys に登録する方。人に見せても問題ありません\nid_ed25519 (秘密鍵): 自分のパソコンだけに置く方。だれにも渡さず、チャットや AI に貼ってはいけません。権限が 600 (自分だけが読める) になっていることを確認します\n実際に作るときはパスフレーズ (鍵のパスワード) を設定します。パスフレーズは、秘密鍵が盗まれたときに使われないようにするためのものです。\nパスフレーズを設定しても、鍵を ssh-agent (鍵を覚えておく仕組み) に登録すれば、push のたびに入力する必要はありません。\nUbuntu (WSL2): eval \"$(ssh-agent -s)\" の後に ssh-add ~/.ssh/id_ed25519 を実行し、パスフレーズを 1 回入力する (ターミナルを開き直したら再度実行します)\nMac: ssh-add --apple-use-keychain ~/.ssh/id_ed25519 を実行すると、パスフレーズがキーチェーンに保存されます。~/.ssh/config に次の 3 行を書いておくと、ターミナルを開き直しても入力は不要です\nHost github.com\n  AddKeysToAgent yes\n  UseKeychain yes",
       },
       {
         heading: "clone・ブランチ・push",

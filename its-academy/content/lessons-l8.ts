@@ -4,6 +4,7 @@
  * AI の評価は補助とし、合否は人が判定する。
  */
 import type { AssignmentDef, LessonDef, ModuleDef } from "./curriculum";
+import { AI_ASSISTED_RUBRIC } from "./rubrics";
 
 const L8_LESSONS: LessonDef[] = [
   {
@@ -434,7 +435,7 @@ const L8_LESSONS: LessonDef[] = [
       examples: [
         {
           title: "CLAUDE.md の例 (卒業制作のリポジトリ)",
-          body: "## 技術\nJava 21 / Spring Boot 4.1 / PostgreSQL 16\n## コマンド\nテスト: ./mvnw test\n## ルール\n- 利用者の入力を SQL に文字列連結しない。JDBC は PreparedStatement、JPA はメソッド名クエリか @Query のパラメータ (:name) を使う\n- パスワードは BCrypt。接続情報は環境変数で、リポジトリに書かない\n- 権限の判定はサーバー側 (SecurityConfig と Service) で行う\n- 変更したら ./mvnw test を実行し、結果を報告すること",
+          body: "## 技術\nJava 21 / Spring Boot 4.1 / PostgreSQL 16\n## コマンド\nテスト: ./mvnw test (Maven Wrapper がなければ mvn test)\n## ルール\n- 利用者の入力を SQL に文字列連結しない。JDBC は PreparedStatement、JPA はメソッド名クエリか @Query のパラメータ (:name) を使う\n- パスワードは BCrypt。接続情報は環境変数で、リポジトリに書かない\n- 権限の判定はサーバー側 (SecurityConfig と Service) で行う\n- 変更したら ./mvnw test を実行し、結果を報告すること",
         },
       ],
       code: [],
@@ -443,13 +444,13 @@ const L8_LESSONS: LessonDef[] = [
           title: "卒業制作のリポジトリに CLAUDE.md を書く",
           task: "自分の卒業制作のリポジトリに CLAUDE.md を作り、技術・コマンド・守るべきルールを書いてください。講師にレビューを依頼します。",
           hint: "「CLAUDE.md の例 (卒業制作のリポジトリ)」の 3 つの見出し (技術・コマンド・ルール) を参考に、自分のプロジェクトで実際に使っているバージョンとコマンドを書きます。",
-          answer: "良い CLAUDE.md は、技術 (Java 21 / Spring Boot 4.1 / PostgreSQL 16 など実際のバージョン)、コマンド (テスト: ./mvnw test など、実際に動くもの)、ルール (PreparedStatement を使う、パスワードは BCrypt、接続情報は環境変数、権限はサーバー側で判定、変更後はテストを実行して報告) が書かれ、パスワードや接続情報の値そのものは書かれていないものです。確認: 書いたコマンドを自分で実行して動くこと。",
+          answer: "良い CLAUDE.md は、技術 (Java 21 / Spring Boot 4.1 / PostgreSQL 16 など実際のバージョン)、コマンド (テスト: ./mvnw test、Maven Wrapper がなければ mvn test など、実際に動くもの)、ルール (PreparedStatement を使う、パスワードは BCrypt、接続情報は環境変数、権限はサーバー側で判定、変更後はテストを実行して報告) が書かれ、パスワードや接続情報の値そのものは書かれていないものです。確認: 書いたコマンドを自分で実行して動くこと。",
         },
         {
           title: "AI と 1 機能を追加する",
           task: "AI コーディングツールを使い、卒業制作に「貸出履歴の CSV 出力」を追加してください。計画の確認 → 実装 → テスト → 差分の確認 → PR の流れで進め、PR の説明に AI を使った範囲と、自分で見つけた AI の誤り (あれば) を書きます。",
           hint: "最初に「作業計画だけを出して」と頼み、変更するファイルの範囲を確認してから実装させます。",
-          answer: "良い結果は、PR の説明に AI に依頼した内容・AI を使った範囲・自分で確かめたこと (CSV の列と文字コード、履歴が 0 件のとき、管理者以外が使えないこと) と、見つけた AI の誤りとその直し方が書かれ、git diff に依頼の範囲外の変更や秘密情報が含まれていないものです。./mvnw test がすべて成功していることも確かめます。",
+          answer: "良い結果は、PR の説明に AI に依頼した内容・AI を使った範囲・自分で確かめたこと (CSV の列と文字コード、履歴が 0 件のとき、管理者以外が使えないこと) と、見つけた AI の誤りとその直し方が書かれ、git diff に依頼の範囲外の変更や秘密情報が含まれていないものです。./mvnw test (Maven Wrapper がなければ mvn test) がすべて成功していることも確かめます。",
         },
       ],
       quiz: {
@@ -512,6 +513,7 @@ export const L8_ASSIGNMENT: AssignmentDef = {
   title: "AI と開発した機能の検証レポート",
   type: "GITHUB_REPO",
   passScore: 70,
+  rubric: AI_ASSISTED_RUBRIC,
   body: {
     purpose: "AI コーディングツールを使って機能を追加し、AI の出力を自分で検証・修正した過程を説明できることを確認する。",
     scenario: "チームで AI ツールの利用が認められた想定で、卒業制作 (図書管理システム) に機能を 1 つ追加します。",
@@ -523,7 +525,7 @@ export const L8_ASSIGNMENT: AssignmentDef = {
       "秘密情報・個人情報を AI に入力していないこと (入力しそうになった場面があれば、どう防いだかを書く)",
     ],
     recommended: ["AI が提案したが採用しなかった変更と、その理由", "AI を使わずに書いた部分との比較"],
-    steps: ["CLAUDE.md を書く", "追加する機能の仕様と境界値のテストを先に書く", "AI と実装する (計画の確認 → 小さく実装 → テスト → 差分の確認)", "PR を作り、説明に検証の過程を書く", "リポジトリの URL を提出する"],
+    steps: ["CLAUDE.md を書く", "追加する機能の仕様と境界値のテストを先に書く", "AI と実装する (計画の確認 → 小さく実装 → テスト (./mvnw test。Maven Wrapper がなければ mvn test) → 差分の確認)", "PR を作り、説明に検証の過程を書く", "リポジトリの URL を提出する"],
     deliverables: ["GitHub リポジトリの URL", "PR の URL (備考欄)"],
     readmeChecklist: [],
     resubmitCondition: "テストの期待値が仕様ではなく AI の出力から作られている、PR に検証の過程が書かれていない、秘密情報がリポジトリや AI への入力に含まれている場合は修正依頼になります。合否は講師が判定します (AI の評価は使いません)。",

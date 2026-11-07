@@ -20,7 +20,10 @@ call() {
   [ -n "$AUTH" ] && args+=(-u "$AUTH")  # AUTH=ユーザー名:パスワード で HTTP Basic 認証を付ける
   local code
   code=$(curl "${args[@]}" "$BASE$path")
-  echo "$method $path${AUTH:+ (ユーザー ${AUTH%%:*} で認証)} -> $code"
+  # LABEL=説明 を付けると、( ) の中をその説明にする (誤ったパスワードを送る場面などで使う)
+  local who="${AUTH:+ (ユーザー ${AUTH%%:*} で認証)}"
+  [ -n "$LABEL" ] && who=" ($LABEL)"
+  echo "$method $path$who -> $code"
   grep -i '^location:' headers.txt | tr -d '\r' | sed 's/^/  /' || true
   [ -s body.txt ] && { cat body.txt; echo; }
   return 0

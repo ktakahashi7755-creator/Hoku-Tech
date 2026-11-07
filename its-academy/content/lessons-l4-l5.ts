@@ -138,6 +138,10 @@ export const L4_JDBC: LessonDef = {
         body: "DriverManager.getConnection(URL, ユーザー, パスワード) で接続します。URL は jdbc:postgresql://ホスト:ポート/データベース名 の形式です。\nパスワードをソースコードに書くと Git の履歴に残り、漏えいの原因になります。サンプルのように環境変数 (System.getenv) や、Git に含めない設定ファイルから読みます。",
       },
       {
+        heading: "実行のしかた",
+        body: "サンプルは Maven のプロジェクトです (pom.xml と src/main/java/com/example/jdbc/Main.java)。実行する前に、同じターミナルで接続情報の環境変数を設定します。\nexport DB_URL=jdbc:postgresql://localhost:5432/its_practice\nexport DB_USER=its\nexport DB_PASSWORD='L1 で設定した its のパスワード'\n環境変数はターミナルを閉じると消えるので、開き直したら設定し直します。パスワードを書いたファイルやコマンドの記録を Git にコミットしてはいけません。\n実行方法 1 (VS Code): Extension Pack for Java を入れた VS Code でプロジェクトのフォルダを開き、Main.java の main の上に表示される Run を押します。VS Code は、VS Code を起動したターミナルの環境変数を引き継ぐので、export したターミナルで code . を実行して開きます。\n実行方法 2 (コマンド): プロジェクトのフォルダで次の 2 行を実行します。1 行目でコンパイルし、ドライバの jar を target/lib にコピーします。2 行目でクラスと jar の場所 (-cp) を指定して Main を動かします。\nmvn -q compile dependency:copy-dependencies -DoutputDirectory=target/lib\njava -cp \"target/classes:target/lib/*\" com.example.jdbc.Main\nMain は最初に DROP TABLE IF EXISTS members で前回のテーブルを削除するので、何度実行しても同じ結果になります。L4 の SQL のレッスンで作った members テーブルも作り直されます。",
+      },
+      {
         heading: "PreparedStatement と SQL インジェクション",
         body: "SQL に利用者の入力を文字列連結で埋め込むと、入力に ' OR '1'='1 のような文字列を入れられたとき、SQL の条件が書き換えられてしまいます (SQL インジェクション)。サンプルでは、名前で検索しただけなのに全件が返っています。\nPreparedStatement では、SQL の値の部分を ? にしておき、setString などで値を渡します。値は SQL の一部ではなく「ただの値」として扱われるので、条件は書き換えられません。利用者の入力を含む SQL は必ず PreparedStatement で書きます。",
       },
@@ -220,6 +224,11 @@ export const L4_JDBC: LessonDef = {
         fix: "環境変数が設定されているかを確認します。設定ファイルのアクセス制限を trust (パスワードなし) にして回避してはいけません。",
       },
       {
+        error: "java.sql.SQLException: The url cannot be null",
+        cause: "DB_URL の環境変数を設定していない、または別のターミナルで設定した",
+        fix: "実行するターミナルで export DB_URL=... などの 3 行を実行してから、もう一度実行します。",
+      },
+      {
         error: "java.sql.SQLException: No suitable driver found for jdbc:postgresql://...",
         cause: "JDBC ドライバが依存関係に入っていない、または URL の書き方が違う",
         fix: "pom.xml に org.postgresql:postgresql があるか、URL が jdbc:postgresql:// で始まっているかを確認します。",
@@ -260,8 +269,12 @@ export const L5_LESSONS: LessonDef[] = [
           body: "@RestController を付けたクラスのメソッドの戻り値は、そのままレスポンスの本文になります (オブジェクトを返すと JSON に変換されます)。@GetMapping(\"/api/hello\") は「GET /api/hello のリクエストをこのメソッドで処理する」という対応付けです。@RequestParam はクエリ文字列 (?name=hanako) の値を引数で受け取ります。画面 (HTML) を返す場合は @Controller とテンプレート (Thymeleaf) を使いますが、このコースでは JSON を返す REST API を中心に学びます。",
         },
         {
+          heading: "プロジェクトの作り方 (Spring Initializr)",
+          body: "Spring Boot のプロジェクトは、ブラウザで https://start.spring.io (Spring Initializr) を開いて作ります。\nProject: Maven / Language: Java / Spring Boot: 4.1 の最新版 (SNAPSHOT や M の付かないもの) / Group: com.example / Artifact: book-api / Package name: com.example.bookapi (ハイフンを含まない名前に直す) / Packaging: Jar / Configuration: Properties / Java: 21\nDependencies の ADD DEPENDENCIES から、Spring Web MVC (Spring Web と表示されることもあります)・Spring Data JPA・Validation・PostgreSQL Driver の 4 つを追加し、GENERATE で zip をダウンロードします。\nzip を作業フォルダ (Windows は Ubuntu のホームディレクトリの下) に展開し、VS Code で開きます。できた pom.xml を下のサンプルの pom.xml と見比べ、spring-boot-starter-webmvc・spring-boot-starter-data-jpa・spring-boot-starter-validation・postgresql がそろっていることを確かめます。application.properties には、サンプルの接続設定を書き足します。",
+        },
+        {
           heading: "起動の仕方",
-          body: "プロジェクトのフォルダで ./mvnw spring-boot:run (Maven Wrapper がある場合) または mvn spring-boot:run を実行します。IDE の実行ボタンでも起動できますが、コマンドでの起動方法も覚えておくと、環境によらず同じ手順で動かせます。",
+          body: "サンプルの application.properties は、接続先を ${DB_URL}・${DB_USER}・${DB_PASSWORD} (環境変数) から読みます。Spring Data JPA を入れたアプリは起動時にデータベースへ接続するため、GET /api/hello だけを試すときも、先に同じターミナルで 3 つを設定します。\nexport DB_URL=jdbc:postgresql://localhost:5432/its_practice\nexport DB_USER=its\nexport DB_PASSWORD='L1 で設定した its のパスワード'\n環境変数はターミナルを閉じると消えるので、開き直したら設定し直します。パスワードを application.properties に直接書いたり、パスワードを書いたファイルを Git にコミットしたりしてはいけません。\nその後、プロジェクトのフォルダで ./mvnw spring-boot:run (Spring Initializr で作ったプロジェクトには Maven Wrapper の mvnw が入っています) または mvn spring-boot:run を実行します。ログに Started BookApiApplication と表示されたら、ブラウザで http://localhost:8080/api/hello を開きます。止めるときは Ctrl + C です。IDE の実行ボタンでも起動できますが、コマンドでの起動方法も覚えておくと、環境によらず同じ手順で動かせます。",
         },
       ],
       examples: [
@@ -271,6 +284,8 @@ export const L5_LESSONS: LessonDef[] = [
         },
       ],
       code: [
+        { language: "xml", filename: "pom.xml", verifiedBy: `${BOOK}/pom.xml` },
+        { language: "properties", filename: "application.properties", verifiedBy: `${BOOK}/src/main/resources/application.properties` },
         { language: "java", filename: "BookApiApplication.java", verifiedBy: `${BOOK_SRC}/BookApiApplication.java` },
         { language: "java", filename: "hello/GreetingService.java", verifiedBy: `${BOOK_SRC}/hello/GreetingService.java` },
         {
@@ -327,6 +342,11 @@ export const L5_LESSONS: LessonDef[] = [
           error: "Parameter 0 of constructor in ...HelloController required a bean of type '...GreetingService' that could not be found.",
           cause: "GreetingService に @Service を付け忘れた、または起動クラスより上や別のパッケージに置いた",
           fix: "@Service を付け、起動クラスのパッケージの下に置きます。",
+        },
+        {
+          error: "Could not resolve placeholder 'DB_URL' in value \"${DB_URL}\" (起動時のログ)",
+          cause: "DB_URL などの環境変数を設定していない、または別のターミナルで設定した",
+          fix: "起動するターミナルで export DB_URL=... などの 3 行を実行してから起動し直します。echo $DB_URL で値が入っているかを確かめられます (パスワードは画面に表示しません)。",
         },
         {
           error: "Web server failed to start. Port 8080 was already in use.",
@@ -386,6 +406,9 @@ export const L5_LESSONS: LessonDef[] = [
         { language: "java", filename: "book/Book.java", verifiedBy: `${BOOK_SRC}/book/Book.java` },
         { language: "java", filename: "book/BookRepository.java", verifiedBy: `${BOOK_SRC}/book/BookRepository.java` },
         { language: "java", filename: "book/BookRequest.java", verifiedBy: `${BOOK_SRC}/book/BookRequest.java` },
+        { language: "java", filename: "book/BookResponse.java", verifiedBy: `${BOOK_SRC}/book/BookResponse.java` },
+        { language: "java", filename: "book/BookNotFoundException.java", verifiedBy: `${BOOK_SRC}/book/BookNotFoundException.java` },
+        { language: "java", filename: "book/DuplicateIsbnException.java", verifiedBy: `${BOOK_SRC}/book/DuplicateIsbnException.java` },
         { language: "java", filename: "book/BookService.java", verifiedBy: `${BOOK_SRC}/book/BookService.java` },
         { language: "java", filename: "book/ApiExceptionHandler.java", verifiedBy: `${BOOK_SRC}/book/ApiExceptionHandler.java` },
         { language: "properties", filename: "application.properties", verifiedBy: `${BOOK}/src/main/resources/application.properties` },
@@ -492,7 +515,7 @@ export const L5_LESSONS: LessonDef[] = [
       explanation: [
         {
           heading: "なぜテストを書くのか",
-          body: "テストは「この入力ならこう動く」をコードで記録したものです。修正のたびに手で画面を確かめなくても、mvn test で一瞬で確認でき、変更で別の場所を壊したこと (デグレード) にすぐ気付けます。課題の評価観点「テスト」でも、テストコードがあるかを確認します。",
+          body: "テストは「この入力ならこう動く」をコードで記録したものです。修正のたびに手で画面を確かめなくても、mvn test で一瞬で確認でき、変更で別の場所を壊したこと (デグレード。略してデグレ。以前は動いていた機能が壊れること) にすぐ気付けます。課題の評価観点「テスト」でも、テストコードがあるかを確認します。",
         },
         {
           heading: "JUnit 5 の基本",
@@ -601,7 +624,7 @@ export const L5_ASSIGNMENT: AssignmentDef = {
     scenario: "社内の連絡用掲示板のバックエンドを任された想定です。画面はフロントエンド担当が別に作るため、API だけを作ります。",
     requirements: [
       "スレッド (タイトル・作成者・作成日時) の一覧・詳細・作成・更新・削除の API (GET・POST・PUT・DELETE)",
-      "スレッドへのコメント (本文・投稿者・投稿日時) の一覧と投稿の API",
+      "スレッドへのコメント (本文・投稿者・投稿日時) の一覧と投稿の API。コメントは thread_id 列 (Long のフィールド) で関連付けてよい (JPA の関連 (@ManyToOne) の設定は任意)",
       "Controller・Service・Repository に分け、受け取りは DTO + Bean Validation",
       "存在しない ID は 404、入力の誤りは 400 (項目ごとのエラー) を ProblemDetail 形式で返す",
       "MockMvc のテストを 6 件以上 (各 API の正常系と、404・400 を含む)",
@@ -610,7 +633,7 @@ export const L5_ASSIGNMENT: AssignmentDef = {
     recommended: ["一覧の並び順 (新しい順) とページング (?page=0&size=20)", "コメントのあるスレッドを削除したときの動作を決めて README に書く", "GitHub Actions で mvn test を自動実行"],
     steps: [
       "API の一覧 (メソッド・URL・ステータスコード) を README に先に書く",
-      "Spring Boot 4.1 / Java 21 のプロジェクトを作り、GitHub に push する",
+      "Spring Initializr で Spring Boot 4.1 / Java 21 のプロジェクトを作り (「Spring Boot の基本」のレッスンの手順)、GitHub に push する",
       "スレッドの CRUD とテストを作る",
       "コメントの API とテストを作る",
       "README を仕上げ、PR を作ってからマージし、リポジトリ URL を提出する",

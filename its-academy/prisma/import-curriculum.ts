@@ -4,7 +4,9 @@
  */
 import type { PrismaClient } from "@prisma/client";
 import { ASSIGNMENTS, COURSE, MODULES, STANDARD_RUBRIC } from "../content/curriculum";
+import type { RubricDef } from "../content/rubrics";
 import { buildLessonContent } from "../scripts/curriculum-loader";
+import { RubricCriteriaSchema } from "../src/lib/content/schema";
 
 export type ImportedCurriculum = {
   courseId: string;
@@ -15,7 +17,18 @@ export type ImportedCurriculum = {
 
 /** 空の DB に教材を登録する。トランザクション内 (tx) でも呼べる */
 export async function importCurriculum(db: Pick<PrismaClient, "rubric" | "course" | "module" | "lesson" | "lessonVersion" | "assignment">, authorId: string | null): Promise<ImportedCurriculum> {
-  const rubric = await db.rubric.create({ data: { name: STANDARD_RUBRIC.name, criteria: STANDARD_RUBRIC.criteria } });
+  // 課題ごとのルーブリック (指定がなければ標準)。同じルーブリックは 1 行だけ作り、複数の課題で共有する。
+  // 採点結果 (reviews.scores) は採点時点の観点と配点を持つため、ルーブリックを後から編集しても過去の採点は変わらない
+  const rubricIdByName = new Map<string, string>();
+  async function rubricIdOf(def: RubricDef): Promise<string> {
+    const known = rubricIdByName.get(def.name);
+    if (known) return known;
+    const criteria = RubricCriteriaSchema.parse(def.criteria); // 配点の合計が 100 でなければここで止める
+    const created = await db.rubric.create({ data: { name: def.name, criteria } });
+    rubricIdByName.set(def.name, created.id);
+    return created.id;
+  }
+  await rubricIdOf(STANDARD_RUBRIC);
   const course = await db.course.create({
     data: { slug: COURSE.slug, title: COURSE.title, description: COURSE.description, weeks: COURSE.weeks, status: "PUBLISHED" },
   });
@@ -61,7 +74,7 @@ export async function importCurriculum(db: Pick<PrismaClient, "rubric" | "course
         type: a.type,
         body: a.body,
         passScore: a.passScore,
-        rubricId: rubric.id,
+        rubricId: await rubricIdOf(a.rubric ?? STANDARD_RUBRIC),
         position: i,
       },
     });

@@ -29,11 +29,11 @@ export const L3_LESSONS: LessonDef[] = [
         },
         {
           heading: "this と super",
-          body: "this は「このオブジェクト自身」です。this.name = name; は「このオブジェクトの name フィールドに、引数の name を入れる」という意味です。\nsuper は「親クラスの部分」です。super.monthlyPay() で親クラスのメソッドを呼べます。子クラスのコンストラクタでは、最初の行で super(...) を呼んで親クラスの初期化を行います (書かないと引数なしの super() が自動で呼ばれ、親に引数なしコンストラクタがなければコンパイルエラーになります)。",
+          body: "this は「このオブジェクト自身」です。this.name = name; は「このオブジェクトの name フィールドに、引数の name を入れる」という意味です。\nsuper は「親クラスの部分」です。super.monthlyPay() で親クラスのメソッドを呼べます。子クラスのコンストラクタでは、最初の行で super(...) を呼んで親クラスの初期化を行います (Java 21 の場合。書かないと引数なしの super() が自動で呼ばれ、親に引数なしコンストラクタがなければコンパイルエラーになります)。",
         },
         {
           heading: "オーバーロードとの違い",
-          body: "オーバーロードは「同じ名前で引数が違うメソッドを並べる」こと、オーバーライドは「親のメソッドを子が上書きする」ことです。名前が似ているので混同しやすい用語です。\nなお、メソッドの引数と同じ名前のローカル変数を宣言すると、警告ではなくコンパイルエラーになります。",
+          body: "オーバーロードは「同じ名前で引数が違うメソッドを並べる」こと、オーバーライドは「親のメソッドを子が上書きする」ことです。名前が似ているので混同しやすい用語です。",
         },
       ],
       examples: [
@@ -72,7 +72,7 @@ export const L3_LESSONS: LessonDef[] = [
             question: "子クラスのコンストラクタで super(name, baseSalary) を書く場所はどこですか。",
             choices: ["コンストラクタの最後の行", "コンストラクタの最初の行", "どこでもよい"],
             answerIndex: 1,
-            explanation: "super(...) の呼び出しはコンストラクタの最初の文でなければなりません。",
+            explanation: "super(...) の呼び出しはコンストラクタの最初の文でなければなりません (Java 21 の場合)。",
           },
           {
             id: "q2",
@@ -134,7 +134,7 @@ export const L3_LESSONS: LessonDef[] = [
         },
         {
           heading: "抽象クラスとの違い",
-          body: "抽象クラス (abstract class) は、共通のフィールドや途中までの処理を持てる「未完成の親クラス」です。継承できる親は 1 つだけです。\nインターフェースは状態 (フィールド) を持たない「できることの約束」で、いくつでも実装できます。迷ったらまずインターフェースを使い、共通の処理を共有したい場合に抽象クラスを検討します。",
+          body: "抽象クラス (abstract class) は、共通のフィールドや途中までの処理を持てる「一部を子クラスに任せる親クラス」です。継承できる親は 1 つだけです。\nインターフェースは状態 (フィールド) を持たない「できることの約束」で、いくつでも実装できます。迷ったらまずインターフェースを使い、共通の処理を共有したい場合に抽象クラスを検討します。",
         },
       ],
       examples: [
@@ -296,7 +296,7 @@ export const L3_LESSONS: LessonDef[] = [
         {
           error: "java.util.ConcurrentModificationException",
           cause: "拡張 for 文でコレクションを回しながら、同じコレクションの要素を削除した",
-          fix: "list.removeIf(x -> 条件) を使うか、Iterator の remove() を使います。",
+          fix: "Iterator を使い、it.next() で取り出した要素が条件に合えば it.remove() で削除します。list.removeIf(x -> 条件) でも書けます (x -> 条件 はラムダ式という書き方で、L5 で使います)。",
         },
         {
           error: "NullPointerException (Map の値を int に入れたとき)",
@@ -547,6 +547,10 @@ export const L4_LESSONS: LessonDef[] = [
           body: "DDL (データ定義): CREATE TABLE、ALTER TABLE、DROP TABLE など、テーブルの構造を作る・変える命令\nDML (データ操作): SELECT、INSERT、UPDATE、DELETE など、中のデータを扱う命令\nDCL (権限): GRANT、REVOKE など",
         },
         {
+          heading: "SQL ファイルの実行のしかた",
+          body: "サンプルの SQL は demo.sql のようなファイルに保存し、そのファイルがあるフォルダで次のように実行します (L1 で作ったユーザー its とデータベース its_practice に接続します)。\npsql -h localhost -U its -d its_practice -f demo.sql\nパスワードを聞かれたら、L1 で設定した its のパスワードを入力します。-f の代わりに psql -h localhost -U its -d its_practice で接続すると、SQL を 1 文ずつ打ち込んで試せます (終了は \\q)。\nサンプルの先頭にある DROP TABLE IF EXISTS は「同じ名前のテーブルがあれば先に削除する」命令です。これがないと、2 回目の実行で ERROR:  relation \"products\" already exists になります。テーブルがないとき (初回) は NOTICE:  table \"products\" does not exist, skipping と表示されますが、エラーではありません。DROP TABLE は中のデータも消すので、練習用のテーブル以外には使いません。",
+        },
+        {
           heading: "SELECT の基本",
           body: "SELECT 列 FROM テーブル WHERE 条件 ORDER BY 並べる列;\nWHERE では =、<>、<、<=、AND、OR を使えます。LIKE '%ノート%' は「ノートを含む」(% は 0 文字以上の任意の文字列)、'ノート%' は「ノートで始まる」です。ORDER BY price DESC で降順になります。SELECT * は全列ですが、実務では必要な列を書くのが基本です。",
         },
@@ -562,7 +566,7 @@ export const L4_LESSONS: LessonDef[] = [
           language: "sql",
           filename: "demo.sql",
           output:
-            "CREATE TABLE\nINSERT 0 4\n--- 300 円以下の商品を安い順に\n    name    | price\n------------+-------\n ボールペン |   150\n 付箋       |   200\n ノート     |   300\n(3 rows)\n\n--- 名前に「ノート」を含み、在庫がある商品\n id |      name      | stock\n----+----------------+-------\n  1 | ノート         |   120\n  3 | ノートパソコン |     5\n(2 rows)",
+            "DROP TABLE\nCREATE TABLE\nINSERT 0 4\n--- 300 円以下の商品を安い順に\n    name    | price\n------------+-------\n ボールペン |   150\n 付箋       |   200\n ノート     |   300\n(3 rows)\n\n--- 名前に「ノート」を含み、在庫がある商品\n id |      name      | stock\n----+----------------+-------\n  1 | ノート         |   120\n  3 | ノートパソコン |     5\n(2 rows)",
           verifiedBy: "content/code/l4-sql-select/demo.sql",
         },
       ],
@@ -613,6 +617,11 @@ export const L4_LESSONS: LessonDef[] = [
           fix: "文字列は WHERE name = 'ノート' のように単一引用符で囲みます。",
         },
         {
+          error: "ERROR:  cannot drop table products because other objects depend on it",
+          cause: "自分で作った別のテーブル (課題の stocks など) が、外部キーで products を参照している",
+          fix: "課題用には別のデータベースを作って分けます (例: createdb -h localhost -U its its_a4 で作り、psql の -d its_a4 で接続する)。",
+        },
+        {
           error: "ERROR:  duplicate key value violates unique constraint \"products_pkey\"",
           cause: "すでにある主キーの値で INSERT した",
           fix: "id を重複しない値にします。自動採番には GENERATED ALWAYS AS IDENTITY を使います。",
@@ -636,7 +645,7 @@ export const L4_LESSONS: LessonDef[] = [
       explanation: [
         {
           heading: "テーブルを分ける理由と外部キー",
-          body: "商品テーブルにカテゴリ名を毎回書くと、カテゴリ名を変えるときに全行を直す必要があり、書き間違いも起きます。カテゴリを別テーブルに分け、商品には category_id だけを持たせる設計を正規化と呼びます。\nREFERENCES categories (id) は外部キー制約で、存在しないカテゴリの id を入れられないようにします。",
+          body: "商品テーブルにカテゴリ名を毎回書くと、カテゴリ名を変えるときに全行を直す必要があり、書き間違いも起きます。カテゴリを別テーブルに分け、商品には category_id だけを持たせる設計を正規化と呼びます。\nREFERENCES categories (id) は外部キー制約で、存在しないカテゴリの id を入れられないようにします。\n主キーは複数の列の組み合わせにもできます (複合主キー)。例えば店舗ごとの在庫を表す stocks テーブルで、列の定義の後に PRIMARY KEY (store_id, product_id) と書くと、「同じ店舗の同じ商品」の行を 2 つ作れなくなります (店舗が違えば同じ商品の行を作れます)。",
         },
         {
           heading: "JOIN",
@@ -662,7 +671,7 @@ export const L4_LESSONS: LessonDef[] = [
           language: "sql",
           filename: "demo.sql",
           output:
-            "CREATE TABLE\nCREATE TABLE\nINSERT 0 3\nINSERT 0 5\n--- INNER JOIN: カテゴリのある商品だけ\n      商品      | カテゴリ\n----------------+----------\n ノート         | 文房具\n ボールペン     | 文房具\n ノートパソコン | パソコン\n マウス         | パソコン\n(4 rows)\n\n--- LEFT JOIN: 商品のないカテゴリも残す。カテゴリごとの件数と平均価格\n カテゴリ | 件数 | 平均価格\n----------+------+----------\n 文房具   |    2 |      225\n パソコン |    2 |    50250\n 書籍     |    0 |\n(3 rows)\n\n--- HAVING: 平均価格が 1000 円以上のカテゴリ\n カテゴリ | 平均価格\n----------+----------\n パソコン |    50250\n(1 row)",
+            "DROP TABLE\nCREATE TABLE\nCREATE TABLE\nINSERT 0 3\nINSERT 0 5\n--- INNER JOIN: カテゴリのある商品だけ\n      商品      | カテゴリ\n----------------+----------\n ノート         | 文房具\n ボールペン     | 文房具\n ノートパソコン | パソコン\n マウス         | パソコン\n(4 rows)\n\n--- LEFT JOIN: 商品のないカテゴリも残す。カテゴリごとの件数と平均価格\n カテゴリ | 件数 | 平均価格\n----------+------+----------\n 文房具   |    2 |      225\n パソコン |    2 |    50250\n 書籍     |    0 |\n(3 rows)\n\n--- HAVING: 平均価格が 1000 円以上のカテゴリ\n カテゴリ | 平均価格\n----------+----------\n パソコン |    50250\n(1 row)",
           verifiedBy: "content/code/l4-sql-join/demo.sql",
         },
       ],
@@ -764,7 +773,7 @@ export const L4_LESSONS: LessonDef[] = [
           language: "sql",
           filename: "demo.sql",
           output:
-            "CREATE TABLE\nINSERT 0 3\n--- UPDATE は必ず WHERE を付け、先に同じ条件で SELECT して対象を確かめる\n id | name | plan\n----+------+-------\n  2 | 佐藤 | basic\n(1 row)\n\nUPDATE 1\n--- トランザクション: 誤って全件を更新しても ROLLBACK で元に戻せる\nBEGIN\nUPDATE 3\n free_の件数\n-------------\n           3\n(1 row)\n\nROLLBACK\n id | name | plan\n----+------+-------\n  1 | 山田 | basic\n  2 | 佐藤 | pro\n  3 | 鈴木 | pro\n(3 rows)\n\n--- 論理削除と物理削除\nUPDATE 1\nDELETE 1\n id | name | plan\n----+------+------\n  2 | 佐藤 | pro\n(1 row)",
+            "DROP TABLE\nCREATE TABLE\nINSERT 0 3\n--- UPDATE は必ず WHERE を付け、先に同じ条件で SELECT して対象を確かめる\n id | name | plan\n----+------+-------\n  2 | 佐藤 | basic\n(1 row)\n\nUPDATE 1\n--- トランザクション: 誤って全件を更新しても ROLLBACK で元に戻せる\nBEGIN\nUPDATE 3\n free_の件数\n-------------\n           3\n(1 row)\n\nROLLBACK\n id | name | plan\n----+------+-------\n  1 | 山田 | basic\n  2 | 佐藤 | pro\n  3 | 鈴木 | pro\n(3 rows)\n\n--- 論理削除と物理削除\nUPDATE 1\nDELETE 1\n id | name | plan\n----+------+------\n  2 | 佐藤 | pro\n(1 row)",
           verifiedBy: "content/code/l4-sql-modify/demo.sql",
         },
       ],

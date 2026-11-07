@@ -1,3 +1,8 @@
+-- 何度実行しても同じ結果になるように、前に作った同じ名前のテーブルを先に削除する
+-- (初回は「テーブルがないので飛ばした」という NOTICE が出るが、エラーではない)
+-- products は categories を参照している (外部キー) ので、2 つを同じ文でまとめて削除する
+DROP TABLE IF EXISTS products, categories;
+
 CREATE TABLE categories (
     id   INTEGER     PRIMARY KEY,
     name VARCHAR(30) NOT NULL

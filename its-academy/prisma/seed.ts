@@ -8,6 +8,7 @@ import type { Prisma } from "@prisma/client";
 import { createPrismaClient } from "../src/lib/prisma-client";
 import { hashPassword } from "../src/lib/auth/password";
 import { ASSIGNMENTS, MODULES, STANDARD_RUBRIC } from "../content/curriculum";
+import type { RubricDef } from "../content/rubrics";
 import { importCurriculum } from "./import-curriculum";
 
 if (process.env.NODE_ENV === "production") {
@@ -103,15 +104,17 @@ async function main() {
   // 高橋: 開始直後
   await inProgress(yota.id, "l0-how-to-learn", daysAgo(1));
 
-  const scores = (values: number[]) =>
-    STANDARD_RUBRIC.criteria.map((c, i) => ({ key: c.key, label: c.label, weight: c.weight, score: Math.min(values[i], c.weight) }));
+  // 採点の観点は、その課題に登録したルーブリックに合わせる (指定がなければ標準)
+  const rubricOf = (slug: string): RubricDef => ASSIGNMENTS.find((a) => a.slug === slug)?.rubric ?? STANDARD_RUBRIC;
+  const scores = (values: number[], rubric: RubricDef = STANDARD_RUBRIC) =>
+    rubric.criteria.map((c, i) => ({ key: c.key, label: c.label, weight: c.weight, score: Math.min(values[i], c.weight) }));
 
   // 課題 1 (山田: 合格 / 佐藤: 合格)
-  for (const [user, total] of [[hanako, [22, 18, 13, 8, 7, 10, 8]], [ken, [25, 20, 12, 8, 6, 10, 7]]] as const) {
+  for (const [user, total] of [[hanako, [26, 22, 12, 17, 9]], [ken, [28, 23, 13, 16, 8]]] as const) {
     const sub = await db.submission.create({
       data: { assignmentId: assignmentIdBySlug.get("a1-github-profile")!, userId: user.id, attemptNo: 1, status: "PASSED", repoUrl: `https://github.com/example-${user.email.split("@")[0]}/its-profile`, submittedAt: daysAgo(6) },
     });
-    const s = scores([...total]);
+    const s = scores([...total], rubricOf("a1-github-profile"));
     await db.review.create({
       data: { submissionId: sub.id, reviewerId: instructorA.id, scores: s, totalScore: s.reduce((a, b) => a + b.score, 0), passScore: 70, decision: "PASS", comment: "ブランチと PR の流れが正しくできています。commit メッセージも形式どおりです。", createdAt: daysAgo(5) },
     });

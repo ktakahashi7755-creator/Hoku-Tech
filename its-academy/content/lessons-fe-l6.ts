@@ -4,6 +4,7 @@
  * 元教材になかった JavaScript とチーム開発を新規に作成した。
  */
 import type { AssignmentDef, LessonDef } from "./curriculum";
+import { TEAM_PROCESS_RUBRIC } from "./rubrics";
 import { source } from "./sources";
 
 const FE1 = "content/code/l4-html-css";
@@ -26,6 +27,10 @@ export const L4_FRONTEND: LessonDef[] = [
         {
           heading: "HTML は「意味」、CSS は「見た目」",
           body: "HTML はページの構造と意味を表します。<header> はページの上部、<nav> はメニュー、<main> は主な内容、<footer> は下部です。見出しは <h1> → <h2> → <h3> の順に使います。こうした意味のあるタグを使うと、検索エンジンや読み上げソフトがページを正しく理解できます。\n色・大きさ・配置は CSS で指定します。HTML の style 属性に直接書くのではなく、別ファイル (style.css) にまとめると、全ページの見た目を 1 か所で管理できます。",
+        },
+        {
+          heading: "作ったページをブラウザで開く",
+          body: "Mac: ターミナルで index.html のあるフォルダに移動し、open index.html を実行します (Finder でダブルクリックしてもかまいません)。\nWindows (WSL2): ファイルは Ubuntu の中にあるため、ターミナルで index.html のあるフォルダに移動して explorer.exe . を実行します (. は今いるフォルダ)。エクスプローラーでそのフォルダが開くので、index.html をダブルクリックすると Windows のブラウザで開きます。\nこの開き方では、アドレスバーが file:// で始まります。HTML と CSS だけのページはこれで確かめられます。",
         },
         {
           heading: "フォームとラベル",
@@ -65,7 +70,7 @@ export const L4_FRONTEND: LessonDef[] = [
       exercises: [
         {
           title: "開発者ツールでスマホ表示を確かめる",
-          task: "index.html をブラウザで開き、開発者ツール (F12) のデバイス表示で幅 375px と 1024px を切り替えて、カードの並びが変わることを確かめてください。次に <meta name=\"viewport\"> を消して、スマホ幅の表示がどう変わるか確かめます。",
+          task: "index.html をブラウザで開き (Mac は open index.html、WSL2 は explorer.exe . で開いたフォルダから index.html をダブルクリック)、開発者ツール (F12) のデバイス表示で幅 375px と 1024px を切り替えて、カードの並びが変わることを確かめてください。次に <meta name=\"viewport\"> を消して、スマホ幅の表示がどう変わるか確かめます。",
           hint: "デバイス表示は、開発者ツールの左上にあるスマホとタブレットの形のアイコン (Chrome では Ctrl + Shift + M) で切り替えます。",
           answer: "375px ではカードが縦に並び、1024px では 3 枚が横に並びます。<meta name=\"viewport\"> を消すと、スマホ幅でもページが PC 用の幅 (多くのブラウザで 980px) で描かれて縮小表示され、文字が小さくなります。確かめたら meta を元に戻します。",
         },
@@ -146,6 +151,10 @@ export const L4_FRONTEND: LessonDef[] = [
         {
           heading: "fetch と async / await",
           body: "fetch(URL) はサーバーにリクエストを送り、結果を後で受け取るための Promise (「あとで結果が入る箱」) をすぐに返します。await を付けると「結果が届くまで待ってから次へ進む」書き方になり、await は async を付けた関数の中で使えます。fetch は 404 や 500 が返っても例外にならないため、res.ok (ステータスコードが 200 番台か) を必ず確認します。res.json() は本文の JSON を JavaScript のオブジェクトに変換する処理で、これにも await が必要です。\nURL に入力値を入れるときは encodeURIComponent でエンコードします。サンプルでは「Java & SQL」がそのまま正しく届いています。",
+        },
+        {
+          heading: "ローカルサーバーで開く",
+          body: "fetch を使うページは、file:// で開くと、ブラウザの制限で JSON ファイルや API を読み込めません。自分のパソコンで簡単な Web サーバー (ローカルサーバー) を起動し、http://localhost:5500/ で開きます。\n方法 1: index.html のあるフォルダで python3 -m http.server 5500 を実行し、ブラウザで http://localhost:5500/ を開く (止めるときは Ctrl + C。Windows でも Ubuntu のターミナルで実行し、Windows のブラウザで開けます)\n方法 2: VS Code の拡張機能「Live Server」を入れ、index.html を右クリックして Open with Live Server を選ぶ (既定のポートが 5500 です)\nサンプルの app.js は /api/books を呼ぶため、API がない状態で検索すると「検索に失敗しました (HTTP 404)」と表示されます。表示が変わることを確かめたら、固定の JSON ファイル (例: books.json を置き、fetch(\"books.json\") にする) や L5 の API につないで試します。",
         },
         {
           heading: "XSS と textContent",
@@ -398,7 +407,7 @@ export const L6_LESSONS: LessonDef[] = [
           body: "指摘は人ではなくコードへのものです。指摘ごとに「直しました (コミット)」「この理由でこうしています」「意図が分からないので確認させてください」のどれかで返信します。修正は同じブランチに追加のコミットとして push すると、PR に自動で反映されます。サンプルでは、レビューの指摘 (14 を定数にする) に対応するコミットを追加しています。",
         },
         {
-          heading: "レビューのし方",
+          heading: "レビューの仕方",
           body: "見る順番の例: 1. 要件どおりか 2. 不具合・境界値 3. セキュリティ (入力チェック・権限・秘密情報) 4. テスト 5. 読みやすさ・命名\nコメントは具体的に書き、理由と提案を添えます。「ここ変です」ではなく「14 が何の数字か読み手に伝わらないので、LOAN_DAYS などの定数にしませんか」のように書きます。必須の修正と、好みの範囲の提案 (「nit:」など) を区別します。",
         },
       ],
@@ -604,7 +613,7 @@ export const FE_L6_ASSIGNMENTS: AssignmentDef[] = [
         "375px と 1024px で崩れず、横スクロールが出ない",
       ],
       recommended: ["検索中は検索ボタンを押せないようにする", "L5 の API につないで動かす (CORS の設定を含む)"],
-      steps: ["画面の構成 (HTML) を書く", "CSS でスマホ → PC の順にレイアウトする", "JavaScript で入力チェックと表示を作る", "開発者ツールで 375px・1024px を確認する", "GitHub に push し、README にスクリーンショットを載せる"],
+      steps: ["画面の構成 (HTML) を書く", "CSS でスマホ → PC の順にレイアウトする", "固定の JSON ファイル (例: books.json) を置き、python3 -m http.server 5500 か VS Code の Live Server でローカルサーバーを起動して http://localhost:5500/ で開く (file:// で開くと fetch で JSON を読めません。WSL2 でも Windows のブラウザで開けます)", "JavaScript で入力チェックと表示を作る", "開発者ツールで 375px・1024px を確認する", "GitHub に push し、README にスクリーンショットを載せる"],
       deliverables: ["GitHub リポジトリの URL", "375px と 1024px のスクリーンショット (README に掲載)"],
       readmeChecklist: ["画面の説明", "375px・1024px のスクリーンショット", "工夫した点 (アクセシビリティ・エラー表示)"],
       resubmitCondition: "innerHTML にデータを入れている、入力欄にラベルがない、375px で横スクロールが出る場合は修正依頼になります。",
@@ -618,6 +627,7 @@ export const FE_L6_ASSIGNMENTS: AssignmentDef[] = [
     title: "チーム開発演習 (Issue・PR・レビュー)",
     type: "GITHUB_REPO",
     passScore: 70,
+    rubric: TEAM_PROCESS_RUBRIC,
     body: {
       purpose: "チケット → ブランチ → PR → レビュー対応 → マージの流れと、報告・相談を、実際のリポジトリで一通り経験する。",
       scenario: "講師が編成した受講生 2〜3 名のチームで 1 つのリポジトリを共有し、講師が用意した掲示板 API のリポジトリ (L5 の課題と同じ仕様) に機能を追加する想定です。受講生の人数が足りない場合は、講師がチームの一員として PR を作り、それをレビュー対象にします。",
@@ -631,7 +641,7 @@ export const FE_L6_ASSIGNMENTS: AssignmentDef[] = [
       ],
       recommended: ["GitHub Actions で PR ごとにテストを自動実行する", "PR のテンプレート (.github/pull_request_template.md) を作る"],
       steps: ["チームのリポジトリに招待してもらう", "Issue を作り、担当を決める", "ブランチ → 実装 → テスト → PR", "レビューと対応", "マージ後、Issue を閉じる"],
-      deliverables: ["チームのリポジトリの URL", "自分が作った PR とレビューした PR の URL (備考欄)"],
+      deliverables: ["チームのリポジトリの URL", "自分が作った PR とレビューした PR の URL (備考欄)", "自分が作成した Issue の URL (備考欄)", "日報 (チームで決めた提出先) の URL または写し (備考欄)"],
       readmeChecklist: [],
       resubmitCondition: "Issue・PR の説明が不足している、レビューの指摘に対応していない、他の人の PR をレビューしていない場合は修正依頼になります。",
       interviewPoints: ["一番難しかったレビューの指摘と、どう対応したか", "コンフリクトをどう解消したか", "他の人の PR で指摘したことと、その理由"],

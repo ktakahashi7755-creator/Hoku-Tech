@@ -11,7 +11,7 @@ call POST /api/users '{"username":"hanako","password":"correct-horse-battery"}'
 call POST /api/users '{"username":"hanako","password":"another-long-password"}'
 call POST /api/users '{"username":"Ken","password":"short"}'
 call GET  /api/books
-AUTH=hanako:wrong-password call GET /api/books
+LABEL="ユーザー hanako、誤ったパスワード" AUTH=hanako:wrong-password call GET /api/books
 AUTH=$HANAKO call GET  /api/books
 AUTH=$HANAKO call GET  /api/me
 AUTH=$HANAKO call POST /api/books '{"title":"Java 入門","author":"山田","isbn":"9784000000001"}'

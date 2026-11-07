@@ -33,11 +33,12 @@ else
 fi
 
 # 5. PostgreSQL (クライアントと、サーバーへの接続)
-command -v psql >/dev/null && ok "PostgreSQL クライアント (psql)" || bad "PostgreSQL クライアント (psql)" "PostgreSQL をインストールしてください"
+# Mac の postgresql@16 は PATH に自動で追加されないため、入れたのに NG になるときは PATH を確認する
+command -v psql >/dev/null && ok "PostgreSQL クライアント (psql)" || bad "PostgreSQL クライアント (psql)" "PostgreSQL をインストールしてください (Mac は postgresql@16 の bin を PATH に追加したか確認)"
 if command -v pg_isready >/dev/null && pg_isready -h localhost -p 5432 -q; then
   ok "PostgreSQL サーバー (localhost:5432)"
 else
-  bad "PostgreSQL サーバー (localhost:5432)" "PostgreSQL を起動してください"
+  bad "PostgreSQL サーバー (localhost:5432)" "PostgreSQL を起動してください (Mac で pg_isready が見つからない場合は PATH を確認)"
 fi
 
 echo "---"

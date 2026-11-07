@@ -31,6 +31,10 @@ export const L5_SECURITY: LessonDef = {
         body: "パスワードを平文で保存すると、データベースが漏えいしたときにすべての利用者のパスワードが知られてしまいます。保存するのは、元に戻せない変換 (ハッシュ) をした値だけです。\nBCrypt は、パスワードごとにランダムな値 (ソルト) を混ぜ、わざと計算に時間をかけるハッシュ方式です。同じパスワードでも毎回違う値になり、総当たりで元のパスワードを探すことも難しくなります。照合は passwordEncoder.matches(入力, 保存値) で行います。\nサンプルを実行すると、データベースには {bcrypt}$2a$10$… で始まる 68 文字の値だけが保存されます。{bcrypt} はアルゴリズムの印で、将来アルゴリズムを変えても古い値と共存できます。\nBCrypt は 72 バイトまでしか扱えず、Spring Security 7 ではそれより長いパスワードを encode すると例外になります。そのためサンプルの RegisterRequest では、パスワードを半角の英数字・記号 (1 文字 1 バイト) の 12〜64 文字に制限し、入力チェック (400) で止めています。",
       },
       {
+        heading: "依存関係の追加",
+        body: "L5 の REST API のプロジェクト (book-api) の pom.xml の <dependencies> に、次の 2 つを追加します。バージョンは spring-boot-starter-parent が決めるので書きません。\nspring-boot-starter-security: Spring Security 本体 (groupId は org.springframework.boot)\nspring-boot-starter-security-test: テストで @WithMockUser などを使うための部品。<scope>test</scope> を付けます\n追加すると、設定を書く前からすべての URL にログインが必要になります (既存のテストが 401 で失敗するのはこのためです)。下のサンプルの pom.xml で、追加した場所を確かめられます。",
+      },
+      {
         heading: "Spring Security の設定 (SecurityFilterChain)",
         body: "SecurityConfig の securityFilterChain で、リクエストが Controller に届く前に行うチェックを設定します。authorizeHttpRequests の requestMatchers は上から順に判定され、最初に一致したルールが使われます。\npermitAll(): だれでも可 / authenticated(): ログインした人 / hasRole(\"ADMIN\"): ADMIN のロールを持つ人\nログインの仕組み (UserDetailsService) は、データベースから利用者を探して、ユーザー名・パスワードのハッシュ・ロールを Spring Security に渡すだけです。パスワードの照合は Spring Security が行います。",
       },
@@ -40,7 +44,7 @@ export const L5_SECURITY: LessonDef = {
       },
       {
         heading: "秘密情報の扱い",
-        body: "初期管理者のパスワードは、ソースコードにも設定ファイルにも書かず、環境変数 ADMIN_PASSWORD から受け取ります。利用者の登録時に権限 (ロール) を選ばせず、必ず一般利用者として登録します。レスポンス (UserResponse) にはパスワードのハッシュ値も含めません。",
+        body: "初期管理者のパスワードは、ソースコードにも設定ファイルにも書かず、環境変数 ADMIN_PASSWORD から受け取ります (起動前に export ADMIN_PASSWORD='管理者のパスワード' を実行します。未設定なら管理者は作られません)。BCrypt の上限に合わせて 72 バイト以下にします。半角の英数字・記号なら 72 文字までですが、全角文字は 1 文字 3 バイトになります。サンプルの AdminInitializer は、72 バイトを超えると「ADMIN_PASSWORD は 72 バイト以下にしてください」というメッセージで起動を止めます。利用者の登録時に権限 (ロール) を選ばせず、必ず一般利用者として登録します。レスポンス (UserResponse) にはパスワードのハッシュ値も含めません。",
       },
     ],
     examples: [
@@ -50,6 +54,7 @@ export const L5_SECURITY: LessonDef = {
       },
     ],
     code: [
+      { language: "xml", filename: "pom.xml", verifiedBy: `${SEC}/pom.xml` },
       { language: "java", filename: "config/SecurityConfig.java", verifiedBy: `${SEC_SRC}/config/SecurityConfig.java` },
       { language: "java", filename: "user/DbUserDetailsService.java", verifiedBy: `${SEC_SRC}/user/DbUserDetailsService.java` },
       { language: "java", filename: "user/UserService.java", verifiedBy: `${SEC_SRC}/user/UserService.java` },
@@ -75,7 +80,7 @@ export const L5_SECURITY: LessonDef = {
           '{"detail":"入力内容に誤りがあります","instance":"/api/users","status":400,"title":"Bad Request","errors":{"password":"パスワードは 12 文字以上にしてください","username":"ユーザー名は半角英小文字・数字の 3〜20 文字です"}}',
           "GET /api/books -> 401",
           '{"detail":"ログインが必要です","instance":"/api/books","status":401,"title":"Unauthorized"}',
-          "GET /api/books (ユーザー hanako で認証) -> 401",
+          "GET /api/books (ユーザー hanako、誤ったパスワード) -> 401",
           '{"detail":"ログインが必要です","instance":"/api/books","status":401,"title":"Unauthorized"}',
           "GET /api/books (ユーザー hanako で認証) -> 200",
           "[]",
@@ -93,9 +98,9 @@ export const L5_SECURITY: LessonDef = {
     exercises: [
       {
         title: "実行結果を読み解く",
-        task: "実行結果の 2 つの「GET /api/books (ユーザー hanako で認証)」が 401 と 200 に分かれている理由を説明してください。また、hanako の id が 2 になっている理由を、AdminInitializer のコードから説明してください。",
-        hint: "1 つ目と 2 つ目のリクエストで、hanako のパスワードとして何を送っているかを比べます。AdminInitializer はアプリの起動時に動きます。",
-        answer: "1 つ目は誤ったパスワードを送ったため認証に失敗して 401、2 つ目は正しいパスワードを送ったので 200 です。id が 2 なのは、アプリの起動直後に AdminInitializer が管理者 (id 1) を先に作るためです。",
+        task: "実行結果では GET /api/books を 3 回 (認証なし・hanako の誤ったパスワード・hanako の正しいパスワード) 呼んでいます。誤ったパスワードのときに 403 ではなく 401 になる理由を説明してください。また、hanako の id が 2 になっている理由を、AdminInitializer のコードから説明してください。",
+        hint: "401 と 403 は「だれか分かったかどうか」で分かれます。AdminInitializer はアプリの起動時に動きます。",
+        answer: "パスワードが違うと「だれか」を確かめられない (認証の失敗) ので、認証なしと同じ 401 です。403 は、だれかは分かったが権限がないときに返します。正しいパスワードを送ると認証でき、一覧はログインした人ならだれでも見られるので 200 です。id が 2 なのは、アプリの起動直後に AdminInitializer が管理者 (id 1) を先に作るためです。",
       },
       {
         title: "削除の権限を確かめるテスト",
@@ -273,7 +278,7 @@ export const L7_FINAL: AssignmentDef = {
       "テスト: 貸出ルール (上限・延滞・貸出中) のテストと、権限 (401・403) のテストを含め 15 件以上",
       "README: 要件の解釈と決めたこと、ER 図、API (または画面) の一覧、起動とテストの手順",
     ],
-    recommended: ["予約 (貸出中の本を予約し、返却されたら予約者に貸せる)", "貸出履歴の CSV 出力 (管理者)", "画面 (Thymeleaf または React) の作成", "GitHub Actions でのテスト自動実行"],
+    recommended: ["予約 (貸出中の本を予約し、返却されたら予約者に貸せる)", "貸出履歴の CSV 出力 (管理者)", "画面の作成 (L4 の HTML・JavaScript で作るか、Thymeleaf または React を使う。Thymeleaf と React はコース外の技術。任意)", "GitHub Actions でのテスト自動実行"],
     steps: [
       "課題文を読み、質問リストを講師に送る (1 日目)",
       "ER 図・API (画面) の一覧を作り、講師の確認を受ける (2 日目)",

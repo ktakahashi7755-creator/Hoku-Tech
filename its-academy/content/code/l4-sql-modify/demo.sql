@@ -1,3 +1,7 @@
+-- 何度実行しても同じ結果になるように、前に作った同じ名前のテーブルを先に削除する
+-- (初回は「テーブルがないので飛ばした」という NOTICE が出るが、エラーではない)
+DROP TABLE IF EXISTS members;
+
 CREATE TABLE members (
     id         INTEGER     PRIMARY KEY,
     name       VARCHAR(30) NOT NULL,

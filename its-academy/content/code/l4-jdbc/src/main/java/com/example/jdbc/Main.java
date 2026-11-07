@@ -17,6 +17,8 @@ public class Main {
         // try-with-resources: ブロックを抜けると接続が自動で閉じる
         try (Connection conn = DriverManager.getConnection(url, user, password)) {
             try (Statement st = conn.createStatement()) {
+                // 何度実行しても同じ結果になるように、前回作ったテーブルを先に削除する (練習用のテーブルだけに使う)
+                st.execute("DROP TABLE IF EXISTS members");
                 st.execute("CREATE TABLE members (id INTEGER PRIMARY KEY, name VARCHAR(30) NOT NULL, point INTEGER NOT NULL)");
             }
 
