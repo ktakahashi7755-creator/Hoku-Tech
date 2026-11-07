@@ -53,12 +53,12 @@ export default async function LessonEditPage({ params }: { params: Promise<{ id:
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
         <div className="min-w-0">
           {editing && (
-            // 保存の後も入力と結果のメッセージを残す (同時編集の確認に使う版は、エディタが新しい方を選ぶ)
+            // 保存の後も入力と結果のメッセージを残す。同時編集の確認には、画面を開いたときの最新の版を使う
             <LessonEditor
               key={lesson.id}
               lessonId={lesson.id}
               initial={editorStateOf(editing)}
-              base={{ versionId: editing.id, updatedAt: editing.updatedAt.toISOString() }}
+              base={{ versionId: latest.id, editedAt: latest.editedAt.toISOString() }}
             />
           )}
         </div>

@@ -20,6 +20,7 @@ export function SubmissionForm({ assignmentId, type, defaults }: { assignmentId:
     <ActionForm
       action={action}
       className="flex flex-col gap-5"
+      onChange={() => setClientErrors({})}
       confirm={(submitter, form) => {
         setClientErrors({});
         if (submitter?.getAttribute("value") !== "submit") return null;

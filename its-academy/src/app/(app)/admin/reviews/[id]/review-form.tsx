@@ -42,6 +42,7 @@ export function ReviewForm({ submissionId, criteria, passScore }: { submissionId
     <ActionForm
       action={action}
       className="flex flex-col gap-4"
+      onChange={() => setDecisionError(null)}
       confirm={(_submitter, form) => {
         setDecisionError(null);
         // 確定できない入力は、確認ダイアログより先に知らせる

@@ -80,7 +80,7 @@ export function lessonToLines(v: { title: string; estimatedMinutes: number; cont
   return lines;
 }
 
-/** 変更のない行が長く続く部分を省略する (前後 context 行は残す)。変更のない版どうしでは先頭だけを残す */
+/** 変更のない行が長く続く部分を省略する (変更行の前後 context 行は残す)。変更が 1 行もなければ、すべてを省略の 1 行にまとめる */
 export function collapseUnchanged(diff: DiffLine[], context = 2): DisplayLine[] {
   const out: DisplayLine[] = [];
   let i = 0;

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { completeLesson } from "@/app/actions/learning";
 import { Button } from "@/components/ui";
@@ -9,13 +9,17 @@ export function CompleteButton({ lessonId, completed, canComplete }: { lessonId:
   const [pending, start] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+  // 押したボタンが消えた後も、キーボードの位置と読み上げがここに残るようにする。
+  // ページを開いたとき (すでに完了済み) は動かさない (画面がこの位置まで飛ばないように)
+  const clicked = useRef(false);
+  const doneRef = useRef<HTMLParagraphElement>(null);
+  useEffect(() => {
+    if (completed && clicked.current && document.activeElement === document.body) doneRef.current?.focus();
+  }, [completed]);
   if (completed) {
-    // 押したボタンが消えた後も、キーボードの位置と読み上げがここに残るようにする
     return (
       <p
-        ref={(el) => {
-          if (el && document.activeElement === document.body) el.focus();
-        }}
+        ref={doneRef}
         tabIndex={-1}
         role="status"
         className="rounded-lg bg-success-soft p-3 font-semibold text-success outline-none"
@@ -31,6 +35,7 @@ export function CompleteButton({ lessonId, completed, canComplete }: { lessonId:
         disabled={pending || !canComplete}
         onClick={() =>
           start(async () => {
+            clicked.current = true;
             const r = await completeLesson(lessonId);
             if (r.error) setError(r.error);
             else router.refresh();

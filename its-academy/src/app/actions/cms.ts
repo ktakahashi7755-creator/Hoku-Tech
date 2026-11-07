@@ -85,8 +85,12 @@ const NewLesson = z.object({
 /** base: 保存した版 (次の保存で、ほかの画面の保存と衝突していないかを確かめる) */
 export type CmsState = { error?: string; errors?: string[]; ok?: string; lessonId?: string; base?: EditBase } | undefined;
 
-/** 編集を始めた版。ほかの画面が先に保存していたら、上書きせずに知らせる (同時編集の確認) */
-export type EditBase = { versionId: string; updatedAt: string };
+/**
+ * 編集を始めたときの最新の版と、その版を下書きとして保存した日時。
+ * ほかの画面が新しい版を作った・同じ下書きを保存した場合は、上書きせずに知らせる (同時編集の確認)。
+ * 公開・予約・確定は内容を変えないため、この日時を変えない (自分の公開の後に誤って衝突としない)
+ */
+export type EditBase = { versionId: string; editedAt: string };
 
 const CONFLICT_MESSAGE =
   "ほかの画面 (または別の人) が、このレッスンを先に保存しました。上書きを防ぐため、保存していません。ページを再読み込みして最新の内容を確認してください (この画面の入力は再読み込みで消えるため、必要な部分はコピーしてください)。";
@@ -158,14 +162,14 @@ export async function saveDraft(lessonId: string, rawDraft: EditorDraft, rawBase
     changeNote: draft.changeNote.trim() || null,
     authorId: user.id,
   };
-  const base = rawBase ? z.object({ versionId: Id, updatedAt: z.iso.datetime() }).safeParse(rawBase) : null;
+  const base = rawBase ? z.object({ versionId: Id, editedAt: z.iso.datetime() }).safeParse(rawBase) : null;
   const saved = await serially(async (tx) => {
     const lesson = await tx.lesson.findUniqueOrThrow({ where: { id } });
     const latest = await tx.lessonVersion.findFirst({ where: { lessonId: id }, orderBy: { version: "desc" } });
     // 編集を始めた後に、ほかの画面が新しい下書きを作った・同じ下書きを保存した場合は、上書きしない
-    if (base?.success && latest && (latest.id !== base.data.versionId || latest.updatedAt.getTime() > Date.parse(base.data.updatedAt))) return null;
+    if (base?.success && latest && (latest.id !== base.data.versionId || latest.editedAt.getTime() > Date.parse(base.data.editedAt))) return null;
     return latest && isEditableDraft(latest, lesson)
-      ? tx.lessonVersion.update({ where: { id: latest.id }, data })
+      ? tx.lessonVersion.update({ where: { id: latest.id }, data: { ...data, editedAt: new Date() } })
       : tx.lessonVersion.create({ data: { ...data, lessonId: id, version: (latest?.version ?? 0) + 1 } });
   });
   if (!saved) return { error: CONFLICT_MESSAGE };
@@ -175,7 +179,7 @@ export async function saveDraft(lessonId: string, rawDraft: EditorDraft, rawBase
   return {
     ok: `下書き (版 ${saved.version}) を保存しました。受講生にはまだ表示されません。`,
     errors: check.ok ? undefined : check.errors,
-    base: { versionId: saved.id, updatedAt: saved.updatedAt.toISOString() },
+    base: { versionId: saved.id, editedAt: saved.editedAt.toISOString() },
   };
 }
 
@@ -189,7 +193,7 @@ export async function restoreVersionAsDraft(lessonId: string, versionId: string)
   await serially(async (tx) => {
     const lesson = await tx.lesson.findUniqueOrThrow({ where: { id } });
     const latest = await tx.lessonVersion.findFirstOrThrow({ where: { lessonId: id }, orderBy: { version: "desc" } });
-    if (isEditableDraft(latest, lesson)) await tx.lessonVersion.update({ where: { id: latest.id }, data });
+    if (isEditableDraft(latest, lesson)) await tx.lessonVersion.update({ where: { id: latest.id }, data: { ...data, editedAt: new Date() } });
     else await tx.lessonVersion.create({ data: { ...data, lessonId: id, version: latest.version + 1 } });
   });
   await audit({ actorId: user.id, action: "lesson.restore_version", targetType: "lesson", targetId: id, metadata: { from: source.version } });

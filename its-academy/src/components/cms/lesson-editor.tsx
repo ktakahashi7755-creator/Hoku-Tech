@@ -84,9 +84,9 @@ export function LessonEditor({ lessonId, initial, base }: { lessonId: string; in
   const [d, setD] = useState<EditorDraft>(initial);
   const [state, setState] = useState<CmsState>(undefined);
   const [dirty, setDirty] = useState(false);
-  // 同時編集の確認に使う「編集の元の版」。自分の保存の結果と、再表示で届いた最新の値のうち新しい方を使う
-  const [savedBase, setSavedBase] = useState(base);
-  const currentBase = Date.parse(base.updatedAt) > Date.parse(savedBase.updatedAt) ? base : savedBase;
+  // 同時編集の確認に使う「編集の元の版」。画面を開いたときの値から始め、自分が保存したときだけ更新する
+  // (再表示で届く値は使わない。使うと、ほかの画面の保存を自分の保存と取り違えるため)
+  const [currentBase, setSavedBase] = useState(base);
   const [pending, start] = useTransition();
   const router = useRouter();
   const set = <K extends keyof EditorDraft>(k: K, v: EditorDraft[K]) => {

@@ -58,12 +58,15 @@ body {
   overflow-x: hidden;
 }
 
-:focus-visible {
-  /* 青い枠の内側に背景色の縁を付け、どの背景色のボタンでも見分けられるようにする */
-  outline: 3px solid var(--focus);
-  outline-offset: 2px;
-  box-shadow: 0 0 0 2px var(--bg);
-  border-radius: 4px;
+/* base の層に置き、outline-none などのクラス (utilities の層) で個別に打ち消せるようにする */
+@layer base {
+  :focus-visible {
+    /* 青い枠の内側に背景色の縁を付け、どの背景色のボタンでも見分けられるようにする */
+    outline: 3px solid var(--focus);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 2px var(--bg);
+    border-radius: 4px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

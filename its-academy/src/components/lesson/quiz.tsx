@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { submitQuiz, type QuizResult } from "@/app/actions/learning";
 import { Button, cx } from "@/components/ui";
 
@@ -12,12 +12,21 @@ export function Quiz({ lessonId, versionId, questions, passScore, alreadyPassed 
   const [error, setError] = useState<string | null>(null);
   const [pending, start] = useTransition();
   const unanswered = answers.some((a) => a === null);
+  // 採点中にボタンが無効になってフォーカスが失われた場合は、結果へ移す (採点したときだけ。完了後の再表示では動かさない)
+  const submitted = useRef(false);
+  const resultRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!submitted.current || (!result && !error)) return;
+    submitted.current = false;
+    if (document.activeElement === document.body) resultRef.current?.focus();
+  }, [result, error]);
 
   return (
     <form
       onSubmit={(e) => {
         e.preventDefault();
         setError(null);
+        submitted.current = true;
         start(async () => {
           try {
             setResult(await submitQuiz(lessonId, versionId, answers));
@@ -81,10 +90,7 @@ export function Quiz({ lessonId, versionId, questions, passScore, alreadyPassed 
         aria-live="polite"
         tabIndex={-1}
         className="outline-none"
-        ref={(el) => {
-          // 採点中にボタンが無効になってフォーカスが失われた場合は、結果へ移す
-          if (el && result && document.activeElement === document.body) el.focus();
-        }}
+        ref={resultRef}
       >
         {result?.outdated && (
           <p role="alert" className="rounded-lg bg-warning-soft p-3 font-semibold text-warning">
