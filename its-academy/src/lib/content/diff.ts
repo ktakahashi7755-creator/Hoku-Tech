@@ -40,7 +40,13 @@ export function lineDiff(before: string[], after: string[]): DiffLine[] {
  * 実際に変えた箇所だけが差分に出る。
  */
 export function lessonToLines(v: { title: string; estimatedMinutes: number; content: unknown }): string[] {
-  const d = editorStateOf(v);
+  let d: ReturnType<typeof editorStateOf>;
+  try {
+    d = editorStateOf(v);
+  } catch {
+    // 現在の形式で読めない古い版は、保存されている内容をそのまま行にする (差分の画面ごと落とさない)
+    return [`タイトル: ${v.title}`, `学習目安時間: ${v.estimatedMinutes} 分`, "(古い形式の版のため、保存されている内容をそのまま表示)", ...JSON.stringify(v.content, null, 1).split("\n")];
+  }
   const lines: string[] = [`タイトル: ${d.title}`, `学習目安時間: ${d.estimatedMinutes} 分`];
   if (d.videoUrl) lines.push(`解説動画: ${d.videoUrl}`);
   const text = (label: string, value: string) => {

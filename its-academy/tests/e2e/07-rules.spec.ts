@@ -120,3 +120,31 @@ test("理解度チェックを解いている間に教材が更新されたら�
     await db.lessonVersion.delete({ where: { id: next.id } });
   }
 });
+
+test("提出の前に入力の誤りを知らせ (確認ダイアログは出さない)、入力途中の URL でも下書きは保存できる", async ({ page }) => {
+  const yota = await userId("student4@its.example");
+  const lesson = await db.lesson.findUniqueOrThrow({ where: { slug: "l1-github-setup" } });
+  const progress = await db.lessonProgress.create({
+    data: { userId: yota, lessonId: lesson.id, lessonVersionId: lesson.currentVersionId!, status: "COMPLETED", completedAt: new Date(), completedVersionId: lesson.currentVersionId },
+  });
+  const dialogs: string[] = [];
+  page.on("dialog", (d) => dialogs.push(d.message()));
+  try {
+    await login(page, "student4@its.example");
+    await page.waitForURL(/\/home$/);
+    await page.goto("/assignments/a1-github-profile");
+    const url = page.getByLabel("GitHub リポジトリの URL");
+    await url.fill("https://github.com/yota");
+    await page.getByRole("button", { name: "提出する" }).click();
+    // 入力欄の誤りとして知らせ、取り消せない操作の確認は出さない
+    expect(await url.evaluate((el: HTMLInputElement) => el.validationMessage)).toContain("https://github.com/ユーザー名/リポジトリ名");
+    expect(dialogs).toHaveLength(0);
+    // 同じ入力のまま、下書きは保存できる
+    await page.getByRole("button", { name: "下書き保存" }).click();
+    await expect(page.getByText("下書きを保存しました。")).toBeVisible();
+    expect(await db.submission.count({ where: { userId: yota, status: "DRAFT" } })).toBe(1);
+  } finally {
+    await db.submission.deleteMany({ where: { userId: yota } });
+    await db.lessonProgress.delete({ where: { id: progress.id } });
+  }
+});

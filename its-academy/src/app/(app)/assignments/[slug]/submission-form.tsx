@@ -45,7 +45,7 @@ export function SubmissionForm({ assignmentId, type, defaults }: { assignmentId:
         <Button type="submit" name="intent" value="submit" disabled={pending}>
           {pending ? "提出しています…" : "提出する"}
         </Button>
-        <Button type="submit" name="intent" value="draft" variant="secondary" disabled={pending}>
+        <Button type="submit" name="intent" value="draft" variant="secondary" disabled={pending} formNoValidate>
           下書き保存
         </Button>
       </div>

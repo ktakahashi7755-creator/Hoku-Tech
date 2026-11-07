@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 
 /**
  * 画面が切り替わったときに、フォーカスが行き場を失っていれば (ログイン直後など、押したボタンが消えた場合)
@@ -11,11 +11,12 @@ import { useEffect, useRef } from "react";
  */
 export function FocusOnArrival() {
   const pathname = usePathname();
-  const firstRun = useRef(true);
   useEffect(() => {
-    const isFirstRun = firstRun.current;
-    firstRun.current = false;
-    if (isFirstRun && pathname === documentPathname()) return; // ブラウザが読み込んだページそのもの (画面内の移動ではない)
+    // ブラウザが読み込んだページそのもの (文書で最初の 1 回) は動かさない。
+    // ログアウト → ログインのように、この部品が付け直されても 2 回目以降は画面内の移動として扱う
+    const isDocumentLoad = !documentHandled && pathname === documentPathname();
+    documentHandled = true;
+    if (isDocumentLoad) return;
     let frame = 0;
     let tries = 0;
     const attempt = () => {
@@ -36,6 +37,9 @@ export function FocusOnArrival() {
   }, [pathname]);
   return null;
 }
+
+/** この文書で、最初の表示をすでに扱ったか (部品が付け直されても残るよう、モジュールに持つ) */
+let documentHandled = false;
 
 /** ブラウザが最初に読み込んだページの URL のパス (画面内の移動では変わらない) */
 function documentPathname(): string | null {

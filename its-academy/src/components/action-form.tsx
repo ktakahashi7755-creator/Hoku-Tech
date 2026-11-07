@@ -32,8 +32,13 @@ export function ActionForm({ action, state, resetOnSuccess = false, confirm, chi
     e.preventDefault();
     const form = e.currentTarget;
     const submitter = (e.nativeEvent as SubmitEvent).submitter;
-    // 入力の誤り (必須・文字数・形式) は、取り消せない操作の確認より先に知らせる
-    if (!form.reportValidity()) return;
+    // 前回のボタンで出した誤りの表示 (reportFieldError) は、別のボタン (例: 下書き保存) を妨げないよう毎回消す
+    for (const el of Array.from(form.elements)) {
+      if (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement || el instanceof HTMLSelectElement) el.setCustomValidity("");
+    }
+    // 入力の誤り (必須・文字数・形式) は、取り消せない操作の確認より先に知らせる。formNoValidate のボタン (下書き保存) は除く
+    const skipValidation = submitter instanceof HTMLButtonElement && submitter.formNoValidate;
+    if (!skipValidation && !form.reportValidity()) return;
     const message = typeof confirm === "function" ? confirm(submitter, form) : confirm;
     if (message === false) return;
     if (message && !window.confirm(message)) return;
