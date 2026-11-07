@@ -218,7 +218,8 @@ test("予約した後に編集して保存しても衝突にならず、公開�
 });
 
 test("パスワードの変更で現在のパスワードが違うと、その欄にフォーカスが移る", async ({ page }) => {
-  await login(page, "student3@its.example");
+  // ほかのテストがパスワードを変えないアカウントを使う
+  await login(page, "student2@its.example");
   await page.waitForURL(/\/home$/);
   await page.goto("/me");
   await page.getByLabel("現在のパスワード").fill("wrong-password-123");
