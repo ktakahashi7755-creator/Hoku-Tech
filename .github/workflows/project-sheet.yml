@@ -1,0 +1,54 @@
+name: project-sheet
+
+# 進捗の文書・教材が変わったら、チームのスプレッドシート (WBS・タスク・スケジュール・カリキュラム) を作り直す。
+# 設定 (docs/project-sheet.md):
+#   Secrets   GOOGLE_SERVICE_ACCOUNT_KEY  サービスアカウントの鍵 (JSON)
+#   Variables PROJECT_SHEET_ID            スプレッドシートの ID
+#             PROJECT_SHEET_BRANCH        反映するブランチ (省略時はデフォルトブランチ)
+# 設定がないときは何もせずに成功する (フォークや設定前のリポジトリで失敗しないように)。
+
+on:
+  push:
+    paths:
+      - "docs/**"
+      - "its-academy/content/**"
+      - "its-academy/scripts/project-sheet.ts"
+      - "its-academy/scripts/project-sheet/**"
+      - ".github/workflows/project-sheet.yml"
+  workflow_dispatch:
+  schedule:
+    - cron: "17 21 * * *" # 毎日 6:17 (日本時間)。更新履歴などを念のため揃える
+
+permissions:
+  contents: read
+
+# 書き込みが重ならないよう、1 つずつ実行する (古い実行は止めて新しい方を使う)
+concurrency:
+  group: project-sheet
+  cancel-in-progress: true
+
+jobs:
+  sync:
+    if: github.ref_name == (vars.PROJECT_SHEET_BRANCH || github.event.repository.default_branch)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: its-academy
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0 # 実績の日付 (タスクを記録した日) を git の履歴から取るため
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: its-academy/package-lock.json
+      - run: npm ci --ignore-scripts
+      - name: Build tabs (check)
+        run: npm run sheet -- --out ../sheet-preview
+      - name: Update the spreadsheet
+        env:
+          PROJECT_SHEET_ID: ${{ vars.PROJECT_SHEET_ID }}
+          GOOGLE_SERVICE_ACCOUNT_KEY: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}
+        run: npm run sheet -- --push

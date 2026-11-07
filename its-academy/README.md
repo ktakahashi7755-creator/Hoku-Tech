@@ -36,6 +36,7 @@ npm run dev              # http://localhost:3000 (別のポートは PORT=3400 n
 | `npm run build` | 本番ビルド |
 | `npm run test:e2e -- --trace off` | E2E (Playwright)。先に `npm run build`。初回は `npx playwright install chromium`。詳しくは deployment-guide.md §2 |
 | `scripts/backup.sh` / `scripts/restore.sh` | DB のバックアップと復元 (deployment-guide.md §6) |
+| `npm run sheet -- --out <フォルダ>` / `--push` | チームのスプレッドシート (WBS・タスク・スケジュール・カリキュラム) の中身を書き出す / 反映する ([project-sheet.md](../docs/project-sheet.md)) |
 
 ## ディレクトリ
 

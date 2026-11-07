@@ -13,6 +13,7 @@
     "db:bootstrap": "tsx scripts/bootstrap.ts",
     "db:migrate": "prisma migrate deploy",
     "db:seed": "prisma db seed",
+    "sheet": "tsx scripts/project-sheet.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
