@@ -11,13 +11,18 @@ ITS 合同会社のエンジニア育成プラットフォーム (LMS)。受講�
 ## すぐに動かす
 
 ```bash
-cp .env.example .env     # DATABASE_URL を設定し、ローカルでは APP_ENV=local・COOKIE_SECURE=false にする
+cp .env.example .env     # DATABASE_URL を設定し、ローカルでは APP_ENV=local・COOKIE_SECURE=false にする (変え忘れると起動時に config_invalid で終了する)
 npm ci
+npx prisma generate      # Prisma クライアントを生成 (npm ci の後に毎回必要)
 npm run db:migrate
 npm run db:seed          # 開発用データ。本番では実行できない
-# 本番・検証環境では seed の代わりに npm run db:bootstrap (教材の登録と最初の管理者。BOOTSTRAP_ADMIN_EMAIL が必要)
-npm run dev
+npm run dev              # http://localhost:3000 (別のポートは PORT=3400 npm run dev)
 ```
+
+開発用アカウントのパスワードは `its-dev-password-2026` (`SEED_PASSWORD` で変更可)。アカウントの一覧は deployment-guide.md §1。
+
+本番・検証環境では seed の代わりに、マイグレーションの後で `npm run db:bootstrap` を実行する
+(教材の登録と最初の管理者の作成。管理者を作るには `BOOTSTRAP_ADMIN_EMAIL` が必要。初回パスワードは 1 回だけ表示)。
 
 本番と同じ構成 (Docker) で動かす手順は [deployment-guide.md](../docs/deployment-guide.md) の §5。
 
@@ -27,9 +32,9 @@ npm run dev
 |----------|------|
 | `npm run typecheck` / `npm run lint` | 型検査 / 静的解析 |
 | `npm test` | 単体テスト (Vitest) |
-| `npm run verify:code` | 教材のサンプルコードを JDK 21 / bash / PostgreSQL / Maven / Chromium で実行し、掲載した実行結果と比較 (`DATABASE_URL` が必要) |
+| `npm run verify:code` | 教材のサンプルコードを JDK 21 / bash / PostgreSQL / Maven / Chromium で実行し、掲載した実行結果と比較 (`DATABASE_URL` の DB に一時スキーマを作って削除する) |
 | `npm run build` | 本番ビルド |
-| `npm run test:e2e -- --trace off` | E2E (Playwright)。`TEST_DATABASE_URL` の DB を作り直す |
+| `npm run test:e2e -- --trace off` | E2E (Playwright)。先に `npm run build`。初回は `npx playwright install chromium`。詳しくは deployment-guide.md §2 |
 | `scripts/backup.sh` / `scripts/restore.sh` | DB のバックアップと復元 (deployment-guide.md §6) |
 
 ## ディレクトリ

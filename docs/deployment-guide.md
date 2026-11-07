@@ -7,18 +7,23 @@
 
 ## 1. ローカル開発環境 (確認済み)
 
-前提: Node.js 22、PostgreSQL 16、JDK 21 (教材コードの検証に使用)
+前提: Node.js 22、PostgreSQL 16 (psql クライアントを含む)。教材コードの検証 (`verify:code`) には JDK 21 と Maven 3.9 も使う
+(初回は Maven Central から依存を取得する)。
 
 ```bash
 cd its-academy
 cp .env.example .env            # DATABASE_URL を自分の環境に合わせる。ローカルでは APP_ENV=local, COOKIE_SECURE=false
 npm ci
+npx prisma generate             # Prisma クライアントを生成 (npm ci の後に毎回必要)
 npm run db:migrate              # マイグレーションを適用
 npm run db:seed                 # 開発用データ (NODE_ENV=production では拒否される)
-npm run dev                     # http://localhost:3000
+npm run dev                     # http://localhost:3000 (別のポートは PORT=3400 npm run dev)
 ```
 
-開発用アカウント (パスワードは `SEED_PASSWORD`、未指定時は seed が表示する開発用の値):
+`.env` の APP_ENV・COOKIE_SECURE を変え忘れると、起動時の設定確認 (§3) により `config_invalid` で終了する。
+`.env` は、Prisma のコマンド・開発サーバー・`verify:code`・`db:bootstrap` が読み込む (環境変数で渡した値が優先)。
+
+開発用アカウント (パスワードは `SEED_PASSWORD`、未指定時は `its-dev-password-2026`。初回のパスワード変更は求めない):
 
 | ロール | メール |
 |--------|--------|
@@ -31,8 +36,16 @@ npm run dev                     # http://localhost:3000
 
 ```bash
 npm run typecheck && npm run lint && npm test && npm run verify:code && npm run build
-npm run test:e2e -- --trace off   # TEST_DATABASE_URL の DB を作り直して実行
+npx playwright install chromium   # 初回だけ
+npm run test:e2e -- --trace off   # npm run build の後に実行
 ```
+
+E2E の注意:
+
+* `TEST_DATABASE_URL` (未指定時は `postgresql://its:its_dev_only@localhost:5432/its_academy_test`) の DB を事前に `CREATE DATABASE` しておく。
+  実行のたびにマイグレーションと開発用データを入れ直す (その DB の既存データは消える)
+* 本番ビルドを `next start` のポート 3100 で起動して試験する。3100 を空けておく
+  (`output: standalone` の警告が出るが、試験には影響しない)
 
 CI (`.github/workflows/its-academy.yml`) は上記に加えて Firefox / WebKit の E2E と、
 コンテナ構成の確認 (§5 の起動・ヘッダー・起動拒否、§6 のバックアップと復元) を毎回実行する。

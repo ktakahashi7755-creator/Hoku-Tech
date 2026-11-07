@@ -8,6 +8,9 @@ import { cpSync, existsSync, mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { allLessons, buildLessonContent, ROOT } from "./curriculum-loader";
+import { loadLocalEnv } from "./load-env";
+
+loadLocalEnv();
 
 /** 検証用の DB 接続文字列から、使い捨てスキーマを指す JDBC の接続情報を作る */
 function withScratchSchema<T>(fn: (jdbc: { url: string; user: string; password: string }) => T): T {

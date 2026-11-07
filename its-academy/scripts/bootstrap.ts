@@ -9,6 +9,7 @@
  * 環境変数:
  *   DATABASE_URL                 接続先 (必須)
  *   BOOTSTRAP_ADMIN_EMAIL        最初の管理者のメールアドレス (管理者を作る場合は必須)
+ * 手元では its-academy/.env も読み込む (環境変数で渡した値が優先)。マイグレーションの後に実行する。
  *   BOOTSTRAP_ADMIN_NAME         表示名 (既定: システム管理者)
  *   BOOTSTRAP_ADMIN_PASSWORD     初回パスワード (12 文字以上)。未指定なら無作為に作って 1 回だけ表示する
  * どちらの場合も初回ログイン時にパスワードの変更を求める。
@@ -18,7 +19,9 @@ import { COURSE, MODULES, ASSIGNMENTS } from "../content/curriculum";
 import { importCurriculum } from "../prisma/import-curriculum";
 import { createPrismaClient } from "../src/lib/prisma-client";
 import { hashPassword, PASSWORD_MIN_LENGTH } from "../src/lib/auth/password";
+import { loadLocalEnv } from "./load-env";
 
+loadLocalEnv();
 const db = createPrismaClient();
 
 function fail(message: string): never {
@@ -64,6 +67,11 @@ async function main() {
 
 main()
   .catch((e) => {
+    // テーブルがまだない (マイグレーション前) 場合は、次にやることを伝える
+    if (e && typeof e === "object" && "code" in e && e.code === "P2021") {
+      console.error("bootstrap: テーブルがありません。先に npm run db:migrate (本番は prisma migrate deploy) を実行してください");
+      process.exit(1);
+    }
     console.error(e);
     process.exit(1);
   })
