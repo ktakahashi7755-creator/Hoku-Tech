@@ -20,7 +20,8 @@ export default async function ReviewsPage() {
   const reviews = await db.review.findMany({
     where: { submission: { userId: user.id } },
     orderBy: { createdAt: "desc" },
-    include: { reviewer: { select: { name: true } }, submission: { include: { assignment: { select: { title: true, slug: true } } } } },
+    take: 50, // 直近 50 件 (それより前の結果は各課題の画面で確認できる)
+    include: { reviewer: { select: { name: true } }, submission: { select: { attemptNo: true, assignment: { select: { title: true, slug: true } } } } },
   });
   const notices = await db.notification.findMany({ where: { userId: user.id }, orderBy: { createdAt: "desc" }, take: 20 });
   const comments = o.comments.filter((c) => c.visibility === "STUDENT");

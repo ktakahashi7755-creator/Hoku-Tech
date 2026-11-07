@@ -71,34 +71,34 @@ enum CommentVisibility {
 }
 
 model User {
-  id               String    @id @default(cuid())
-  email            String    @unique
-  name             String
-  passwordHash     String
-  role             Role      @default(STUDENT)
-  affiliation      String? // 所属
-  joinedAt         DateTime? @db.Date // 入校日
-  isActive         Boolean   @default(true)
-  mustChangePassword Boolean @default(false) // 管理者が発行した仮パスワードのまま
-  lastLoginAt      DateTime?
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
+  id                 String    @id @default(cuid())
+  email              String    @unique
+  name               String
+  passwordHash       String
+  role               Role      @default(STUDENT)
+  affiliation        String? // 所属
+  joinedAt           DateTime? @db.Date // 入校日
+  isActive           Boolean   @default(true)
+  mustChangePassword Boolean   @default(false) // 管理者が発行した仮パスワードのまま
+  lastLoginAt        DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
 
-  sessions            Session[]
-  enrollments         Enrollment[]       @relation("StudentEnrollments")
-  instructedEnrolls   Enrollment[]       @relation("InstructorEnrollments")
-  lessonProgress      LessonProgress[]
-  learningSessions    LearningSession[]
-  submissions         Submission[]
-  reviews             Review[]
-  quizAttempts        QuizAttempt[]
-  skillAssessments    SkillAssessment[]  @relation("AssessedStudent")
-  givenAssessments    SkillAssessment[]  @relation("Assessor")
-  commentsReceived    InstructorComment[] @relation("CommentStudent")
-  commentsWritten     InstructorComment[] @relation("CommentAuthor")
-  notifications       Notification[]
-  auditLogs           AuditLog[]
-  authoredVersions    LessonVersion[]
+  sessions          Session[]
+  enrollments       Enrollment[]        @relation("StudentEnrollments")
+  instructedEnrolls Enrollment[]        @relation("InstructorEnrollments")
+  lessonProgress    LessonProgress[]
+  learningSessions  LearningSession[]
+  submissions       Submission[]
+  reviews           Review[]
+  quizAttempts      QuizAttempt[]
+  skillAssessments  SkillAssessment[]   @relation("AssessedStudent")
+  givenAssessments  SkillAssessment[]   @relation("Assessor")
+  commentsReceived  InstructorComment[] @relation("CommentStudent")
+  commentsWritten   InstructorComment[] @relation("CommentAuthor")
+  notifications     Notification[]
+  auditLogs         AuditLog[]
+  authoredVersions  LessonVersion[]
 
   @@map("users")
 }
@@ -146,15 +146,15 @@ model Course {
 }
 
 model Module {
-  id          String   @id @default(cuid())
+  id          String  @id @default(cuid())
   courseId    String
-  course      Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  course      Course  @relation(fields: [courseId], references: [id], onDelete: Cascade)
   level       String // L0〜L8
   title       String
   description String
   position    Int
-  weeks       Float    @default(1)
-  optional    Boolean  @default(false) // 任意 (発展) のモジュール。必修の進捗指標には含めない
+  weeks       Float   @default(1)
+  optional    Boolean @default(false) // 任意 (発展) のモジュール。必修の進捗指標には含めない
 
   lessons     Lesson[]
   assignments Assignment[]
@@ -164,20 +164,20 @@ model Module {
 }
 
 model Lesson {
-  id               String        @id @default(cuid())
-  moduleId         String
-  module           Module        @relation(fields: [moduleId], references: [id], onDelete: Cascade)
-  slug             String        @unique
-  position         Int
-  status           PublishStatus @default(DRAFT)
+  id                 String         @id @default(cuid())
+  moduleId           String
+  module             Module         @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  slug               String         @unique
+  position           Int
+  status             PublishStatus  @default(DRAFT)
   publishAt          DateTime? // 公開予約の日時
   scheduledVersionId String? // 公開予約されている版 (publishAt に currentVersion へ切り替わる)
-  currentVersionId   String?       @unique
-  currentVersion   LessonVersion? @relation("CurrentVersion", fields: [currentVersionId], references: [id])
-  createdAt        DateTime      @default(now())
-  updatedAt        DateTime      @updatedAt
+  currentVersionId   String?        @unique
+  currentVersion     LessonVersion? @relation("CurrentVersion", fields: [currentVersionId], references: [id])
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
 
-  versions    LessonVersion[] @relation("LessonVersions")
+  versions    LessonVersion[]  @relation("LessonVersions")
   progress    LessonProgress[]
   assignments Assignment[]
 
@@ -186,9 +186,9 @@ model Lesson {
 }
 
 model LessonVersion {
-  id               String   @id @default(cuid())
+  id               String    @id @default(cuid())
   lessonId         String
-  lesson           Lesson   @relation("LessonVersions", fields: [lessonId], references: [id], onDelete: Cascade)
+  lesson           Lesson    @relation("LessonVersions", fields: [lessonId], references: [id], onDelete: Cascade)
   version          Int
   title            String
   estimatedMinutes Int
@@ -198,8 +198,8 @@ model LessonVersion {
   sourceUrl        String? // 移行元 (REOrGA) の記事 URL
   sourcePostId     Int?
   authorId         String?
-  author           User?    @relation(fields: [authorId], references: [id])
-  createdAt        DateTime @default(now())
+  author           User?     @relation(fields: [authorId], references: [id])
+  createdAt        DateTime  @default(now())
 
   currentOf    Lesson?          @relation("CurrentVersion")
   progress     LessonProgress[]
@@ -227,6 +227,7 @@ model Enrollment {
 
   @@unique([userId, courseId])
   @@index([instructorId])
+  @@index([courseId])
   @@map("enrollments")
 }
 
@@ -245,6 +246,7 @@ model LessonProgress {
   completedVersionId String? // 完了操作をした時点の版
 
   @@unique([userId, lessonId])
+  @@index([lessonId])
   @@map("lesson_progress")
 }
 
@@ -258,15 +260,16 @@ model LearningSession {
   durationSec Int      @default(0)
 
   @@index([userId, startedAt])
+  @@index([userId, lessonId, lastPingAt]) // 学習中の記録の延長 (1 分ごと)
   @@map("learning_sessions")
 }
 
 model Rubric {
-  id          String   @id @default(cuid())
-  name        String
+  id        String   @id @default(cuid())
+  name      String
   // [{ key, label, weight, description }]。weight の合計は 100
-  criteria    Json
-  createdAt   DateTime @default(now())
+  criteria  Json
+  createdAt DateTime @default(now())
 
   assignments Assignment[]
 
@@ -274,25 +277,27 @@ model Rubric {
 }
 
 model Assignment {
-  id           String         @id @default(cuid())
-  slug         String         @unique
-  moduleId     String
-  module       Module         @relation(fields: [moduleId], references: [id], onDelete: Cascade)
-  lessonId     String?
-  lesson       Lesson?        @relation(fields: [lessonId], references: [id])
-  title        String
-  type         AssignmentType
+  id        String         @id @default(cuid())
+  slug      String         @unique
+  moduleId  String
+  module    Module         @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  lessonId  String?
+  lesson    Lesson?        @relation(fields: [lessonId], references: [id])
+  title     String
+  type      AssignmentType
   // 目的 / 想定シーン / 要件 / 提出物 などの構造化本文 (src/lib/content/schema.ts の AssignmentBody)
-  body         Json
-  passScore    Int // 合格点 (100 点満点中)。課題ごとに設定
-  rubricId     String
-  rubric       Rubric         @relation(fields: [rubricId], references: [id])
-  position     Int
-  status       PublishStatus  @default(PUBLISHED)
-  createdAt    DateTime       @default(now())
+  body      Json
+  passScore Int // 合格点 (100 点満点中)。課題ごとに設定
+  rubricId  String
+  rubric    Rubric         @relation(fields: [rubricId], references: [id])
+  position  Int
+  status    PublishStatus  @default(PUBLISHED)
+  createdAt DateTime       @default(now())
 
   submissions Submission[]
 
+  @@index([moduleId])
+  @@index([lessonId])
   @@map("assignments")
 }
 
@@ -314,25 +319,27 @@ model Submission {
   reviews Review[]
 
   @@unique([assignmentId, userId, attemptNo])
-  @@index([status])
+  @@index([status, submittedAt]) // レビュー待ちの一覧 (状態ごとに提出の古い順)
+  @@index([userId, assignmentId, attemptNo]) // 受講生ごとの提出 (進捗の集計・最新の提出)
   @@map("submissions")
 }
 
 model Review {
-  id             String         @id @default(cuid())
-  submissionId   String
-  submission     Submission     @relation(fields: [submissionId], references: [id], onDelete: Cascade)
-  reviewerId     String
-  reviewer       User           @relation(fields: [reviewerId], references: [id])
+  id           String         @id @default(cuid())
+  submissionId String
+  submission   Submission     @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  reviewerId   String
+  reviewer     User           @relation(fields: [reviewerId], references: [id])
   // 採点時点のルーブリックのスナップショットと得点 [{ key, label, weight, score }]
-  scores         Json
-  totalScore     Int
-  passScore      Int // 採点時点の合格点
-  decision       ReviewDecision
-  comment        String
-  createdAt      DateTime       @default(now())
+  scores       Json
+  totalScore   Int
+  passScore    Int // 採点時点の合格点
+  decision     ReviewDecision
+  comment      String
+  createdAt    DateTime       @default(now())
 
   @@index([submissionId])
+  @@index([reviewerId])
   @@map("reviews")
 }
 
@@ -390,7 +397,7 @@ model Notification {
   readAt    DateTime?
   createdAt DateTime  @default(now())
 
-  @@index([userId, readAt])
+  @@index([userId, createdAt]) // お知らせの新しい順
   @@map("notifications")
 }
 
@@ -407,6 +414,7 @@ model AuditLog {
 
   @@index([actorId, createdAt])
   @@index([targetType, targetId])
+  @@index([createdAt]) // 監査ログの新しい順
   @@map("audit_logs")
 }
 

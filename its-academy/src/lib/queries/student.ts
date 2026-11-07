@@ -1,4 +1,5 @@
 import "server-only";
+import { cache } from "react";
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
 import { canViewStudent } from "@/lib/auth/roles";
@@ -42,8 +43,8 @@ export async function assertCanActOnStudent(viewer: SessionUser, studentId: stri
   await assertCanViewStudent(viewer, studentId);
 }
 
-/** 公開中のカリキュラム (モジュール → レッスン) を順番どおりに返す */
-export async function getPublishedCurriculum(courseId: string) {
+/** 公開中のカリキュラム (モジュール → レッスン) を順番どおりに返す。1 回の画面表示の中では 1 回だけ読み込む */
+export const getPublishedCurriculum = cache(async (courseId: string) => {
   await applyScheduledPublishes();
   const modules = await db.module.findMany({
     where: { courseId },
@@ -62,7 +63,7 @@ export async function getPublishedCurriculum(courseId: string) {
     // 公開できる版のあるレッスンだけ (型の上でも currentVersion が null でないことを保証する)
     lessons: m.lessons.filter((l): l is typeof l & { currentVersion: NonNullable<typeof l.currentVersion> } => l.currentVersion !== null),
   }));
-}
+});
 
 /**
  * 複数の受講生の進捗に必要なデータを、テーブルごとに 1 回のクエリでまとめて読み込む
@@ -92,7 +93,20 @@ async function loadOverviewData(studentIds: string[]) {
     db.submission.findMany({
       where: { userId: { in: ids } },
       orderBy: [{ attemptNo: "desc" }, { createdAt: "desc" }, { id: "asc" }], // 同じ回数の提出の並びも毎回同じにする
-      include: { reviews: { orderBy: { createdAt: "desc" }, include: { reviewer: { select: { name: true } } } } },
+      // 提出の本文 (コード・備考) は大きくなりうるため、集計に使う列だけを読む
+      select: {
+        id: true,
+        userId: true,
+        assignmentId: true,
+        attemptNo: true,
+        status: true,
+        submittedAt: true,
+        createdAt: true,
+        reviews: {
+          orderBy: { createdAt: "desc" },
+          select: { id: true, totalScore: true, passScore: true, decision: true, comment: true, createdAt: true, reviewer: { select: { name: true } } },
+        },
+      },
     }),
     // 理解度チェックと学習時間は行数が多いので、データベース側で集計してから受け取る
     db.$queryRaw<{ userId: string; lessonId: string; best: number; passed: boolean }[]>`

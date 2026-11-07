@@ -428,7 +428,7 @@ export const L5_LESSONS: LessonDef[] = [
           title: "出版年を追加する",
           task: "Book に出版年 (publishedYear、1900〜今年) を追加し、BookRequest に入力チェック (@Min・@Max) を付け、レスポンスにも含めてください。範囲外の値で 400 と項目別のエラーが返ることを確かめます。",
           hint: "今年の上限は固定値ではなく、Service でチェックする方法も考えてみましょう。",
-          answer: "例: BookRequest に @NotNull @Min(value = 1900, message = \"出版年は 1900 以上です\") Integer publishedYear を追加し、Book と BookResponse にも publishedYear を加えます。@Max には固定の値しか書けないため、明らかな誤りを止める上限 (例: @Max(9999)) に加えて、「今年を超えていないか」は Service で Year.now().getValue() と比べて確かめ、超えていれば例外を投げて ApiExceptionHandler で 400 に変換します。確認: 1899 は 400 で errors.publishedYear にメッセージが入る、1900 と今年は 201、来年は 400 になることを、curl またはテストで確かめます。",
+          answer: "例: BookRequest に @NotNull @Min(value = 1900, message = \"出版年は 1900 以上です\") Integer publishedYear を追加し、Book と BookResponse にも publishedYear を加えます。@NotNull にした場合は、既存のテストと curl の JSON にも publishedYear を追加しないと 400 になります。@Max には固定の値しか書けないため、明らかな誤りを止める上限 (例: @Max(9999)) に加えて、「今年を超えていないか」は Service で Year.now().getValue() と比べて確かめ、超えていれば例外を投げて ApiExceptionHandler で 400 に変換します。確認: 1899 は 400 で errors.publishedYear にメッセージが入る、1900 と今年は 201、来年は 400 になることを、curl またはテストで確かめます。",
         },
       ],
       quiz: {
@@ -537,7 +537,7 @@ export const L5_LESSONS: LessonDef[] = [
           title: "テストが失敗することを確かめる",
           task: "ApiExceptionHandler の notFound で返すステータスを HttpStatus.BAD_REQUEST に変えて mvn test を実行し、どのテストがどんなメッセージで失敗するかを読んでから元に戻してください。",
           hint: "失敗したテストの表示名 (@DisplayName) と、Status expected:<…> but was:<…> の行を探します。確かめたら必ず元に戻し、すべて成功することを確認します。",
-          answer: "「存在しない本は 404 と理由を返す」が失敗し、Status expected:<404> but was:<400> と表示されます。他の 3 件は成功したままです。",
+          answer: "「存在しない本は 404 と理由を返す」が失敗し、Status expected:<404> but was:<400> と表示されます。他のテスト (前の演習で 409 のテストを追加していれば 4 件) は成功したままです。",
         },
       ],
       quiz: {

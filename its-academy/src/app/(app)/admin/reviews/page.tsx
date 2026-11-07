@@ -3,7 +3,7 @@ import Link from "next/link";
 import type { SubmissionStatus } from "@prisma/client";
 import { db } from "@/lib/db";
 import { requireUser } from "@/lib/auth/dal";
-import { STAFF_ROLES } from "@/lib/auth/roles";
+import { isAdmin, STAFF_ROLES } from "@/lib/auth/roles";
 import { visibleStudentIds } from "@/lib/queries/staff";
 import { EmptyState, PageHeader } from "@/components/ui";
 import { SubmissionBadge } from "@/components/status-badge";
@@ -21,11 +21,12 @@ export default async function ReviewsQueue({ searchParams }: { searchParams: Pro
   const viewer = await requireUser(STAFF_ROLES);
   const { view = "pending", assignment } = await searchParams;
   const current = VIEWS[view] ?? VIEWS.pending;
-  const ids = await visibleStudentIds(viewer);
+  // 管理者は全受講生の提出が対象。受講生の ID を並べず、受講生であることで絞り込む (受講生が増えても条件が長くならない)
+  const scope = isAdmin(viewer.role) ? { user: { role: "STUDENT" as const } } : { userId: { in: await visibleStudentIds(viewer) } };
   const done = current === VIEWS.done;
   const DONE_LIMIT = 100;
   const found = await db.submission.findMany({
-    where: { userId: { in: ids }, status: { in: current.statuses }, ...(assignment ? { assignment: { slug: assignment } } : {}) },
+    where: { ...scope, status: { in: current.statuses }, ...(assignment ? { assignment: { slug: assignment } } : {}) },
     // 未対応は古い提出から順に。採点済みは新しい順に直近 100 件
     orderBy: { submittedAt: done ? "desc" : "asc" },
     ...(done ? { take: DONE_LIMIT } : {}),

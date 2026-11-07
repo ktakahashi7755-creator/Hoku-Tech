@@ -9,6 +9,11 @@ on:
 permissions:
   contents: read
 
+# 同じブランチへ続けて push したときは、古い実行を止めて新しい実行だけを続ける
+concurrency:
+  group: its-academy-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   check:
     runs-on: ubuntu-24.04
@@ -54,7 +59,7 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Verify lesson code samples (Java / bash / SQL / Maven / browser, compared with published output)
         run: |
-          sudo apt-get install -y postgresql-client >/dev/null
+          sudo apt-get update -qq && sudo apt-get install -y postgresql-client >/dev/null
           npm run verify:code
       - name: Build
         run: npm run build

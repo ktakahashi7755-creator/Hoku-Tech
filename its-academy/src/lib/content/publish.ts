@@ -1,4 +1,5 @@
 import "server-only";
+import { cache } from "react";
 import { db } from "@/lib/db";
 import { LessonContentSchema } from "@/lib/content/schema";
 
@@ -6,7 +7,7 @@ import { LessonContentSchema } from "@/lib/content/schema";
  * 公開予約の時刻を過ぎたレッスンを公開する。
  * 定期実行ジョブを持たない構成のため、カリキュラムやレッスンを読み込む前に呼ぶ (冪等)。
  */
-export async function applyScheduledPublishes(now = new Date()): Promise<number> {
+async function publishDue(now = new Date()): Promise<number> {
   const due = await db.lesson.findMany({
     where: { scheduledVersionId: { not: null }, publishAt: { lte: now } },
     select: { id: true, scheduledVersionId: true, publishAt: true },
@@ -36,3 +37,9 @@ export async function applyScheduledPublishes(now = new Date()): Promise<number>
   }
   return due.length;
 }
+
+/**
+ * 公開予約の適用。1 回の画面表示の中で何度呼ばれても、確認は 1 回だけ行う (React の cache)。
+ * 画面の外 (サーバーアクションなど) では呼ぶたびに確認する。
+ */
+export const applyScheduledPublishes = cache(() => publishDue());
