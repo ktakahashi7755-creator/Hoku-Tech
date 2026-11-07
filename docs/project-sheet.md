@@ -28,54 +28,37 @@
 * **それ以外の列**: 自動更新で毎回書き直される。直接編集しようとすると警告が出る (保護は「警告のみ」)。
   状態・担当・日付を変えるときは、上の表の元の文書を直して push する。Claude Code に「P-05 の期限を 12/1 にして」のように頼んでもよい。
 
-## 3. 最初の設定 (1 回だけ・約 15 分)
+## 3. 最初の設定 (1 回だけ・約 3 分)
 
-費用: Google Sheets API の利用は無料。Google Cloud のプロジェクトを作るが、請求先アカウント (課金) の設定は不要。
+鍵や Google Cloud の設定は不要。スプレッドシートに付けるスクリプト (Google Apps Script) が、GitHub が公開しているデータを 1 時間ごとに読み込む。
 
-### 3-1. Google Cloud でサービスアカウントを作る
+1. スプレッドシートを開き、メニューの「拡張機能」→「Apps Script」を開く
+2. 最初からあるコード (`function myFunction() {}`) をすべて消し、[its-academy/scripts/project-sheet/apps-script.gs](../its-academy/scripts/project-sheet/apps-script.gs) の中身をすべて貼り付けて、保存 (💾 またはCtrl+S / ⌘+S)
+3. 画面上部の関数の選択で **setup** を選び、「実行」を押す
+4. 「承認が必要です」と出たら「権限を確認」→ 自分のアカウントを選ぶ →「このアプリは Google で確認されていません」と出たら「詳細」→「(安全ではないページ) に移動」→「許可」
+   * 自分で貼ったスクリプトのため、この確認が出る。求められる権限は「このスプレッドシートの編集」「外部へのアクセス (GitHub のデータを読む)」「定期実行」の 3 つ
+5. 「実行完了」と出たら、スプレッドシートに戻る。タブができていれば完了。以後は 1 時間ごとに自動で更新される
+   (メニューの「プロジェクト管理」→「今すぐ更新」でも更新できる。メニューはシートを開き直すと表示される)
 
-1. <https://console.cloud.google.com/> を開き、上部のプロジェクト選択から「新しいプロジェクト」を作る (名前の例: `its-academy-sheet`)。
-2. 「API とサービス」→「ライブラリ」で **Google Sheets API** を検索し、「有効にする」。
-3. 「IAM と管理」→「サービスアカウント」→「サービスアカウントを作成」。名前の例: `sheet-sync`。
-   **ロールは付けない** (このスプレッドシートを共有するだけで書き込めるため。ほかの Google Cloud の資源には触れない)。
-4. 作ったサービスアカウントを開き、「鍵」→「鍵を追加」→「新しい鍵を作成」→ **JSON** → ダウンロードされる。
-   * この JSON は**パスワードと同じ扱い**。メール・チャット・リポジトリに貼らない。次の手順で GitHub に保存したら、パソコンからは削除する。
-   * 組織のポリシーで鍵を作れない場合は、管理者に相談する (下の「6. 鍵を使わない方法」)。
-5. サービスアカウントのメールアドレス (`sheet-sync@<プロジェクト ID>.iam.gserviceaccount.com`) を控える。
+データの場所: GitHub のブランチ `project-sheet-data` の `<ブランチ名の / を __ にしたもの>.json`
+(今は `claude__sharp-bohr-4wbemd.json`)。開発の中心を `main` に移したら、スクリプトの 1 行目の `DATA_URL` の最後を `main.json` に変える。
 
-### 3-2. スプレッドシートをサービスアカウントに共有する
-
-1. スプレッドシートを開き、「共有」→ 上で控えたメールアドレスを入力 → 権限を **編集者** にする → 「通知」のチェックを外して共有。
-2. スプレッドシートの ID を控える。URL の `https://docs.google.com/spreadsheets/d/` と `/edit` の間の文字列。
-
-### 3-3. GitHub に保存する
-
-リポジトリの「Settings」→「Secrets and variables」→「Actions」で:
-
-| 種類 | 名前 | 値 |
-|------|------|----|
-| Secrets | `GOOGLE_SERVICE_ACCOUNT_KEY` | ダウンロードした JSON ファイルの中身をすべて (`{` から `}` まで) |
-| Variables | `PROJECT_SHEET_ID` | スプレッドシートの ID |
-| Variables | `PROJECT_SHEET_BRANCH` | 反映するブランチ名。今は開発中のブランチ (`claude/sharp-bohr-4wbemd`)。`main` に統合した後は削除する (省略時はデフォルトブランチ) |
-
-### 3-4. 最初の反映
-
-「Actions」→「project-sheet」→「Run workflow」→ 実行が緑になったら、スプレッドシートを再読み込みする。
-タブが作られ、最初からある空の「シート1」は消える。
+* リポジトリは公開のため、このデータ (文書の内容と同じ) も誰でも読める。公開してはいけない情報は、もともと文書に書かない。
+* やめたいとき: Apps Script の左の「トリガー」(時計のアイコン) で、syncProjectSheet のトリガーを削除する。
 
 ## 4. いつ更新されるか
 
-* `docs/`・`its-academy/content/`・この仕組みのファイルが変わって、`PROJECT_SHEET_BRANCH` のブランチに push されたとき
-* 毎日 6:17 (日本時間) に 1 回 (更新履歴などを揃えるため)。ただし GitHub の定時実行は、**デフォルトブランチにこの仕組みのファイルがあるときだけ**動く。
-  今 (2026-11-07) は開発中のブランチにしかないため、毎日の更新は統合するまで動かない (push のたびの更新と手動の実行は動く)
-* 「Actions」→「project-sheet」→「Run workflow」で手動
+1. `docs/`・`its-academy/content/`・この仕組みのファイルが変わって push されると、GitHub Actions (project-sheet の publish-data) がデータを作り直して公開する (数分)
+2. スプレッドシートのスクリプトが 1 時間ごとに読み込む (すぐに見たいときは「今すぐ更新」)
 
-設定がないとき (Secrets・Variables が空) は、何もせずに成功する。
+GitHub の毎日の定時実行 (6:17) は、デフォルトブランチにこの仕組みのファイルがあるときだけ動く。今 (2026-11-07) は開発中のブランチにしかないため、統合するまでは push のときだけ更新される。
 
 ## 5. うまくいかないとき
 
 | 症状 | 原因と対処 |
 |------|------------|
+| 「データを取得できませんでした (HTTP 404)」 | まだデータが公開されていない、またはスクリプトの DATA_URL のブランチ名が違う。GitHub の「Actions」→「project-sheet」の publish-data が成功しているか確認 |
+| タブはあるが更新されない | Apps Script の「トリガー」に syncProjectSheet があるか確認。なければ setup をもう一度実行。「実行数」(≡ のアイコン) にエラーの記録が残る |
 | Actions のログに「HTTP 403 / 404 … 編集者で共有しているか」 | スプレッドシートをサービスアカウントのメールアドレスに「編集者」で共有していない、または `PROJECT_SHEET_ID` が違う |
 | 「アクセストークンを取得できませんでした」 | `GOOGLE_SERVICE_ACCOUNT_KEY` の中身が一部しか貼られていない、または鍵が削除・無効化された |
 | 「Google Sheets API has not been used」 | 3-1 の 2 (Google Sheets API の有効化) をしていない |
@@ -83,8 +66,18 @@
 
 手元で中身だけ確認する: `cd its-academy && npm run sheet -- --out ./sheet-preview` (CSV で書き出す。Google には接続しない)。
 
-## 6. 安全のために
+## 6. (別の方法) サービスアカウントで直接書き込む
 
+Apps Script を使えない場合 (組織のポリシーなど) は、GitHub Actions から Sheets API で直接書き込める (project-sheet の sync)。
+手順: Google Cloud でプロジェクトを作り Google Sheets API を有効にする → ロールなしのサービスアカウントを作り JSON の鍵を作る →
+スプレッドシートをそのメールアドレスに「編集者」で共有 → GitHub の Settings → Secrets and variables → Actions に
+Secret `GOOGLE_SERVICE_ACCOUNT_KEY` (鍵の中身)・Variable `PROJECT_SHEET_ID` (URL の /d/ と /edit の間)・
+Variable `PROJECT_SHEET_BRANCH` (反映するブランチ) を登録 →「Run workflow」。設定がないときは何もせずに成功する。
+
+## 7. 安全のために
+
+* Apps Script の方法では、鍵やパスワードを使わない。スクリプトが読むのは公開のデータだけで、書き込むのはこのスプレッドシートだけ。
+* 以下は 6. の方法 (サービスアカウント) を使う場合:
 * 鍵が漏れた疑いがあるときは、Google Cloud の「サービスアカウント」→「鍵」で削除し、新しい鍵を作って GitHub の Secret を差し替える。
 * 鍵でできるのは、このサービスアカウントに共有されたスプレッドシートの読み書きだけ (ロールを付けていないため)。
 * 鍵を使わない方法: GitHub Actions の Workload Identity 連携 (`google-github-actions/auth`) でも動かせる。
