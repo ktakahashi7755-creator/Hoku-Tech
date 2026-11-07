@@ -18,7 +18,7 @@ export const L4_HTTP: LessonDef = {
     objectives: [
       "HTTP のリクエスト (メソッド・URL・ヘッダ・本文) とレスポンス (ステータスコード・ヘッダ・本文) を説明できる",
       "GET と POST の違いと使い分けを説明できる",
-      "主なステータスコード (200・201・204・400・401・403・404・405・409・500) の意味が分かる",
+      "主なステータスコード (200・201・204・400・401・403・404・409・500) の意味を説明できる",
     ],
     prerequisites: ["例外処理とスタックトレースの読み方", "ブラウザで Web ページを開いたことがある"],
     explanation: [
@@ -58,11 +58,14 @@ export const L4_HTTP: LessonDef = {
       {
         title: "ブラウザの開発者ツールで HTTP を見る",
         task: "ブラウザで任意の Web サイトを開き、開発者ツール (F12) の「ネットワーク」タブで最初のリクエストを選んでください。メソッド・ステータスコード・Content-Type を書き出します。",
+        hint: "ネットワークタブは開いた後のリクエストだけを記録するので、開発者ツールを開いた状態でページを再読み込みします。",
+        answer: "例: メソッド GET、ステータスコード 200、Content-Type text/html; charset=utf-8。最初のリクエストはページの HTML を取得する GET なので、多くの場合このようになります。画像や CSS のリクエストを選ぶと、Content-Type が image/png や text/css に変わることも確かめます。",
       },
       {
         title: "ステータスコードを返し分ける",
         task: "サンプルの /hello で、name が空のとき (/hello?name=) に 400 と「name を指定してください」を返すように変えてください。",
         hint: "exchange.sendResponseHeaders(400, body.length) と、本文の書き込みを name の判定の後に分けます。",
+        answer: "例 (/hello の処理):\nserver.createContext(\"/hello\", exchange -> {\n    String query = exchange.getRequestURI().getQuery();\n    String name = query != null && query.startsWith(\"name=\") ? query.substring(5) : \"guest\";\n    int status = 200;\n    String text = \"Hello, \" + name;\n    if (name.isEmpty()) {\n        status = 400;\n        text = \"name を指定してください\";\n    }\n    byte[] body = text.getBytes(StandardCharsets.UTF_8);\n    exchange.getResponseHeaders().add(\"Content-Type\", \"text/plain; charset=utf-8\");\n    exchange.sendResponseHeaders(status, body.length);\n    exchange.getResponseBody().write(body);\n    exchange.close();\n});\nmain で /hello?name= に GET を送ると「GET /hello -> 400」と「name を指定してください」が表示されます。/hello?name=hanako は今までどおり 200 です。",
       },
     ],
     quiz: {
@@ -71,15 +74,15 @@ export const L4_HTTP: LessonDef = {
         {
           id: "q1",
           question: "新しいデータの作成に成功したときに返すステータスコードとして最も適切なものはどれですか。",
-          choices: ["200", "201", "204"],
-          answerIndex: 1,
+          choices: ["200", "204", "201"],
+          answerIndex: 2,
           explanation: "201 Created を返し、Location ヘッダで新しいデータの URL を伝えます。",
         },
         {
           id: "q2",
           question: "ログインのパスワードの送り方として正しいものはどれですか。",
-          choices: ["GET のクエリ文字列で送る", "HTTPS の POST で本文に入れて送る", "HTTP の POST なら暗号化されるので問題ない"],
-          answerIndex: 1,
+          choices: ["HTTPS の POST で本文に入れて送る", "GET のクエリ文字列で送る", "HTTP の POST なら暗号化されるので問題ない"],
+          answerIndex: 0,
           explanation: "GET は URL がログや履歴に残ります。POST でも HTTPS でなければ暗号化されません。",
         },
         {
@@ -95,7 +98,7 @@ export const L4_HTTP: LessonDef = {
     commonErrors: [
       {
         error: "405 Method Not Allowed",
-        cause: "そのURL が受け付けないメソッドで送った (POST 専用の URL に GET したなど)",
+        cause: "その URL が受け付けないメソッドで送った (POST 専用の URL に GET したなど)",
         fix: "API の仕様でメソッドを確認します。フォームの method 属性やクライアントの設定を見直します。",
       },
       {
@@ -121,7 +124,7 @@ export const L4_JDBC: LessonDef = {
   content: {
     objectives: [
       "Maven で JDBC ドライバを依存関係に追加できる",
-      "PreparedStatement で SQL を実行し、SQL インジェクションを防げる",
+      "PreparedStatement で値を渡す SQL を書き、文字列連結が SQL インジェクションを招く理由を説明できる",
       "try-with-resources で接続を確実に閉じ、トランザクションを Java から制御できる",
     ],
     prerequisites: ["データの更新・削除とトランザクション", "例外処理とスタックトレースの読み方"],
@@ -168,12 +171,14 @@ export const L4_JDBC: LessonDef = {
       {
         title: "会員を追加するメソッド",
         task: "void addMember(Connection conn, int id, String name) を PreparedStatement で作り、id = 4、名前「高橋」、ポイント 0 で追加してください。同じ id で 2 回呼ぶと何が起きるか確かめます。",
-        answer: "2 回目は主キーの重複で PSQLException (duplicate key value violates unique constraint \"members_pkey\") が発生する。",
+        hint: "SQL は \"INSERT INTO members (id, name, point) VALUES (?, ?, 0)\" のように値の部分を ? にし、setInt・setString で値を渡してから executeUpdate を呼びます。",
+        answer: "2 回目は主キーの重複で PSQLException (duplicate key value violates unique constraint \"members_pkey\") が発生します。1 回目の executeUpdate の戻り値は 1 (追加した行数) です。",
       },
       {
         title: "インジェクションを自分で試す",
         task: "文字列連結の検索に、入力として 山田' -- を渡すと何件返るか予想してから実行してください。-- は SQL のコメントです。",
-        answer: "1 件。入力の ' で文字列が閉じられ、後ろの ' が -- でコメントになるため、name = '山田' の検索になる。PreparedStatement なら 0 件。",
+        hint: "入力をつないだ後の SQL を紙に書き出し、入力の ' と -- がどこで効くかを確かめます。",
+        answer: "1 件です。入力の ' で文字列が閉じられ、後ろに残った ' が -- でコメントになるため、name = '山田' の検索になります。PreparedStatement なら、山田' -- という名前を探すので 0 件です。",
       },
     ],
     quiz: {
@@ -182,8 +187,8 @@ export const L4_JDBC: LessonDef = {
         {
           id: "q1",
           question: "利用者の入力を含む検索 SQL の書き方として正しいものはどれですか。",
-          choices: ["\"... WHERE name = '\" + input + \"'\" と連結する", "PreparedStatement で \"... WHERE name = ?\" とし setString で渡す", "入力から ' を取り除いてから連結すれば十分"],
-          answerIndex: 1,
+          choices: ["\"... WHERE name = '\" + input + \"'\" と連結する", "入力から ' を取り除いてから連結すれば十分", "PreparedStatement で \"... WHERE name = ?\" とし setString で渡す"],
+          answerIndex: 2,
           explanation: "自作の文字の除去では漏れが出ます。PreparedStatement で値を渡すのが基本です。",
         },
         {
@@ -196,9 +201,9 @@ export const L4_JDBC: LessonDef = {
         {
           id: "q3",
           question: "setAutoCommit(false) の後、途中で例外が起きたときに呼ぶべきなのはどれですか。",
-          choices: ["commit()", "rollback()", "何もしない"],
-          answerIndex: 1,
-          explanation: "rollback() で途中までの変更を取り消し、データの整合性を保ちます。",
+          choices: ["rollback()", "commit()", "setAutoCommit(true) に戻す"],
+          answerIndex: 0,
+          explanation: "rollback() で途中までの変更を取り消し、データの整合性を保ちます。commit() や、トランザクションの途中での setAutoCommit(true) は、途中までの変更を確定させてしまいます。",
         },
       ],
     },
@@ -236,7 +241,7 @@ export const L5_LESSONS: LessonDef[] = [
         "DI (依存性の注入) とコンストラクタインジェクションの意味を説明できる",
         "@RestController と @GetMapping で、HTTP リクエストに応答する処理を書ける",
       ],
-      prerequisites: ["HTTP の仕組み (リクエストとレスポンス)", "インターフェースとポリモーフィズム", "Maven で依存関係を追加できる (JDBC のレッスン)"],
+      prerequisites: ["HTTP の仕組み (リクエストとレスポンス)", "インターフェースとポリモーフィズム", "Java からデータベースを操作する (JDBC)"],
       explanation: [
         {
           heading: "フレームワークと Spring Boot",
@@ -280,10 +285,14 @@ export const L5_LESSONS: LessonDef[] = [
         {
           title: "あいさつを時間帯で変える",
           task: "GreetingService の greet を、引数に時刻 (int hour) を加えて、5〜10 時は Good morning、それ以外は Hello にしてください。コントローラは hour をクエリ文字列で受け取ります (省略時は 12)。",
+          hint: "コントローラで @RequestParam(defaultValue = \"12\") int hour を受け取り、greet(name, hour) として GreetingService に渡します。",
+          answer: "例:\n// GreetingService\npublic String greet(String name, int hour) {\n    String word = (hour >= 5 && hour <= 10) ? \"Good morning\" : \"Hello\";\n    return word + \", \" + name + \"!\";\n}\n\n// HelloController\n@GetMapping(\"/api/hello\")\npublic String hello(@RequestParam(defaultValue = \"guest\") String name,\n                    @RequestParam(defaultValue = \"12\") int hour) {\n    return greetingService.greet(name, hour);\n}\n確認: /api/hello?name=hanako&hour=8 は「Good morning, hanako!」、hour=11 や hour を省略したときは「Hello, hanako!」です。境界の 4・5・10・11 も試します。",
         },
         {
           title: "new した場合と比べる",
           task: "HelloController の中で new GreetingService() と書いた場合、テストで GreetingService を偽物に差し替えられなくなる理由を 2〜3 行で説明してください。",
+          hint: "テストで偽物を渡せるのは、だれが GreetingService を作って HelloController に渡しているからかを考えます。",
+          answer: "例: new GreetingService() と書くと、HelloController が使う部品を自分で作って固定してしまい、外から別のオブジェクトを渡す入口がなくなります。そのため、テストで @MockitoBean などの偽物を用意しても、コントローラは自分で作った本物を使い続けます。コンストラクタで受け取る形なら、Spring やテストが渡すものを差し替えられます。",
         },
       ],
       quiz: {
@@ -292,16 +301,16 @@ export const L5_LESSONS: LessonDef[] = [
           {
             id: "q1",
             question: "Spring が推奨する依存関係の受け取り方はどれですか。",
-            choices: ["フィールドに直接 new する", "コンストラクタの引数で受け取る", "static 変数に入れる"],
-            answerIndex: 1,
+            choices: ["コンストラクタの引数で受け取る", "フィールドに直接 new する", "static 変数に入れる"],
+            answerIndex: 0,
             explanation: "コンストラクタインジェクションにすると、必要な部品が明確になり、テストで差し替えやすくなります。",
           },
           {
             id: "q2",
             question: "@RestController のメソッドがオブジェクトを返したとき、レスポンスの本文はどうなりますか。",
-            choices: ["HTML のテンプレート名として扱われる", "JSON に変換される", "何も返らない"],
+            choices: ["HTML のテンプレート名として扱われる", "JSON に変換される", "toString() の文字列がそのまま本文になる"],
             answerIndex: 1,
-            explanation: "@RestController の戻り値は本文になり、オブジェクトは JSON に変換されます。",
+            explanation: "@RestController の戻り値はそのまま本文になり、オブジェクトは JSON に変換されます。テンプレート名として扱われるのは、@Controller で画面 (HTML) を返す場合です。",
           },
           {
             id: "q3",
@@ -412,11 +421,14 @@ export const L5_LESSONS: LessonDef[] = [
         {
           title: "curl で API を呼ぶ",
           task: "アプリを起動し、ターミナルから curl -i -X POST http://localhost:8080/api/books -H 'Content-Type: application/json' -d '{\"title\":\"Git 入門\",\"author\":\"鈴木\",\"isbn\":\"9784000000003\"}' を実行してください。-i を付けるとステータスコードとヘッダも表示されます。",
+          hint: "-H で Content-Type: application/json を付けないと 415 になります。同じコマンドをもう一度実行すると何が返るかも確かめます。",
+          answer: "ステータス行に 201、ヘッダに Location: /api/books/3 のような新しい URL、本文に {\"id\":3,\"title\":\"Git 入門\",\"author\":\"鈴木\",\"isbn\":\"9784000000003\"} が表示されます (id は登録済みの件数によって変わります)。同じコマンドをもう一度実行すると、ISBN が重複するため 409 と ProblemDetail 形式のエラーが返ります。",
         },
         {
           title: "出版年を追加する",
           task: "Book に出版年 (publishedYear、1900〜今年) を追加し、BookRequest に入力チェック (@Min・@Max) を付け、レスポンスにも含めてください。範囲外の値で 400 と項目別のエラーが返ることを確かめます。",
           hint: "今年の上限は固定値ではなく、Service でチェックする方法も考えてみましょう。",
+          answer: "例: BookRequest に @NotNull @Min(value = 1900, message = \"出版年は 1900 以上です\") Integer publishedYear を追加し、Book と BookResponse にも publishedYear を加えます。@Max には固定の値しか書けないため、明らかな誤りを止める上限 (例: @Max(9999)) に加えて、「今年を超えていないか」は Service で Year.now().getValue() と比べて確かめ、超えていれば例外を投げて ApiExceptionHandler で 400 に変換します。確認: 1899 は 400 で errors.publishedYear にメッセージが入る、1900 と今年は 201、来年は 400 になることを、curl またはテストで確かめます。",
         },
       ],
       quiz: {
@@ -425,15 +437,15 @@ export const L5_LESSONS: LessonDef[] = [
           {
             id: "q1",
             question: "ISBN が重複しているかを確認する処理を置く場所として最も適切なのはどれですか。",
-            choices: ["Controller", "Service", "Entity のコンストラクタ"],
-            answerIndex: 1,
+            choices: ["Service", "Controller", "Entity のコンストラクタ"],
+            answerIndex: 0,
             explanation: "業務のルールは Service に置きます。Controller は HTTP の受け渡しに専念させます。",
           },
           {
             id: "q2",
             question: "リクエストの受け取りに Entity ではなく DTO (BookRequest) を使う理由として正しいものはどれですか。",
-            choices: ["処理が速くなるから", "受け付ける項目と入力チェックを明示し、id など変更させたくない項目を受け取らないため", "JPA の決まりだから"],
-            answerIndex: 1,
+            choices: ["処理が速くなるから", "Entity には入力チェックのアノテーションを付けられないから", "受け付ける項目と入力チェックを明示し、id など変更させたくない項目を受け取らないため"],
+            answerIndex: 2,
             explanation: "DTO で受け付ける項目を限定すると、意図しない項目の上書きを防げます。",
           },
           {
@@ -519,11 +531,13 @@ export const L5_LESSONS: LessonDef[] = [
           title: "重複 ISBN のテストを追加する",
           task: "service.create が DuplicateIsbnException を投げたときに 409 と detail のメッセージが返ることを確かめるテストを追加してください。",
           hint: "given(service.create(any())).willThrow(new DuplicateIsbnException(\"9784000000002\"));",
+          answer: "例:\n@Test\n@DisplayName(\"ISBN が重複していれば 409 と理由を返す\")\nvoid duplicate() throws Exception {\n    given(service.create(any())).willThrow(new DuplicateIsbnException(\"9784000000002\"));\n\n    mvc.perform(post(\"/api/books\").contentType(MediaType.APPLICATION_JSON)\n                    .content(\"{\\\"title\\\":\\\"SQL 入門\\\",\\\"author\\\":\\\"佐藤\\\",\\\"isbn\\\":\\\"9784000000002\\\"}\"))\n            .andExpect(status().isConflict())\n            .andExpect(jsonPath(\"$.detail\").value(\"ISBN 9784000000002 はすでに登録されています\"));\n}\nmvn test で Tests run: 5, Failures: 0 になれば完了です。",
         },
         {
           title: "テストが失敗することを確かめる",
           task: "ApiExceptionHandler の notFound で返すステータスを HttpStatus.BAD_REQUEST に変えて mvn test を実行し、どのテストがどんなメッセージで失敗するかを読んでから元に戻してください。",
-          answer: "「存在しない本は 404 と理由を返す」が失敗し、Status expected:<404> but was:<400> と表示される。",
+          hint: "失敗したテストの表示名 (@DisplayName) と、Status expected:<…> but was:<…> の行を探します。確かめたら必ず元に戻し、すべて成功することを確認します。",
+          answer: "「存在しない本は 404 と理由を返す」が失敗し、Status expected:<404> but was:<400> と表示されます。他の 3 件は成功したままです。",
         },
       ],
       quiz: {
@@ -539,16 +553,16 @@ export const L5_LESSONS: LessonDef[] = [
           {
             id: "q2",
             question: "テストで BookService を偽物に差し替えるために使うアノテーションはどれですか (Spring Boot 4)。",
-            choices: ["@Autowired", "@MockitoBean", "@Service"],
-            answerIndex: 1,
+            choices: ["@MockitoBean", "@Autowired", "@Service"],
+            answerIndex: 0,
             explanation: "@MockitoBean で Mockito のモックに置き換わります (古い @MockBean は使いません)。",
           },
           {
             id: "q3",
             question: "テストケースの選び方として適切なものはどれですか。",
-            choices: ["正常系だけを書く", "正常系に加えて、404・400 などの異常系と入力の境界値を書く", "失敗するテストは消す"],
-            answerIndex: 1,
-            explanation: "異常系と境界値にこそ不具合が潜みます。",
+            choices: ["正常系だけを書く", "異常系は、画面から手で操作して確かめれば十分", "正常系に加えて、404・400 などの異常系と入力の境界値を書く"],
+            answerIndex: 2,
+            explanation: "不具合は、存在しない ID や不正な入力、境界の値 (12 桁と 13 桁など) で起きやすいためです。手での確認は修正のたびに繰り返せないので、異常系もテストコードで残します。",
           },
         ],
       },

@@ -124,7 +124,7 @@ test("修正依頼 → 再提出 → 講師がルーブリックで採点 → �
   await page.getByLabel("コメント (受講生に表示されます)").fill("境界値がすべて仕様どおりになりました。次は統計の表示をメソッドに分けてみましょう。");
   await page.getByRole("button", { name: "採点を確定する" }).click();
   await expect(page.getByRole("status").filter({ hasText: "この提出は採点済みです" })).toBeVisible();
-  await expect(page.getByText("82 点 (合格点 70)").first()).toBeVisible();
+  await expect(page.getByText("82 点 (合格点 70 点)").first()).toBeVisible();
   await logout(page);
 
   // 受講生に結果が届く
@@ -178,7 +178,7 @@ test("管理者: 停滞の閾値を変更でき、CSV を出力できる", async
   const res = await page.request.get("/admin/export/students");
   expect(res.status()).toBe(200);
   const text = await res.text();
-  expect(text.startsWith("﻿ユーザーID,氏名")).toBe(true);
+  expect(text.startsWith("﻿ユーザー ID,氏名")).toBe(true);
   expect(text).toContain("鈴木 美咲");
 
   await page.goto("/admin/settings");

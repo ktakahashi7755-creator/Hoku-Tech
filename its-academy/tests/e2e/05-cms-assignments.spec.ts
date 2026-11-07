@@ -16,8 +16,8 @@ test("課題の合格点を変えても、過去の採点は採点時の合格�
   await login(page, "student@its.example");
   await page.waitForURL(/\/home$/);
   await page.goto("/assignments/a1-github-profile");
-  await expect(page.getByText("合格点 75 / 100")).toBeVisible();
-  await expect(page.getByText(/\(合格点 70\)/).first()).toBeVisible(); // seed で採点済みのレビューは当時の合格点
+  await expect(page.getByText("合格点 75 点 (100 点満点)")).toBeVisible();
+  await expect(page.getByText(/\(合格点 70 点\)/).first()).toBeVisible(); // seed で採点済みのレビューは当時の合格点
   await logout(page);
 });
 
@@ -27,7 +27,7 @@ test("ルーブリックの配点の合計は 100 でなければ保存できな
   await page.goto("/admin/content/assignments");
   await page.getByRole("link", { name: "標準ルーブリック (コード課題)" }).click();
   await page.getByLabel("配点").first().fill("30"); // 要件充足 25 → 30 (合計 105)
-  await expect(page.getByText("配点の合計: 105 / 100")).toBeVisible();
+  await expect(page.getByText("配点の合計: 105 / 100 点")).toBeVisible();
   await page.getByRole("button", { name: "保存" }).click();
   await expect(page.getByRole("alert").filter({ hasText: "配点の合計を 100 にしてください (現在 105)" })).toBeVisible();
   await page.getByLabel("配点").nth(1).fill("15"); // 正確性 20 → 15 (合計 100)

@@ -66,11 +66,14 @@ export const L4_FRONTEND: LessonDef[] = [
         {
           title: "開発者ツールでスマホ表示を確かめる",
           task: "index.html をブラウザで開き、開発者ツール (F12) のデバイス表示で幅 375px と 1024px を切り替えて、カードの並びが変わることを確かめてください。次に <meta name=\"viewport\"> を消して、スマホ幅の表示がどう変わるか確かめます。",
+          hint: "デバイス表示は、開発者ツールの左上にあるスマホとタブレットの形のアイコン (Chrome では Ctrl + Shift + M) で切り替えます。",
+          answer: "375px ではカードが縦に並び、1024px では 3 枚が横に並びます。<meta name=\"viewport\"> を消すと、スマホ幅でもページが PC 用の幅 (多くのブラウザで 980px) で描かれて縮小表示され、文字が小さくなります。確かめたら meta を元に戻します。",
         },
         {
           title: "2 列のレイアウト",
           task: "画面幅 768px 以上のとき、検索フォームを左 (幅 240px)、カードの一覧を右 (残りの幅) に並べてください。768px 未満では縦に並ぶようにします。",
           hint: "section の中を 2 つの div で囲み、外側に display: flex、左に flex: 0 0 240px、右に flex: 1 を指定します。",
+          answer: "例 (外側の div に class=\"layout\"、左に class=\"layout-side\"、右に class=\"layout-main\" を付けた場合):\n.layout {\n  display: flex;\n  flex-direction: column;\n  gap: 16px;\n}\n@media (min-width: 768px) {\n  .layout {\n    flex-direction: row;\n  }\n  .layout-side {\n    flex: 0 0 240px;\n  }\n  .layout-main {\n    flex: 1;\n  }\n}\nまずスマホ向けに縦並びを書き、768px 以上だけ横並びに変えます (モバイルファースト)。確認: 768px で左 240px・右に一覧、767px で縦並びになり、どちらも横スクロールが出ないこと。",
         },
       ],
       quiz: {
@@ -79,8 +82,8 @@ export const L4_FRONTEND: LessonDef[] = [
           {
             id: "q1",
             question: "入力欄に名前を付ける方法として最も適切なものはどれですか。",
-            choices: ["placeholder に書く", "label の for と input の id を一致させる", "入力欄の前に太字の文字を置く"],
-            answerIndex: 1,
+            choices: ["placeholder に書く", "入力欄の前に太字の文字を置く", "label の for と input の id を一致させる"],
+            answerIndex: 2,
             explanation: "label と input を結び付けると、読み上げソフトが名前を読め、ラベルのクリックでも選択できます。",
           },
           {
@@ -93,9 +96,9 @@ export const L4_FRONTEND: LessonDef[] = [
           {
             id: "q3",
             question: "@media (min-width: 768px) の中の CSS が使われるのはどれですか。",
-            choices: ["画面幅が 768px 未満のとき", "画面幅が 768px 以上のとき", "印刷するとき"],
-            answerIndex: 1,
-            explanation: "min-width は「この幅以上」です。",
+            choices: ["画面幅が 768px 以上のとき", "画面幅が 768px 未満のとき", "画面幅がちょうど 768px のときだけ"],
+            answerIndex: 0,
+            explanation: "min-width: 768px は「画面幅が 768px 以上なら」という条件です。モバイルファーストでは、まずスマホ向けの CSS を書き、広い画面だけで変えたい指定をこの中に追加します。768px 未満では中身が使われないので、スマホの表示はそのまま保たれます。",
           },
         ],
       },
@@ -128,7 +131,7 @@ export const L4_FRONTEND: LessonDef[] = [
       objectives: [
         "querySelector・addEventListener で、画面の要素を取得してイベントに反応できる",
         "fetch で REST API を呼び出し、結果を画面に表示できる",
-        "textContent と innerHTML の違いを理解し、XSS を防いで表示できる",
+        "textContent と innerHTML の違いを説明し、textContent で安全に表示できる",
       ],
       prerequisites: ["HTML と CSS の基礎 (構造・レイアウト・スマホ対応)", "HTTP の仕組み (リクエストとレスポンス)"],
       explanation: [
@@ -188,11 +191,14 @@ export const L4_FRONTEND: LessonDef[] = [
         {
           title: "件数が 0 件のときの表示",
           task: "検索結果が 0 件のとき「見つかりませんでした。別の言葉で検索してください」と表示されるように render を変えてください。",
+          hint: "render の最初で books.length が 0 かどうかを if で調べ、0 件なら status.textContent にメッセージを入れて return します。",
+          answer: "例:\nfunction render(books) {\n  results.replaceChildren();\n  if (books.length === 0) {\n    status.textContent = \"見つかりませんでした。別の言葉で検索してください\";\n    return;\n  }\n  for (const book of books) {\n    const li = document.createElement(\"li\");\n    li.textContent = `${book.title} (${book.author})`;\n    results.append(li);\n  }\n  status.textContent = `${books.length} 件見つかりました`;\n}\n確認: 0 件の応答で「0 件見つかりました」ではなく、このメッセージが表示されること。",
         },
         {
           title: "L5 の API とつなぐ",
           task: "(L5 を修了してから取り組む発展課題) L5 で作った本の API (Spring Boot) を起動し、app.js の URL を /api/books?author=... に合わせて、著者で検索できるようにしてください。別のポートの API を呼ぶとき、ブラウザの開発者ツールに何のエラーが出るか確かめます。",
           hint: "別のオリジン (ポート) への fetch は CORS の制限を受けます。Spring 側で許可する設定が必要です。",
+          answer: "fetch の URL を http://localhost:8080/api/books?author=${encodeURIComponent(...)} のように API のオリジンを含む形にすると、最初はコンソールに「... has been blocked by CORS policy」というエラーが出ます。Spring 側で画面のオリジン (例: http://localhost:5500) だけを許可する設定 (@CrossOrigin や CORS の設定。Spring Security を使っている場合は http.cors(Customizer.withDefaults()) も) を追加すると、著者で検索できるようになります。すべてのオリジンを許可する設定にはしません。",
         },
       ],
       quiz: {
@@ -201,23 +207,23 @@ export const L4_FRONTEND: LessonDef[] = [
           {
             id: "q1",
             question: "サーバーから受け取った本のタイトルを画面に表示する方法として安全なものはどれですか。",
-            choices: ["li.innerHTML = title", "li.textContent = title", "document.write(title)"],
-            answerIndex: 1,
+            choices: ["li.textContent = title", "li.innerHTML = title", "document.write(title)"],
+            answerIndex: 0,
             explanation: "textContent は文字として表示するため、HTML やスクリプトが実行されません。",
           },
           {
             id: "q2",
             question: "addEventListener で登録した submit の処理の中で、ページの再読み込みを止めるにはどうしますか。",
-            choices: ["event.preventDefault() を呼ぶ", "関数の最後で return false する", "button を div に変える"],
-            answerIndex: 0,
+            choices: ["関数の最後で return false する", "event.preventDefault() を呼ぶ", "submit ではなく click のイベントで処理を登録する"],
+            answerIndex: 1,
             explanation: "submit イベントの既定の動作 (ページ遷移) を preventDefault で止めます。addEventListener の関数で return false しても止まりません (HTML の onsubmit 属性に書いた場合とは動きが違います)。",
           },
           {
             id: "q3",
             question: "画面側で入力チェックをしていれば、サーバー側のチェックは不要ですか。",
-            choices: ["不要", "必要 (API は画面を通さず直接呼べるため)", "HTTPS なら不要"],
-            answerIndex: 1,
-            explanation: "画面側のチェックは利便性のため。安全のためのチェックはサーバー側で必ず行います。",
+            choices: ["不要 (画面を通らない入力はないため)", "HTTPS なら不要", "必要 (API は画面を通さず直接呼べるため)"],
+            answerIndex: 2,
+            explanation: "画面側のチェックは、入力ミスにすぐ気付いてもらうためのものです。API は画面を通さずに直接呼べるので、安全のためのチェックはサーバー側で必ず行います。",
           },
         ],
       },
@@ -259,11 +265,11 @@ export const L6_LESSONS: LessonDef[] = [
       explanation: [
         {
           heading: "GitHub Flow",
-          body: "1. main は常に動く状態に保つ\n2. 作業ごとに main から機能ブランチを作る (feature/limit-5 など)\n3. 小さく commit し、GitHub に push して PR (プルリクエスト) を作る\n4. レビューと CI (自動テスト) が通ったら main にマージする\nブランチは 1 つの目的 (1 機能・1 修正) に絞り、長く放置しないことが、コンフリクトを減らす一番の方法です。",
+          body: "1. main は常に動く状態に保つ\n2. 作業ごとに main から機能ブランチを作る (feature/limit-5 など)\n3. 小さくコミットし、GitHub に push して PR (プルリクエスト) を作る\n4. レビューと CI (自動テスト) が通ったら main にマージする\nブランチは 1 つの目的 (1 機能・1 修正) に絞り、長く放置しないことが、コンフリクトを減らす一番の方法です。",
         },
         {
           heading: "コンフリクトが起きる理由",
-          body: "2 人が同じファイルの同じ行を別々に変更し、それを合わせようとすると、Git はどちらを残すべきか判断できません。これがコンフリクトです。Git は「CONFLICT (content): Merge conflict in README.md」と表示し、ファイルに印を書き込みます。\n<<<<<<< HEAD から ======= までが今いるブランチ (自分) の内容、======= から >>>>>>> main までが取り込もうとしたブランチ (main) の内容です。\n注意: これは git merge の場合です。git rebase の途中では逆になり、HEAD 側が取り込み先 (main)、もう一方が自分の commit になります。",
+          body: "2 人が同じファイルの同じ行を別々に変更し、それを合わせようとすると、Git はどちらを残すべきか判断できません。これがコンフリクトです。Git は「CONFLICT (content): Merge conflict in README.md」と表示し、ファイルに印を書き込みます。\n<<<<<<< HEAD から ======= までが今いるブランチ (自分) の内容、======= から >>>>>>> main までが取り込もうとしたブランチ (main) の内容です。\n注意: これは git merge の場合です。git rebase の途中では逆になり、HEAD 側が取り込み先 (main)、もう一方が自分のコミットになります。",
         },
         {
           heading: "解消の手順",
@@ -271,7 +277,7 @@ export const L6_LESSONS: LessonDef[] = [
         },
         {
           heading: "履歴を壊す操作に注意",
-          body: "git push --force は、リモートの履歴を自分の手元の内容で上書きします。他の人が使っているブランチ (特に main) で使うと、他の人の commit を消してしまいます。チームの共有ブランチでは使いません。\n自分だけが使っている作業ブランチを rebase した後など、どうしても上書きが必要なときは git push --force-with-lease を使います。リモートに自分の知らない commit が増えていたら上書きを中止してくれるため、他の人の commit を消す事故を防げます。",
+          body: "git push --force は、リモートの履歴を自分の手元の内容で上書きします。他の人が使っているブランチ (特に main) で使うと、他の人のコミットを消してしまいます。チームの共有ブランチでは使いません。\n自分だけが使っている作業ブランチを rebase した後など、どうしても上書きが必要なときは git push --force-with-lease を使います。リモートに自分の知らないコミットが増えていたら上書きを中止してくれるため、他の人のコミットを消す事故を防げます。",
         },
       ],
       examples: [
@@ -310,10 +316,13 @@ export const L6_LESSONS: LessonDef[] = [
         {
           title: "コンフリクトを自分で起こして解消する",
           task: "demo.sh と同じ手順を自分のリポジトリで行い、衝突したファイルを VS Code で開いてください。VS Code に表示される「現在の変更を取り込む / 入力側の変更を取り込む」ボタンの意味を、印の位置と対応させて説明します。",
+          hint: "印の 3 つの区切り (<<<<<<< HEAD・=======・>>>>>>> main) と、それぞれのボタンを押したときに残る内容を見比べます。",
+          answer: "「現在の変更を取り込む」は <<<<<<< HEAD から ======= まで (今いるブランチ = 自分の変更) を残し、「入力側の変更を取り込む」は ======= から >>>>>>> main まで (取り込もうとしたブランチの変更) を残します。「両方の変更を取り込む」は両方を並べて残します (いずれも git merge の場合。rebase では向きが逆になります)。どれを選んでも、印が消えたことを確かめてから git add と git commit を行い、テストを実行します。",
         },
         {
           title: "衝突を減らす工夫",
           task: "チームでコンフリクトを減らすための工夫を 3 つ挙げてください。",
+          hint: "コンフリクトは、同じファイルの同じ行を別々のブランチで長い間変更していると起きやすくなります。",
           answer: "例: ブランチを小さく短く保つ / こまめに main を取り込む / 同じファイルを同時に大きく変更する作業は事前に相談して分担する / フォーマッタを統一して不要な差分を出さない",
         },
       ],
@@ -330,16 +339,16 @@ export const L6_LESSONS: LessonDef[] = [
           {
             id: "q2",
             question: "衝突の正しい内容が分からないときの対応として適切なものはどれですか。",
-            choices: ["自分の変更を残す", "仕様を確認し、相手の担当者に相談して決める", "両方を消す"],
-            answerIndex: 1,
+            choices: ["自分の変更を残す", "両方の内容を印ごと残してコミットする", "仕様を確認し、相手の担当者に相談して決める"],
+            answerIndex: 2,
             explanation: "どちらが正しいかは仕様と相手の意図で決まります。独断で決めると他の人の作業を壊します。",
           },
           {
             id: "q3",
             question: "チームで共有している main ブランチで避けるべき操作はどれですか。",
-            choices: ["git pull", "git push --force", "git log"],
+            choices: ["git pull", "git push --force", "git revert (取り消しのコミットを追加する)"],
             answerIndex: 1,
-            explanation: "--force はリモートの履歴を上書きし、他の人の commit を消すおそれがあります。",
+            explanation: "--force はリモートの履歴を自分の手元の内容で上書きするため、他の人がすでに push したコミットを消すおそれがあります。git pull は取り込み、git revert は取り消しのコミットを追加するだけで、履歴を消しません。",
           },
         ],
       },
@@ -347,17 +356,17 @@ export const L6_LESSONS: LessonDef[] = [
       commonErrors: [
         {
           error: "error: Your local changes to the following files would be overwritten by merge",
-          cause: "commit していない変更があるまま merge・pull した",
-          fix: "先に commit するか、git stash で一時的に退避してから実行します。",
+          cause: "コミットしていない変更があるまま merge・pull した",
+          fix: "先にコミットするか、git stash で一時的に退避してから実行します。",
         },
         {
-          error: "解消後に印 (<<<<<<< など) がファイルに残ったまま commit した",
+          error: "解消後に印 (<<<<<<< など) がファイルに残ったままコミットした",
           cause: "印を消し忘れた",
-          fix: "git diff で確認し、印を消して commit し直します。ビルドやテストで気付けることが多いので、解消後は必ず実行します。",
+          fix: "git diff で確認し、印を消してコミットし直します。ビルドやテストで気付けることが多いので、解消後は必ず実行します。",
         },
         {
           error: "! [rejected] main -> main (fetch first)",
-          cause: "リモートに自分の手元にない commit がある",
+          cause: "リモートに自分の手元にないコミットがある",
           fix: "git pull で取り込んでから push します。--force で上書きしてはいけません。",
         },
       ],
@@ -434,11 +443,14 @@ export const L6_LESSONS: LessonDef[] = [
         {
           title: "レビューコメントを書き直す",
           task: "次のレビューコメントを、理由と提案が伝わるように書き直してください。「この if 文、分かりにくいです」「テストが足りない」",
+          hint: "「何が問題か (理由)」と「どうすればよいか (提案)」を、それぞれ 1 文ずつ入れます。",
           answer: "例: 「条件が 3 つ並んでいて意図が読み取りにくいので、canLend() のような名前のメソッドに切り出しませんか」「上限ちょうど (3 冊目) と上限超え (4 冊目) のテストがあると、境界の不具合に気付けると思います」",
         },
         {
           title: "自分の PR を見直す",
           task: "これまでの課題で作ったリポジトリに PR を 1 つ作り、上の「PR の説明に書くこと」に沿って説明を書いてください。",
+          hint: "PR を作る前に git diff --stat main...ブランチ名 で、関係ない変更が混ざっていないかを確かめます。",
+          answer: "良い PR の説明は、目的 (関連する Issue があれば番号)・変更内容 (箇条書き)・確認方法 (実行したコマンドと結果)・気になっている点がそろい、読んだ人がコードを見る前に何をどう確かめればよいか分かるものです。確認: 差分に .env・target/・デバッグ用の出力が入っていないこと、テストが通ること、AI を使った場合はその範囲を書いたこと。",
         },
       ],
       quiz: {
@@ -454,15 +466,15 @@ export const L6_LESSONS: LessonDef[] = [
           {
             id: "q2",
             question: "レビューで指摘を受けたときの対応として適切なものはどれですか。",
-            choices: ["指摘を無視してマージする", "同じブランチに修正のコミットを追加し、指摘に返信する", "PR を閉じて作り直す"],
-            answerIndex: 1,
+            choices: ["同じブランチに修正のコミットを追加し、指摘に返信する", "修正を --force で push し直し、返信はしない", "PR を閉じて作り直す"],
+            answerIndex: 0,
             explanation: "追加のコミットは PR に自動で反映されます。指摘ごとに対応内容を返信します。",
           },
           {
             id: "q3",
             question: "良いレビューコメントはどれですか。",
-            choices: ["「ここ変です」", "「14 が何の数字か伝わりにくいので、定数にしませんか」", "「全部書き直してください」"],
-            answerIndex: 1,
+            choices: ["「ここ変です」", "「私ならこう書きます」とだけ書いて、自分のコードを貼る", "「14 が何の数字か伝わりにくいので、定数にしませんか」"],
+            answerIndex: 2,
             explanation: "理由と具体的な提案があると、相手がすぐに対応できます。",
           },
         ],
@@ -501,7 +513,7 @@ export const L6_LESSONS: LessonDef[] = [
         },
         {
           heading: "チケット (Issue) の書き方",
-          body: "不具合のチケットには次を書きます。\nタイトル: 何が起きるか (例: 3 冊借りている利用者が 4 冊目を借りられてしまう)\n再現手順: 1, 2, 3 と番号付きで、誰がやっても同じことが起きる手順\n期待結果と実際の結果\n環境: ブラウザ、ブランチ、データの条件\n証拠: エラーメッセージ (全文)、スクリーンショット。パスワードや個人情報は消す\n機能追加のチケットには、目的と「完了の条件」(何ができたら完了か) を書きます。",
+          body: "不具合のチケットには次を書きます。\nタイトル: 何が起きるか (例: 3 冊借りている利用者が 4 冊目を借りられてしまう)\n再現手順: 1, 2, 3 と番号付きで、だれがやっても同じことが起きる手順\n期待結果と実際の結果\n環境: ブラウザ、ブランチ、データの条件\n証拠: エラーメッセージ (全文)、スクリーンショット。パスワードや個人情報は消す\n機能追加のチケットには、目的と「完了の条件」(何ができたら完了か) を書きます。",
         },
         {
           heading: "見積もりと早めの相談",
@@ -519,11 +531,14 @@ export const L6_LESSONS: LessonDef[] = [
         {
           title: "不具合のチケットを書く",
           task: "「一般利用者のアカウントで本の削除ボタンを押すと、本が削除されてしまう」という不具合を見つけた想定で、タイトル・再現手順・期待結果・実際の結果・環境を書いたチケットを作ってください。",
+          hint: "再現手順には番号を付け、だれが操作しても同じ結果になるように、ログインする利用者や操作する本まで具体的に書きます。",
           answer: "タイトル: 一般利用者が本を削除できてしまう\n再現手順: 1. hanako (一般利用者) でログイン 2. 本の一覧で「Java 入門」の削除を押す\n期待結果: 403 になり、削除されない\n実際の結果: 204 が返り、本が削除される\n環境: feature/delete ブランチ、Chrome",
         },
         {
           title: "作業を分割して見積もる",
           task: "卒業制作の「返却機能」を、半日〜1 日の作業に分割し、それぞれの完了の条件を書いてください。",
+          hint: "API・テスト・README のように作業の種類で分けると、半日〜1 日の大きさにしやすくなります。",
+          answer: "例:\n1. 返却 API (返却日の記録と延滞日数の計算): 0.5 日。完了の条件: 期限内の返却で延滞 0 日、期限の翌日の返却で延滞 1 日が返る\n2. 返却のテスト (境界値と権限): 0.5 日。完了の条件: 期限の当日・翌日の返却と、ログインしていない場合 (401) のテストが通る\n3. README の更新: 0.5 日。完了の条件: 返却 API の説明と確認手順が README にある\n4. 予備: 0.5 日\n確認: どの作業も 1 日以内で、完了したかどうかをだれでも判定できる条件になっていること。",
         },
       ],
       quiz: {
@@ -539,9 +554,16 @@ export const L6_LESSONS: LessonDef[] = [
           {
             id: "q2",
             question: "見積もりの半分の時間が過ぎても先が見えないときの対応はどれですか。",
-            choices: ["期限まで一人で頑張る", "その時点で状況を共有して相談する", "見積もりを黙って延ばす"],
-            answerIndex: 1,
+            choices: ["期限まで一人で頑張る", "見積もりを黙って延ばす", "その時点で状況を共有して相談する"],
+            answerIndex: 2,
             explanation: "早く相談すれば、手伝ってもらう・仕様を見直すなどの手が打てます。",
+          },
+          {
+            id: "q3",
+            question: "不具合のチケットに必ず書くべき内容の組み合わせはどれですか。",
+            choices: ["再現手順・期待結果・実際の結果", "見つけた人の感想と、推測した原因", "修正にかかる時間の見積もり"],
+            answerIndex: 0,
+            explanation: "再現手順があれば、だれでも同じ現象を起こして確かめられます。期待結果と実際の結果の差が、直すべき点そのものです。原因の推測や見積もりは書いてもよいですが、それだけでは不具合を再現できません。",
           },
         ],
       },
@@ -550,7 +572,7 @@ export const L6_LESSONS: LessonDef[] = [
         {
           error: "「動きません」とだけ書いたチケット",
           cause: "再現手順・期待結果・実際の結果が書かれていない",
-          fix: "誰がやっても同じことが起きる手順と、エラーメッセージの全文を書きます。",
+          fix: "だれがやっても同じことが起きる手順と、エラーメッセージの全文を書きます。",
         },
         {
           error: "期限の当日に「終わりません」と報告した",

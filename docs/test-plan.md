@@ -10,7 +10,7 @@
 |----|--------|----------|-------------------|------|
 | 型検査 | TypeScript | `npm run typecheck` | — | エラー 0 |
 | 静的解析 | ESLint (next) | `npm run lint` | — | エラー 0 |
-| 単体 | Vitest | `npm test` | 81 件 / 10 ファイル | 全件成功 |
+| 単体 | Vitest | `npm test` | 82 件 / 10 ファイル | 全件成功 |
 | 教材コード検証 | JDK 21 / bash / Git / PostgreSQL 16 / Maven / Chromium | `npm run verify:code` | 30 サンプル (Java・bash・Git・SQL・Maven で起動する Spring Boot・Chromium でのブラウザ確認。L8 の 2 件を含む) | 全件一致 |
 | ビルド | Next.js | `npm run build` | — | 成功 |
 | E2E | Playwright (Chromium) | `npm run test:e2e -- --trace off` | 34 (01-lms 8・02-cms 4・03-a11y 5・04-accounts 3・05-cms-assignments 4・06-hardening 4・07-rules 6) | 全件成功 |
@@ -28,7 +28,7 @@ E2E は専用の DB (`TEST_DATABASE_URL`、既定は `its_academy_test`) を `pr
 | `roles.test.ts` | 個人データのアクセス分離 (本人 / 担当講師 / 担当外講師 / 他の受講生 / 管理者)・ロール付与の制限・アカウント操作の範囲 (自分自身・上位ロールは不可)・proxy のロール判定・GitHub URL の検証 |
 | `token.test.ts` | セッショントークンの長さ・一意性・保存用ハッシュ |
 | `csv.test.ts` | エスケープ・CSV インジェクション対策 (先頭の空白・全角の記号・改行も対象)・BOM |
-| `rules.test.ts` | 下書き保存で上書きしてよい版 (公開済み・公開中・予約中は不可)・指導提案の対象 (合格済みの課題・合格済みの理解度チェックは除く)・前提レッスンが非公開の課題を指標から除く |
+| `rules.test.ts` | 最新の提出の選び方 (修正依頼の後の下書きで修正依頼が消えない)・下書き保存で上書きしてよい版 (公開済み・公開中・予約中は不可)・指導提案の対象 (合格済みの課題・合格済みの理解度チェックは除く)・前提レッスンが非公開の課題を指標から除く |
 | `client-ip.test.ts` | 利用者の IP の選び方 (信頼するプロキシの段数・偽の先頭の値を使わない・未設定なら記録しない・不自然な値を記録しない) |
 | `draft.test.ts` | CMS の入力の変換・必須チェック・正解番号の範囲・実行検証済みの印と実行スクリプトの引き継ぎ (コード変更で外れる・フォームからの偽装は無効)・往復変換 |
 | `guidance.test.ts` | 指導提案 (停滞を能力不足と表現しない・複数回提出で面談提案・遅れの閾値) |
