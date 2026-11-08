@@ -475,7 +475,7 @@ Hoku Tech 本体のファイル (index.html / assets / data) には一切変更�
 * Java / SQL / JDBC / Spring Boot: 例外の表示・日付の解析エラー・JDBC と Spring Boot の起動エラーを、JDK 21・PostgreSQL 16・Spring Boot 4.1 で実際に出る文言に修正。「起動ログで URL を確認」という誤った案内を修正。テストのレッスン名を「JUnit・MockMvc」に (Spring Boot 4.1 は JUnit 6)
 * 環境構築・Git・フロントエンド・チーム開発: GitHub の画面の表記 (Add README)・Mac の SSH 設定 (IdentityFile)・Git / Node.js / Ubuntu が実際に出すメッセージ・CORS の事前確認の説明・Mac の Maven の Java の版の確認を修正。参照元の 72 件の URL はすべて実在を確認
 * 文書: gcloud のオプションの誤り (--edition の値) を修正。費用の目安を内訳から計算した幅 (月約 9,000〜13,000 円) に。確認できない外部の事実は「要確認」と確認日を明記。件数・削除の制約・フォーカスの枠の太さなどを実際に合わせた
-* テスト結果: 単体 98 件・教材コード 30 件すべて成功 (掲載の実行結果は変わらない)。E2E と全画面の巡回は下に記載
+* テスト結果: 単体 98 件・E2E 57 件・教材コード 30 件すべて成功 (掲載の実行結果は変わらない)。全画面の巡回 (141 画面・752 回の表示) で問題 0 件
 * 確認できなかったもの (要確認): OWASP の LLM 向け Top 10 の本文・start.spring.io の依存関係の表示名・Microsoft と GitHub の公式ドキュメントのページ (この環境から接続できないため)。WSL の既定の Ubuntu の版 (教材では版を指定して入れる方法を案内済み)
 
 ## 確認が必要な事項 (重要な意思決定)
