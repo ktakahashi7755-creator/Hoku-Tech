@@ -70,8 +70,8 @@ export const L4_FRONTEND: LessonDef[] = [
       exercises: [
         {
           title: "開発者ツールでスマホ表示を確かめる",
-          task: "index.html をブラウザで開き (Mac は open index.html、WSL2 は explorer.exe . で開いたフォルダから index.html をダブルクリック)、開発者ツール (F12) のデバイス表示で幅 375px と 1024px を切り替えて、カードの並びが変わることを確かめてください。次に <meta name=\"viewport\"> を消して、スマホ幅の表示がどう変わるか確かめます。",
-          hint: "デバイス表示は、開発者ツールの左上にあるスマホとタブレットの形のアイコン (Chrome では Ctrl + Shift + M) で切り替えます。",
+          task: "index.html をブラウザで開き (Mac は open index.html、WSL2 は explorer.exe . で開いたフォルダから index.html をダブルクリック)、開発者ツール (Windows は F12、Mac は Command + Option + I) のデバイス表示で幅 375px と 1024px を切り替えて、カードの並びが変わることを確かめてください。次に <meta name=\"viewport\"> を消して、スマホ幅の表示がどう変わるか確かめます。",
+          hint: "デバイス表示は、開発者ツールの左上にあるスマホとタブレットの形のアイコン (Chrome では Windows が Ctrl + Shift + M、Mac が Command + Shift + M) で切り替えます。",
           answer: "375px ではカードが縦に並び、1024px では 3 枚が横に並びます。<meta name=\"viewport\"> を消すと、スマホ幅でもページが PC 用の幅 (多くのブラウザで 980px) で描かれて縮小表示され、文字が小さくなります。確かめたら meta を元に戻します。",
         },
         {
@@ -246,10 +246,10 @@ export const L4_FRONTEND: LessonDef[] = [
         {
           error: "Access to fetch at 'http://localhost:8080/...' from origin 'http://localhost:5500' has been blocked by CORS policy",
           cause: "画面と API のオリジン (ホスト・ポート) が違い、API 側が許可していない",
-          fix: "API 側で許可するオリジンを設定します (Spring なら @CrossOrigin や CORS の設定)。Spring Security を使っている場合は、SecurityConfig に http.cors(Customizer.withDefaults()) も必要です (ないと、ブラウザが事前に送る OPTIONS リクエストが 401 で拒否されます)。すべてのオリジンを許可する設定は避けます。",
+          fix: "API 側で許可するオリジンを設定します (Spring なら @CrossOrigin や CORS の設定)。Spring Security を使っている場合は、SecurityConfig に http.cors(Customizer.withDefaults()) も必要です (ないと、Authorization ヘッダーを付けて呼ぶときなどにブラウザが事前に送る確認のリクエスト (OPTIONS) が、401 で拒否されます)。すべてのオリジンを許可する設定は避けます。",
         },
         {
-          error: "Uncaught SyntaxError: await is only valid in async functions",
+          error: "Uncaught SyntaxError: await is only valid in async functions and the top level bodies of modules",
           cause: "async を付けていない関数の中で await を使った",
           fix: "関数に async を付けます (async (event) => { ... })。",
         },
@@ -324,7 +324,7 @@ export const L6_LESSONS: LessonDef[] = [
       exercises: [
         {
           title: "コンフリクトを自分で起こして解消する",
-          task: "demo.sh と同じ手順を自分のリポジトリで行い、衝突したファイルを VS Code で開いてください。VS Code に表示される「現在の変更を取り込む / 入力側の変更を取り込む」ボタンの意味を、印の位置と対応させて説明します。",
+          task: "demo.sh と同じ手順を自分のリポジトリで行い、衝突したファイルを VS Code で開いてください。VS Code に表示される「現在の変更を取り込む / 入力側の変更を取り込む」ボタン (英語表示では Accept Current Change / Accept Incoming Change) の意味を、印の位置と対応させて説明します。",
           hint: "印の 3 つの区切り (<<<<<<< HEAD・=======・>>>>>>> main) と、それぞれのボタンを押したときに残る内容を見比べます。",
           answer: "「現在の変更を取り込む」は <<<<<<< HEAD から ======= まで (今いるブランチ = 自分の変更) を残し、「入力側の変更を取り込む」は ======= から >>>>>>> main まで (取り込もうとしたブランチの変更) を残します。「両方の変更を取り込む」は両方を並べて残します (いずれも git merge の場合。rebase では向きが逆になります)。どれを選んでも、印が消えたことを確かめてから git add と git commit を行い、テストを実行します。",
         },
@@ -493,7 +493,7 @@ export const L6_LESSONS: LessonDef[] = [
         {
           error: "PR に .env やビルド成果物 (target/) が含まれている",
           cause: ".gitignore に書かずに git add . した",
-          fix: ".gitignore に追加し、git rm --cached でリポジトリから外します。秘密情報が push 済みなら、すぐに講師に報告してキーを無効化します (履歴から消すだけでは不十分です)。",
+          fix: ".gitignore に追加し、git rm --cached .env (フォルダは git rm -r --cached target/) でリポジトリから外します (手元のファイルは残ります)。秘密情報が push 済みなら、すぐに講師に報告してキーを無効化します (履歴から消すだけでは不十分です)。",
         },
         {
           error: "PR が大きすぎてレビューが進まない",

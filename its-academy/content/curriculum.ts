@@ -117,7 +117,7 @@ export const MODULES: ModuleDef[] = [
                 "次の状況を、良い質問の 5 要素を使って質問文にしてください。「ターミナルで javac と打ったら command not found と出た。昨日 Java をインストールしたはず。」",
               hint: "環境と、インストールの確認のために何を試したかを入れましょう。",
               answer:
-                "例: 「Java のインストールを確認しています。WSL2 の Ubuntu で javac -version を実行すると『javac: command not found』と表示されます。期待していたのは javac 21 のようなバージョン表示です。昨日 sudo apt install openjdk-21-jdk を実行しましたが、その時のメッセージは確認していません。Windows 11 + WSL2 (Ubuntu 24.04) です。」",
+                "例: 「Java のインストールを確認しています。WSL2 の Ubuntu で javac -version を実行すると『Command 'javac' not found, but can be installed with:』と表示されます。期待していたのは javac 21 のようなバージョン表示です。昨日 sudo apt install openjdk-21-jdk を実行しましたが、その時のメッセージは確認していません。Windows 11 + WSL2 (Ubuntu 24.04) です。」",
             },
           ],
           quiz: {
@@ -374,8 +374,8 @@ export const MODULES: ModuleDef[] = [
               fix: "git config --global user.name \"Yamada Hanako\" と git config --global user.email \"you@example.com\" を設定します。名前に空白があるときは引用符で囲みます。",
             },
             {
-              error: "nothing added to commit",
-              cause: "git add をせずに git commit した",
+              error: "nothing added to commit but untracked files present / no changes added to commit",
+              cause: "git add をせずに git commit した (新しいファイルなら前者、変更したファイルなら後者が表示される)",
               fix: "git status で変更を確認し、git add ファイル名 してから git commit します。",
             },
             {
@@ -933,13 +933,13 @@ export const ASSIGNMENTS: AssignmentDef[] = [
       scenario: "配属初日に「自己紹介を README にまとめてチームのリポジトリに PR を出して」と頼まれた想定です。",
       requirements: [
         "GitHub に public リポジトリ its-profile を作る",
-        "README.md に名前 (ニックネーム可)・このコースの目標・学習計画を書く",
+        "README.md に名前 (ニックネーム可)・このコースの目標・週ごとの学習計画を書く",
         "main 以外のブランチで作業し、PR を作って自分でマージする",
-        "コミットが 3 件以上あり、メッセージが「種類: 内容」の形式",
+        "自分で作ったコミットが 3 件以上あり (リポジトリ作成時の Initial commit は数えない)、メッセージが「種類: 内容」の形式",
       ],
       recommended: ["README に見出し (#) と箇条書きを使う", "PR の説明欄に変更内容を書く"],
       steps: [
-        "GitHub でリポジトリを作成し (作成画面で「Add a README file」にチェックを入れて main ブランチを作る)、手元に git clone する",
+        "GitHub でリポジトリを作成し (作成画面で「Add README」をオンにして main ブランチを作る)、手元に git clone する",
         "git switch -c feature/profile でブランチを作る",
         "README.md を編集してコミットする (3 回以上に分ける)",
         "git push -u origin feature/profile で送る",

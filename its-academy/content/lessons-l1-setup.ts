@@ -26,11 +26,11 @@ export const L1_SETUP: LessonDef = {
       },
       {
         heading: "Windows: WSL2 と Ubuntu",
-        body: "1. PowerShell を「管理者として実行」で開き、wsl --install を実行する (- は半角のハイフン 2 つ。全角や長いダッシュ – だと失敗します)\n2. 再起動後、Ubuntu が開いたらユーザー名とパスワードを決める。パスワードは入力しても画面に何も表示されませんが、入力されています\n3. sudo apt update && sudo apt upgrade -y で最新にする\n仮想化が無効でインストールに失敗する場合は、エラーメッセージを講師に送ってください (パソコンの設定 (BIOS) の変更が必要なことがあります)。",
+        body: "1. PowerShell を「管理者として実行」で開き、wsl --install を実行する (- は半角のハイフン 2 つ。全角や長いダッシュ – だと失敗します)\n2. 再起動後、Ubuntu が開いたらユーザー名とパスワードを決める。パスワードは入力しても画面に何も表示されませんが、入力されています\n3. sudo apt update && sudo apt upgrade -y で最新にする\nwsl --install で入る Ubuntu のバージョンは時期によって変わります。このコースの手順は Ubuntu 24.04 で確かめています。wsl --list --online で入れられる一覧を表示し、wsl --install -d Ubuntu-24.04 のように名前を指定して入れることもできます。\n仮想化が無効でインストールに失敗する場合は、エラーメッセージを講師に送ってください (パソコンの設定 (BIOS) の変更が必要なことがあります)。",
       },
       {
         heading: "必要なソフトを入れる",
-        body: "Ubuntu (WSL2):\nsudo apt install -y openjdk-21-jdk maven git postgresql\nsudo service postgresql start\nMac (Homebrew を入れた後):\nbrew install openjdk@21 maven git postgresql@16\necho 'export PATH=\"$(brew --prefix postgresql@16)/bin:$PATH\"' >> ~/.zprofile\nbrew services start postgresql@16\n(Mac の postgresql@16 は、そのままでは psql・createuser・createdb・pg_isready が PATH に入らないため、2 行目で PATH に追加します。追加した後はターミナルを開き直してください。openjdk@21 も、インストール後に表示される「PATH を通す」案内に従ってください)\nJDK は「Java の開発キット」で、実行環境 (JRE) とコンパイラ (javac) を含みます。JRE だけでは Java のプログラムを作れません。",
+        body: "Ubuntu (WSL2):\nsudo apt install -y openjdk-21-jdk maven git postgresql\nsudo service postgresql start\nMac (Homebrew を入れた後):\nbrew install openjdk@21 maven git postgresql@16\necho 'export PATH=\"$(brew --prefix postgresql@16)/bin:$PATH\"' >> ~/.zprofile\nbrew services start postgresql@16\n(Mac の postgresql@16 は、そのままでは psql・createuser・createdb・pg_isready が PATH に入らないため、2 行目で PATH に追加します。追加した後はターミナルを開き直してください。openjdk@21 も、インストール後に表示される「PATH を通す」案内に従ってください。Homebrew の maven は新しい版の Java を一緒に入れることがあるため、mvn -v の「Java version」が 21 になっているか確認します。違う場合は echo 'export JAVA_HOME=\"$(brew --prefix openjdk@21)/libexec/openjdk.jdk/Contents/Home\"' >> ~/.zprofile を実行し、ターミナルを開き直します)\nJDK は「Java の開発キット」で、実行環境 (JRE) とコンパイラ (javac) を含みます。JRE だけでは Java のプログラムを作れません。",
       },
       {
         heading: "Git の名前とメールアドレス",
@@ -38,7 +38,7 @@ export const L1_SETUP: LessonDef = {
       },
       {
         heading: "PostgreSQL の自分用ユーザー",
-        body: "管理者ユーザー (postgres) で日常の開発をせず、自分用のユーザーとデータベースを作ります。\nsudo -u postgres createuser --pwprompt --createdb its (Mac は createuser --pwprompt --createdb its)\ncreatedb -h localhost -U its its_practice\nパスワードは必ず設定します。設定ファイルを trust (パスワードなしで接続できる設定) に変えて回避してはいけません。だれでもデータベースに入れる状態になります。",
+        body: "管理者ユーザー (postgres) で日常の開発をせず、自分用のユーザーとデータベースを作ります。\nsudo -u postgres createuser --pwprompt --createdb its (Mac は createuser --pwprompt --createdb its)\ncreatedb -h localhost -U its its_practice\nパスワードは必ず設定します。設定ファイルを trust (パスワードなしで接続できる設定) に変えて回避してはいけません。だれでもデータベースに入れる状態になります。\n(Mac の Homebrew で入れた PostgreSQL は、初期設定で同じパソコンからの接続をパスワードなしで受け付けます。それでもパスワードは設定しておきます。L4 以降のアプリの接続設定で使います)",
       },
       {
         heading: "VS Code",
@@ -104,7 +104,7 @@ export const L1_SETUP: LessonDef = {
     workplaceUse: "配属先でも、最初の仕事は開発環境の構築です。手順書どおりに進め、うまくいかないときにエラーメッセージを正確に伝えられることが大切です。チームでは、このコースの check-env.sh のような確認スクリプトを用意して、全員の環境をそろえることがよくあります。",
     commonErrors: [
       {
-        error: "javac: command not found",
+        error: "Command 'javac' not found (Ubuntu) / zsh: command not found: javac (Mac)",
         cause: "JDK ではなく JRE だけが入っている、または PATH が通っていない",
         fix: "Ubuntu は openjdk-21-jdk (jre ではなく jdk) を入れます。Mac はインストール時に表示された PATH の設定を行い、ターミナルを開き直します。",
       },
@@ -147,7 +147,7 @@ export const L1_GITHUB: LessonDef = {
       },
       {
         heading: "SSH 鍵: 公開鍵と秘密鍵",
-        body: "git push のたびにパスワードを入力しないよう、SSH 鍵で認証します。ssh-keygen -t ed25519 -C \"メールアドレス\" を実行すると、2 つのファイルができます。\nid_ed25519.pub (公開鍵): GitHub の Settings → SSH and GPG keys に登録する方。人に見せても問題ありません\nid_ed25519 (秘密鍵): 自分のパソコンだけに置く方。だれにも渡さず、チャットや AI に貼ってはいけません。権限が 600 (自分だけが読める) になっていることを確認します\n実際に作るときはパスフレーズ (鍵のパスワード) を設定します。パスフレーズは、秘密鍵が盗まれたときに使われないようにするためのものです。\nパスフレーズを設定しても、鍵を ssh-agent (鍵を覚えておく仕組み) に登録すれば、push のたびに入力する必要はありません。\nUbuntu (WSL2): eval \"$(ssh-agent -s)\" の後に ssh-add ~/.ssh/id_ed25519 を実行し、パスフレーズを 1 回入力する (ターミナルを開き直したら再度実行します)\nMac: ssh-add --apple-use-keychain ~/.ssh/id_ed25519 を実行すると、パスフレーズがキーチェーンに保存されます。~/.ssh/config に次の 3 行を書いておくと、ターミナルを開き直しても入力は不要です\nHost github.com\n  AddKeysToAgent yes\n  UseKeychain yes",
+        body: "git push のたびにパスワードを入力しないよう、SSH 鍵で認証します。ssh-keygen -t ed25519 -C \"メールアドレス\" を実行すると、2 つのファイルができます。\nid_ed25519.pub (公開鍵): GitHub の Settings → SSH and GPG keys に登録する方。人に見せても問題ありません\nid_ed25519 (秘密鍵): 自分のパソコンだけに置く方。だれにも渡さず、チャットや AI に貼ってはいけません。権限が 600 (自分だけが読める) になっていることを確認します\n実際に作るときはパスフレーズ (鍵のパスワード) を設定します。パスフレーズは、秘密鍵が盗まれたときに使われないようにするためのものです。\nパスフレーズを設定しても、鍵を ssh-agent (鍵を覚えておく仕組み) に登録すれば、push のたびに入力する必要はありません。\nUbuntu (WSL2): eval \"$(ssh-agent -s)\" の後に ssh-add ~/.ssh/id_ed25519 を実行し、パスフレーズを 1 回入力する (ターミナルを開き直したら再度実行します)\nMac: ssh-add --apple-use-keychain ~/.ssh/id_ed25519 を実行すると、パスフレーズがキーチェーンに保存されます。~/.ssh/config に次の 4 行を書いておくと、ターミナルを開き直しても入力は不要です\nHost github.com\n  AddKeysToAgent yes\n  UseKeychain yes\n  IdentityFile ~/.ssh/id_ed25519",
       },
       {
         heading: "clone・ブランチ・push",
@@ -177,7 +177,7 @@ export const L1_GITHUB: LessonDef = {
       },
       {
         title: "初めての push",
-        task: "GitHub で practice というリポジトリを「Add a README file」にチェックを入れて作り (main ブランチが作られます)、git clone します。feature/readme ブランチを作って README.md に 1 行追記し、コミットして git push -u origin feature/readme で送ってください。GitHub の画面に feature/readme ブランチが表示され、main はそのまま残っていることを確かめます。",
+        task: "GitHub で practice というリポジトリを「Add README」をオンにして作り (main ブランチが作られます)、git clone します。feature/readme ブランチを作って README.md に 1 行追記し、コミットして git push -u origin feature/readme で送ってください。GitHub の画面に feature/readme ブランチが表示され、main はそのまま残っていることを確かめます。",
         hint: "空のリポジトリに最初に feature/readme を push すると、そのブランチが既定のブランチ (main の代わり) になってしまいます。README 付きで作れば main が先にできます。",
         answer: "例:\ngit clone git@github.com:ユーザー名/practice.git\ncd practice\ngit switch -c feature/readme\necho \"練習中です\" >> README.md\ngit add README.md\ngit commit -m \"docs: update README\"\ngit push -u origin feature/readme\nGitHub のブランチ一覧に main と feature/readme の 2 つがあり、main の README.md が変わっていなければ成功です。",
       },
