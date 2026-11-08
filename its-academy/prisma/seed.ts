@@ -34,9 +34,9 @@ async function main() {
 
   const mkUser = (data: Omit<Prisma.UserCreateInput, "passwordHash">) => db.user.create({ data: { ...data, passwordHash } });
   const superAdmin = await mkUser({ email: "super@its.example", name: "システム 管理者", role: "SUPER_ADMIN" });
-  const admin = await mkUser({ email: "admin@its.example", name: "管理 太郎", role: "ADMIN", affiliation: "ITS 合同会社 教育部" });
-  const instructorA = await mkUser({ email: "instructor@its.example", name: "講師 一郎", role: "INSTRUCTOR", affiliation: "ITS 合同会社 教育部" });
-  const instructorB = await mkUser({ email: "instructor2@its.example", name: "講師 二葉", role: "INSTRUCTOR", affiliation: "ITS 合同会社 教育部" });
+  const admin = await mkUser({ email: "admin@its.example", name: "管理 太郎", role: "ADMIN", affiliation: "プロバイド株式会社 教育部" });
+  const instructorA = await mkUser({ email: "instructor@its.example", name: "講師 一郎", role: "INSTRUCTOR", affiliation: "プロバイド株式会社 教育部" });
+  const instructorB = await mkUser({ email: "instructor2@its.example", name: "講師 二葉", role: "INSTRUCTOR", affiliation: "プロバイド株式会社 教育部" });
   const students = await Promise.all([
     mkUser({ email: "student@its.example", name: "山田 花子", affiliation: "2026 年 10 月期", joinedAt: daysAgo(20) }),
     mkUser({ email: "student2@its.example", name: "佐藤 健", affiliation: "2026 年 10 月期", joinedAt: daysAgo(20) }),

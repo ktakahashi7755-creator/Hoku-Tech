@@ -1,4 +1,4 @@
-# ITS ENGINEER ACADEMY — プロダクト要求仕様 (PRD)
+# PROVIDE ENGINEER ACADEMY — プロダクト要求仕様 (PRD)
 
 > 版: v0.3 (2026-11-06) / 対象: STEP 4〜13 の実装範囲 / 実装: [`its-academy/`](../its-academy/)
 > 関連: [architecture.md](architecture.md) / [database-schema.md](database-schema.md) / [test-plan.md](test-plan.md)
@@ -7,7 +7,7 @@
 
 ## 1. 目的
 
-ITS 合同会社が IT 未経験者を採用・教育し、成長を定量的に把握できる学習基盤を作る。
+プロバイド株式会社が IT 未経験者を採用・教育し、成長を定量的に把握できる学習基盤を作る。
 「見栄えの良いデモ」ではなく、データが保存され、権限が守られ、講師が毎日使える運用ツールであること。
 
 ## 2. 利用者と主なユースケース

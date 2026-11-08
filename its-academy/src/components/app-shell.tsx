@@ -46,7 +46,7 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
       <header className="sticky top-0 z-20 border-b border-border bg-bg/95 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
           <Link href={isStaff(user.role) ? "/admin" : "/home"} className="font-bold tracking-tight">
-            ITS <span className="text-accent">ENGINEER ACADEMY</span>
+            PROVIDE <span className="text-accent">ENGINEER ACADEMY</span>
           </Link>
           <div className="flex items-center gap-3 text-sm">
             <span className="hidden text-muted sm:inline">

@@ -184,7 +184,7 @@ export function buildTabs(root: string, git: Git = gitReader(root)): Tab[] {
   const hours = (ms: typeof MODULES) => Math.round(lessonsOf(ms).reduce((s, l) => s + l.estimatedMinutes, 0) / 6) / 10;
   const count = <T,>(xs: T[], f: (x: T) => boolean) => xs.filter(f).length;
   const summaryRows: Cell[][] = [
-    ["プロジェクト", "ITS ENGINEER ACADEMY (LMS とカリキュラム)"],
+    ["プロジェクト", "PROVIDE ENGINEER ACADEMY (LMS とカリキュラム)"],
     ["コース", `${COURSE.title} (${COURSE.weeks} 週間)`],
     ["データの時点", head || "—"],
     ["STEP", `${steps.length} 件中 完了 ${count(steps, (r) => done(r[2]))} 件 / 進行中 ${count(steps, (r) => r[2].startsWith("進行中"))} 件`],

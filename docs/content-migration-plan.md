@@ -1,4 +1,4 @@
-# ITS ENGINEER ACADEMY — 教材移行計画 (content-migration-plan)
+# PROVIDE ENGINEER ACADEMY — 教材移行計画 (content-migration-plan)
 
 > 対象: REOrGA Engineer 公開カリキュラム 72 記事 (https://engineer.reorga.co.jp/curriculum/)
 > 根拠データ: [source-inventory.csv](source-inventory.csv) / [source-audit.md](source-audit.md) / [curriculum-gap-analysis.md](curriculum-gap-analysis.md)
@@ -8,7 +8,7 @@
 
 ## 1. 移行の基本方針
 
-1. **無計画な複製をしない。** 記事を 1:1 で写すのではなく、ITS の新レッスン構造
+1. **無計画な複製をしない。** 記事を 1:1 で写すのではなく、PROVIDE の新レッスン構造
    (13 項目の標準フォーマット) に再構成してから取り込む。
 2. **出典を必ず保持する。** 移行したすべてのレッスンに出典 URL と記事 ID を記録する
    (`lesson_versions.source_url` / `source_post_id`。版ごとに保存するため、教材を更新しても出典履歴は消えない)。
@@ -34,7 +34,7 @@
 | 維持 | 内容が正確で、構成も新フォーマットへほぼそのまま載る | 書式変換 + コードのテキスト化 + 画像 alt 付与 |
 | 改善 | 内容の骨格は使えるが、説明不足・古い手順・演習不足がある | 上記 + 用語解説・実行結果・よくあるエラー・理解度チェックの追加、古い記述の修正 |
 | 再構成 | 1 記事に複数テーマが混在、順序が不自然、または大幅に古い | 分割 / 統合 / 順序変更 / 全面書き直し。旧記事は出典として紐付けのみ |
-| 新規追加 | 既存教材に存在しない領域 | ITS で新規執筆 (出典なし) |
+| 新規追加 | 既存教材に存在しない領域 | PROVIDE で新規執筆 (出典なし) |
 
 記事ごとの分類は [source-inventory.csv](source-inventory.csv) の `classification` 列が正。
 
@@ -86,7 +86,7 @@
 
 ## 6. 権利確認事項 (未解決)
 
-* 既存教材の著作権者が依頼者 (ITS 合同会社または関係者) であることの書面確認
+* 既存教材の著作権者が依頼者 (プロバイド株式会社または関係者) であることの書面確認
 * `lh7-rt.googleusercontent.com` 画像の元データ (Google ドキュメント) の所在と所有者
 * Qiita 由来画像 2 枚、外部サイト (willbrains.jp 等) 参照部分の扱い
 * 共同執筆者がいる場合の利用許諾

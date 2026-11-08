@@ -1,4 +1,4 @@
-# ITS ENGINEER ACADEMY — 既存カリキュラム調査報告 (source-audit)
+# PROVIDE ENGINEER ACADEMY — 既存カリキュラム調査報告 (source-audit)
 
 > 調査対象: REOrGA Engineer 公開カリキュラム https://engineer.reorga.co.jp/curriculum/
 > 調査日: 2026-11-05〜06 / 記事単位の一覧: [source-inventory.csv](source-inventory.csv)

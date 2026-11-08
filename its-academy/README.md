@@ -1,6 +1,6 @@
-# ITS ENGINEER ACADEMY
+# PROVIDE ENGINEER ACADEMY
 
-ITS 合同会社のエンジニア育成プラットフォーム (LMS)。受講生の学習・課題提出、講師のレビュー、
+プロバイド株式会社のエンジニア育成プラットフォーム (LMS)。受講生の学習・課題提出、講師のレビュー、
 管理者による進捗把握を 1 つのアプリで行う。
 
 * 設計: [../docs/PRD.md](../docs/PRD.md) / [../docs/architecture.md](../docs/architecture.md) / [../docs/database-schema.md](../docs/database-schema.md)

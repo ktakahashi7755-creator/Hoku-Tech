@@ -87,8 +87,8 @@ test("レッスン・課題のページ名に、そのレッスン名・課題�
   await login(page, "student@its.example");
   await page.waitForURL(/\/home$/);
   await page.goto("/lessons/l2-loops-arrays"); // CMS の E2E で編集しないレッスン
-  await expect(page).toHaveTitle(/^繰り返しと配列 \| ITS ENGINEER ACADEMY$/);
+  await expect(page).toHaveTitle(/^繰り返しと配列 \| PROVIDE ENGINEER ACADEMY$/);
   await page.goto("/assignments/a2-grade-calculator");
-  await expect(page).toHaveTitle(/^成績判定プログラム \| ITS ENGINEER ACADEMY$/);
+  await expect(page).toHaveTitle(/^成績判定プログラム \| PROVIDE ENGINEER ACADEMY$/);
   await logout(page);
 });

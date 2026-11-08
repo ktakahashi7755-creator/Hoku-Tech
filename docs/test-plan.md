@@ -1,4 +1,4 @@
-# ITS ENGINEER ACADEMY — テスト計画
+# PROVIDE ENGINEER ACADEMY — テスト計画
 
 > 版: v0.3 (2026-11-06) / 実行場所: `its-academy/` / CI: `.github/workflows/its-academy.yml`
 

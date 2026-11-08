@@ -1,4 +1,4 @@
-# ITS ENGINEER ACADEMY — コンテナイメージ (手順は ../docs/deployment-guide.md §5)
+# PROVIDE ENGINEER ACADEMY — コンテナイメージ (手順は ../docs/deployment-guide.md §5)
 #
 #   docker build -t its-academy .                       … アプリ (runner) を作る
 #   docker build --target tools -t its-academy-tools .  … マイグレーション・初期データ投入用

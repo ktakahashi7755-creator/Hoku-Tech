@@ -1,4 +1,4 @@
-# ITS ENGINEER ACADEMY — 開発進捗 (development-progress)
+# PROVIDE ENGINEER ACADEMY — 開発進捗 (development-progress)
 
 > 更新ルール: 各タスク完了時に更新する。ステータスは実際のファイル・テスト・成果物を根拠にする。
 > 未検証のものは「完了」にしない。
@@ -479,12 +479,22 @@ Hoku Tech 本体のファイル (index.html / assets / data) には一切変更�
 * バックアップ: 確定版のタグを `its-academy-final-2026-11-08` に作り直し (T-13-11 の 2026-11-07 のタグは GitHub に公開していなかったため、置き換えた)、git bundle とチェックサムを作り直して、取り出して型検査と単体テストが通ることを確認
 * 確認できなかったもの (要確認): OWASP の LLM 向け Top 10 の本文・start.spring.io の依存関係の表示名・Microsoft と GitHub の公式ドキュメントのページ (この環境から接続できないため)。WSL の既定の Ubuntu の版 (教材では版を指定して入れる方法を案内済み)
 
+### T-14-01 名称変更 (ITS → PROVIDE)
+
+* 担当: Claude Code
+* ステータス: コード変更済み (ブランチ `claude/rename-to-provide`)。公開ブランチへのマージと公開中の DB の置き換えは未実施 (依頼者の確認待ち)
+* 表示名: 「ITS ENGINEER ACADEMY」→「PROVIDE ENGINEER ACADEMY」(全ページのタイトル・ヘッダー・ログイン画面)。タブのアイコンは「P」1 文字に
+* 会社名: 「ITS 合同会社」→「プロバイド株式会社」(説明文・見本データの所属・教材のサンプル HTML・文書)
+* 変えていないもの: 見本データのドメイン `@its.example`、クッキー名 `its_session`、フォルダ名・DB 名、教材の練習用の名前 (`its-practice`・DB ユーザー `its` など)
+* 登録済みの DB: `scripts/rename-brand.ts` で、レッスンの版の変更メモ・サンプル HTML を取り込んだ本文・ユーザーの所属を置き換える (既定は確認のみ、`--apply` で書き込み)
+* テスト結果: lint・型検査・単体 98 件が成功。開発サーバーで管理者の画面を巡回し、DB 由来の箇所以外に「ITS」が残っていないことを確認。教材コードの検証・ビルド・E2E は未実施
+
 ## 確認が必要な事項 (重要な意思決定)
 
 | ID | 内容 | 仮定 (回答があるまでの前提) |
 |----|------|------------------------------|
 | D-01 | LMS 本体をどのリポジトリで開発するか。現リポジトリ (Hoku Tech) は「外部ライブラリ禁止・単一 HTML」のルールがあり、Next.js / PostgreSQL 構成と両立しない | 本リポジトリの独立ディレクトリ `its-academy/` で開発し、後で `git subtree split` で専用リポジトリへ履歴ごと切り出せる構成にする (Hoku Tech のファイルは変更しない) |
-| D-02 | Hoku Tech と ITS ENGINEER ACADEMY の関係 (別製品 / 統合 / 置き換え) | 別製品として扱う。Hoku Tech のブランド・データは変更しない |
+| D-02 | Hoku Tech と PROVIDE ENGINEER ACADEMY の関係 (別製品 / 統合 / 置き換え) | 別製品として扱う。Hoku Tech のブランド・データは変更しない |
 | D-03 | ホスティングと DB の運用先 (費用が発生するため事前承認が必要) | 契約は行わない。選定資料 [hosting-options.md](hosting-options.md) で Google Cloud (Cloud Run + Cloud SQL、東京、月約 9,000〜13,000 円の見込み) を推奨 |
 | D-04 | IDE を VS Code に統一するか | VS Code に統一し、Eclipse 記事は「参考」に格下げ |
 | D-05 | Servlet/JSP の扱い | 概要 + 1 課題に圧縮し、Spring Boot に時間を回す |

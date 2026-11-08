@@ -1,4 +1,4 @@
-# ITS ENGINEER ACADEMY — Google Cloud への公開手順 (D-03 承認後に実施)
+# PROVIDE ENGINEER ACADEMY — Google Cloud への公開手順 (D-03 承認後に実施)
 
 > 版: v1.0 (2026-11-06)。**未実施**。Google Cloud の契約・プロジェクトはまだ存在しない。
 > D-03 で Google Cloud が承認され、依頼者が契約とプロジェクト作成を済ませた後に、この順で実施する。

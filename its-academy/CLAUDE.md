@@ -1,4 +1,4 @@
-# CLAUDE.md — its-academy (ITS ENGINEER ACADEMY)
+# CLAUDE.md — its-academy (PROVIDE ENGINEER ACADEMY)
 
 このディレクトリは Hoku Tech とは別の製品。リポジトリ直下の CLAUDE.md の
 「外部ライブラリ禁止・単一 HTML」の制約は Hoku Tech 本体 (index.html / assets / data) に対するもので、

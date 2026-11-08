@@ -1,4 +1,4 @@
-# ITS ENGINEER ACADEMY — 実装計画
+# PROVIDE ENGINEER ACADEMY — 実装計画
 
 > 版: v0.3 (2026-11-06)。進捗の実績は [development-progress.md](development-progress.md) が正。
 

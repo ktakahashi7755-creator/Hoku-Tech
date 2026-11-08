@@ -1,4 +1,4 @@
-# ITS ENGINEER ACADEMY — アーキテクチャ
+# PROVIDE ENGINEER ACADEMY — アーキテクチャ
 
 > 版: v0.3 (2026-11-06) / 実装: [`its-academy/`](../its-academy/)
 

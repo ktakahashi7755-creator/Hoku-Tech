@@ -1,4 +1,4 @@
-# ITS ENGINEER ACADEMY — 1 台のサーバーで動かす構成 (手順は ../docs/deployment-guide.md §5)
+# PROVIDE ENGINEER ACADEMY — 1 台のサーバーで動かす構成 (手順は ../docs/deployment-guide.md §5)
 #
 #   printf 'POSTGRES_PASSWORD=%s\n' "$(openssl rand -hex 24)" > .env.docker   # 開発用の .env とは別のファイル
 #   docker compose --env-file .env.docker up -d --build              … DB 起動 → マイグレーション → アプリ起動

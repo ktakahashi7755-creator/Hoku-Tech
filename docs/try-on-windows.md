@@ -1,4 +1,4 @@
-# 自分の Windows PC で ITS ENGINEER ACADEMY を触る (お試し用)
+# 自分の Windows PC で PROVIDE ENGINEER ACADEMY を触る (お試し用)
 
 見本データ入りのアプリを、自分の PC の中だけで動かす手順。インターネットには公開しない。
 所要時間: 初回 15〜30 分 (ダウンロードとビルドの待ち時間を含む)。2 回目からは 1 分ほど。

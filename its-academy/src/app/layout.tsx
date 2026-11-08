@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: { default: "ITS ENGINEER ACADEMY", template: "%s | ITS ENGINEER ACADEMY" },
-  description: "未経験から実務で活躍できるエンジニアを育てる、ITS 合同会社の学習プラットフォーム",
+  title: { default: "PROVIDE ENGINEER ACADEMY", template: "%s | PROVIDE ENGINEER ACADEMY" },
+  description: "未経験から実務で活躍できるエンジニアを育てる、プロバイド株式会社の学習プラットフォーム",
   // 受講生向けの非公開サービスのため、検索エンジンに載せない (public/robots.txt と同じ方針)
   robots: { index: false, follow: false },
 };

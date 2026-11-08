@@ -1,4 +1,4 @@
-# ITS ENGINEER ACADEMY — データベース設計
+# PROVIDE ENGINEER ACADEMY — データベース設計
 
 > 版: v0.2 (2026-11-06) / 正: [`its-academy/prisma/schema.prisma`](../its-academy/prisma/schema.prisma) (PostgreSQL 16)
 

@@ -1,4 +1,4 @@
-# ITS ENGINEER ACADEMY — デプロイ・運用ガイド
+# PROVIDE ENGINEER ACADEMY — デプロイ・運用ガイド
 
 > 版: v0.4 (2026-11-06)。本番環境はまだ存在しない (契約が必要なため未作成、development-progress.md の D-03)。
 > 本書は「実施・確認済み」の手順と「本番化の手順案 (未実施・要承認)」を分けて記載する。

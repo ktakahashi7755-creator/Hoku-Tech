@@ -1,6 +1,6 @@
 /** @OnlyCurrentDoc */
 /**
- * ITS ENGINEER ACADEMY プロジェクト管理シート — 自動更新のスクリプト (Google Apps Script)
+ * PROVIDE ENGINEER ACADEMY プロジェクト管理シート — 自動更新のスクリプト (Google Apps Script)
  *
  * 使い方 (1 回だけ。docs/project-sheet.md):
  *   1. スプレッドシートの「拡張機能」→「Apps Script」を開き、最初からあるコードを消して、このファイルの中身をすべて貼り付けて保存する

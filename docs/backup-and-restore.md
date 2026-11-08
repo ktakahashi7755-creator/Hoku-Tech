@@ -1,6 +1,6 @@
 # バックアップと、いつでも呼び出すための手順
 
-ITS ENGINEER ACADEMY の成果物 (アプリ・教材・設計文書・テスト) を、いつでも同じ状態で取り出し・動かせるようにするための手順。
+PROVIDE ENGINEER ACADEMY の成果物 (アプリ・教材・設計文書・テスト) を、いつでも同じ状態で取り出し・動かせるようにするための手順。
 受講生のデータ (本番の DB) のバックアップは [deployment-guide.md](deployment-guide.md) §6 を参照。
 
 ## 1. 何が、どこに残っているか
@@ -23,7 +23,7 @@ ITS ENGINEER ACADEMY の成果物 (アプリ・教材・設計文書・テスト
 1. リポジトリの「Releases」→「Draft a new release」(または「Create a new release」)
 2. 「Choose a tag」に `its-academy-final-2026-11-08` と入力し「Create new tag」
 3. 「Target」でブランチ `claude/sharp-bohr-4wbemd` を選ぶ (確定版のコミットは、持ち出し用のファイルの中のタグと同じもの。作業完了報告に記載)
-4. タイトルに「ITS ENGINEER ACADEMY 確定版 2026-11-07」と入れて「Publish release」。必要なら bundle と .sha256 のファイルも添付できる
+4. タイトルに「PROVIDE ENGINEER ACADEMY 確定版 2026-11-07」と入れて「Publish release」。必要なら bundle と .sha256 のファイルも添付できる
 
 タグを作った後は、次のように呼び出せる:
 
@@ -56,7 +56,7 @@ git remote set-head origin -d                                          # 下の 
 git push origin 'refs/remotes/origin/*:refs/heads/*' && git push origin --tags   # すべてのブランチとタグ (--all では取り出したブランチしか送られない)
 ```
 
-ITS ENGINEER ACADEMY だけを独立したリポジトリにする場合は、取り出した後に
+PROVIDE ENGINEER ACADEMY だけを独立したリポジトリにする場合は、取り出した後に
 `git subtree split --prefix=its-academy -b its-academy-only` で its-academy の履歴だけのブランチを作れる (D-01)。
 
 ## 4. 取り出した後に動かす

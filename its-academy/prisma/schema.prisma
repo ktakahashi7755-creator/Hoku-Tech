@@ -1,4 +1,4 @@
-// ITS ENGINEER ACADEMY — database schema
+// PROVIDE ENGINEER ACADEMY — database schema
 // 設計方針は ../docs/database-schema.md を参照。
 // - 教材 (courses/modules/lessons/lesson_versions) と進捗 (lesson_progress 等) を分離する
 // - 進捗・提出・採点は lesson_version / rubric のスナップショットを参照し、教材更新で過去の評価が壊れないようにする

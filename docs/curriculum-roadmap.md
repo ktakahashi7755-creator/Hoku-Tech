@@ -1,4 +1,4 @@
-# ITS ENGINEER ACADEMY — 教育ロードマップ (curriculum-roadmap)
+# PROVIDE ENGINEER ACADEMY — 教育ロードマップ (curriculum-roadmap)
 
 > ステータス: 設計案 v0.1 (2026-11-05)。講師・依頼者のレビュー前。
 > 既存 REOrGA 教材との対応は [source-inventory.csv](source-inventory.csv) の `its_level` 列を参照。

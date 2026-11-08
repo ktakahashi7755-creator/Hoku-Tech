@@ -1,4 +1,4 @@
-# ITS ENGINEER ACADEMY — デザインシステム
+# PROVIDE ENGINEER ACADEMY — デザインシステム
 
 > 版: v0.2 (2026-11-06) / 実装: `its-academy/src/app/globals.css`, `its-academy/src/components/ui.tsx`
 
@@ -61,5 +61,5 @@
 
 実施済み: axe-core による WCAG 2.2 A/AA の自動検査 (20 画面・計 29 回の検査で違反 0 件)、キーボードだけでのログインとスキップリンクの確認。
 横スクロールする領域 (コード・表) は `ScrollRegion` (role="region"・名前付き・tabIndex=0) で囲み、キーボードでもスクロールできるようにする。
-ログイン直後など、フォーカスが失われた画面遷移ではページの見出し (h1) にフォーカスを移す (`FocusOnArrival`)。ページ名は「画面名 | ITS ENGINEER ACADEMY」(レッスン・課題はその名前)。
+ログイン直後など、フォーカスが失われた画面遷移ではページの見出し (h1) にフォーカスを移す (`FocusOnArrival`)。ページ名は「画面名 | PROVIDE ENGINEER ACADEMY」(レッスン・課題はその名前)。
 未実施: スクリーンリーダー (VoiceOver / NVDA) での通し確認 (test-plan.md の残課題)。

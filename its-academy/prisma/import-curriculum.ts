@@ -50,7 +50,7 @@ export async function importCurriculum(db: Pick<PrismaClient, "rubric" | "course
           title: l.title,
           estimatedMinutes: l.estimatedMinutes,
           content: buildLessonContent(l),
-          changeNote: l.sourceUrl ? "REOrGA 教材を ITS 標準フォーマットで再構成" : "新規作成",
+          changeNote: l.sourceUrl ? "REOrGA 教材を PROVIDE 標準フォーマットで再構成" : "新規作成",
           publishedAt: new Date(),
           sourceUrl: l.sourceUrl,
           sourcePostId: l.sourcePostId,
