@@ -24,6 +24,8 @@ npm run dev              # http://localhost:3000 (別のポートは PORT=3400 n
 本番・検証環境では seed の代わりに、マイグレーションの後で `npm run db:bootstrap` を実行する
 (教材の登録と最初の管理者の作成。管理者を作るには `BOOTSTRAP_ADMIN_EMAIL` が必要。`BOOTSTRAP_ADMIN_PASSWORD` を指定しなければ初回パスワードを無作為に作って 1 回だけ表示)。
 
+自分の Windows PC で見本データ入りのアプリを触る手順 (お試し用) は [try-on-windows.md](../docs/try-on-windows.md)。
+
 本番と同じ構成 (Docker) で動かす手順は [deployment-guide.md](../docs/deployment-guide.md) の §5。
 
 ## よく使うコマンド

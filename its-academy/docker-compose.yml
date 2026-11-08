@@ -53,7 +53,8 @@ services:
       # インターネットへは手前の HTTPS リバースプロキシ 1 段を経由して公開する前提 (deployment-guide.md §5)
       TRUSTED_PROXY_HOPS: ${TRUSTED_PROXY_HOPS:-1}
     ports:
-      - "127.0.0.1:3000:3000"
+      # 既定はこの PC からだけ開ける。同じ Wi-Fi のスマホで試すときだけ APP_BIND=0.0.0.0 にする (docs/try-on-windows.md)
+      - "${APP_BIND:-127.0.0.1}:3000:3000"
     depends_on:
       migrate:
         condition: service_completed_successfully
