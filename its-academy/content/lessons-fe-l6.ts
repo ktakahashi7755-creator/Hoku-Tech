@@ -270,7 +270,7 @@ export const L6_LESSONS: LessonDef[] = [
         "コンフリクト (衝突) が起きる理由を説明し、印 (<<<<<<< など) を読んで解消できる",
         "解消の内容を独断で決めず、仕様や相手に確認してから決められる",
       ],
-      prerequisites: ["Git の基本 (commit とブランチ)", "API のテストを書く (JUnit 5・MockMvc)"],
+      prerequisites: ["Git の基本 (commit とブランチ)", "API のテストを書く (JUnit・MockMvc)"],
       explanation: [
         {
           heading: "GitHub Flow",

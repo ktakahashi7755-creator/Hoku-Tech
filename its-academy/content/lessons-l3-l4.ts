@@ -338,7 +338,7 @@ export const L3_LESSONS: LessonDef[] = [
         },
         {
           heading: "スタックトレースの読み方",
-          body: "例外を catch しないと、次のような表示 (スタックトレース) が出ます。\nException in thread \"main\" java.lang.NumberFormatException: For input string: \"abc\"\n    at java.base/java.lang.NumberFormatException.forInputString(NumberFormatException.java:67)\n    at java.base/java.lang.Integer.parseInt(Integer.java:662)\n    at Main.parseScore(Main.java:17)\n    at Main.sumLines(Main.java:11)\n1 行目で例外の種類と理由を確認し、at の行を上から見て、最初に出てくる「自分のファイル名と行番号」(ここでは Main.java:17) を開きます。そこが調べ始める場所です。その下の行 (Main.java:11) は「どこから呼ばれたか」を示します。java.base/ で始まる行は Java 本体の中なので、通常は読み飛ばして構いません (行番号は Java のバージョンで変わります)。",
+          body: "例外を catch しないと、次のような表示 (スタックトレース) が出ます。\nException in thread \"main\" java.lang.NumberFormatException: For input string: \"abc\"\n    at java.base/java.lang.NumberFormatException.forInputString(NumberFormatException.java:67)\n    at java.base/java.lang.Integer.parseInt(Integer.java:662)\n    at java.base/java.lang.Integer.parseInt(Integer.java:778)\n    at Main.parseScore(Main.java:17)\n    at Main.sumLines(Main.java:11)\n1 行目で例外の種類と理由を確認し、at の行を上から見て、最初に出てくる「自分のファイル名と行番号」(ここでは Main.java:17) を開きます。そこが調べ始める場所です。その下の行 (Main.java:11) は「どこから呼ばれたか」を示します。java.base/ で始まる行は Java 本体の中なので、通常は読み飛ばして構いません (行番号は Java のバージョンで変わります)。",
         },
       ],
       examples: [
@@ -505,7 +505,7 @@ export const L3_LESSONS: LessonDef[] = [
       workplaceUse: "貸出期限・請求の締め日・研修の修了予定日など、業務システムには日付計算が多く出てきます。月末や祝日、タイムゾーンの扱いを誤ると請求金額や期限の誤りにつながるため、レビューでも重点的に確認されます。",
       commonErrors: [
         {
-          error: "java.time.format.DateTimeParseException: Text '2026/12/24' could not be parsed",
+          error: "java.time.format.DateTimeParseException: Text '2026/12/24' could not be parsed at index 4",
           cause: "LocalDate.parse は標準で 2026-12-24 形式だけを受け付ける",
           fix: "DateTimeFormatter.ofPattern(\"yyyy/MM/dd\") を作り、LocalDate.parse(文字列, formatter) とします。",
         },

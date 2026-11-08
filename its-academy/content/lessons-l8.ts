@@ -187,7 +187,7 @@ const L8_LESSONS: LessonDef[] = [
         "境界値のテストを自分で書き、AI のコードの誤りを見つけられる",
         "見つけた誤りを直し、何をどう確かめたかを説明できる",
       ],
-      prerequisites: ["AI への依頼の書き方 (プロンプト設計と要件整理)", "API のテストを書く (JUnit 5・MockMvc)"],
+      prerequisites: ["AI への依頼の書き方 (プロンプト設計と要件整理)", "API のテストを書く (JUnit・MockMvc)"],
       explanation: [
         {
           heading: "AI のコードは「それらしく動く」",

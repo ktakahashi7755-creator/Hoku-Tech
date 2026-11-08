@@ -20,7 +20,7 @@ export const L5_SECURITY: LessonDef = {
       "パスワードを BCrypt でハッシュ化して保存し、平文や画面・ログに出さない実装ができる",
       "Spring Security で URL とメソッドごとのアクセス制御 (ロール) を設定し、テストで確かめられる",
     ],
-    prerequisites: ["REST API を作る (CRUD・入力チェック・エラー応答)", "API のテストを書く (JUnit 5・MockMvc)"],
+    prerequisites: ["REST API を作る (CRUD・入力チェック・エラー応答)", "API のテストを書く (JUnit・MockMvc)"],
     explanation: [
       {
         heading: "認証と認可",
@@ -44,7 +44,7 @@ export const L5_SECURITY: LessonDef = {
       },
       {
         heading: "秘密情報の扱い",
-        body: "初期管理者のパスワードは、ソースコードにも設定ファイルにも書かず、環境変数 ADMIN_PASSWORD から受け取ります (起動前に export ADMIN_PASSWORD='管理者のパスワード' を実行します。未設定なら管理者は作られません)。BCrypt の上限に合わせて 72 バイト以下にします。半角の英数字・記号なら 72 文字までですが、全角文字は 1 文字 3 バイトになります。サンプルの AdminInitializer は、72 バイトを超えると「ADMIN_PASSWORD は 72 バイト以下にしてください」というメッセージで起動を止めます。利用者の登録時に権限 (ロール) を選ばせず、必ず一般利用者として登録します。レスポンス (UserResponse) にはパスワードのハッシュ値も含めません。",
+        body: "初期管理者のパスワードは、ソースコードにも設定ファイルにも書かず、環境変数 ADMIN_PASSWORD から受け取ります (起動前に export ADMIN_PASSWORD='管理者のパスワード' を実行します。未設定なら管理者は作られません)。BCrypt の上限に合わせて 72 バイト以下にします。半角の英数字・記号なら 72 文字までですが、全角文字は 1 文字 3 バイトになります。サンプルの AdminInitializer は、72 バイトを超えると「ADMIN_PASSWORD は 72 バイト以下にしてください (BCrypt の上限)」というメッセージで起動を止めます。利用者の登録時に権限 (ロール) を選ばせず、必ず一般利用者として登録します。レスポンス (UserResponse) にはパスワードのハッシュ値も含めません。",
       },
     ],
     examples: [
@@ -174,7 +174,7 @@ export const L7_GUIDE: LessonDef = {
       "要件を「必須」と「追加」に分け、期間内に終わる計画を立てられる",
       "評価の観点 (設計の理由・テスト・AI の使い方) を挙げ、面談で自分の設計と判断を説明できる",
     ],
-    prerequisites: ["認証と認可 (Spring Security)", "API のテストを書く (JUnit 5・MockMvc)", "Git の基本 (commit とブランチ)"],
+    prerequisites: ["認証と認可 (Spring Security)", "API のテストを書く (JUnit・MockMvc)", "Git の基本 (commit とブランチ)"],
     explanation: [
       {
         heading: "卒業制作で確かめること",

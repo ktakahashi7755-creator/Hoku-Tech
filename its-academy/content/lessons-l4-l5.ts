@@ -104,10 +104,10 @@ export const L4_HTTP: LessonDef = {
       {
         error: "404 Not Found",
         cause: "URL の打ち間違い、またはサーバー側でその URL に対応する処理がない",
-        fix: "URL の綴り・スラッシュ・大文字小文字を確認します。サーバーの起動ログで、登録されている URL を確認します。",
+        fix: "URL の綴り・スラッシュ・大文字小文字を確認します。サーバー側のコードで、その URL に対応する処理が登録されているかを確認します。",
       },
       {
-        error: "java.net.ConnectException: Connection refused",
+        error: "java.net.ConnectException (HttpClient ではメッセージなし。HttpURLConnection などでは java.net.ConnectException: Connection refused)",
         cause: "サーバーが起動していない、またはポート番号が違う",
         fix: "サーバーが起動しているか、URL のポート番号が合っているかを確認します。",
       },
@@ -220,7 +220,7 @@ export const L4_JDBC: LessonDef = {
       },
       {
         error: "org.postgresql.util.PSQLException: FATAL: password authentication failed for user",
-        cause: "ユーザー名かパスワードが違う、または環境変数が設定されていない (null)",
+        cause: "ユーザー名かパスワードが違う。なお DB_PASSWORD を設定していない (null) ときは、PostgreSQL 16 の標準設定 (scram-sha-256) では The server requested SCRAM-based authentication, but no password was provided. という別のメッセージになる",
         fix: "環境変数が設定されているかを確認します。設定ファイルのアクセス制限を trust (パスワードなし) にして回避してはいけません。",
       },
       {
@@ -270,7 +270,7 @@ export const L5_LESSONS: LessonDef[] = [
         },
         {
           heading: "プロジェクトの作り方 (Spring Initializr)",
-          body: "Spring Boot のプロジェクトは、ブラウザで https://start.spring.io (Spring Initializr) を開いて作ります。\nProject: Maven / Language: Java / Spring Boot: 4.1 の最新版 (SNAPSHOT や M の付かないもの) / Group: com.example / Artifact: book-api / Package name: com.example.bookapi (ハイフンを含まない名前に直す) / Packaging: Jar / Configuration: Properties / Java: 21\nDependencies の ADD DEPENDENCIES から、Spring Web MVC (Spring Web と表示されることもあります)・Spring Data JPA・Validation・PostgreSQL Driver の 4 つを追加し、GENERATE で zip をダウンロードします。\nzip を作業フォルダ (Windows は Ubuntu のホームディレクトリの下) に展開し、VS Code で開きます。できた pom.xml を下のサンプルの pom.xml と見比べ、spring-boot-starter-webmvc・spring-boot-starter-data-jpa・spring-boot-starter-validation・postgresql がそろっていることを確かめます。application.properties には、サンプルの接続設定を書き足します。",
+          body: "Spring Boot のプロジェクトは、ブラウザで https://start.spring.io (Spring Initializr) を開いて作ります。\nProject: Maven / Language: Java / Spring Boot: 4.1 の最新版 (SNAPSHOT や M の付かないもの) / Group: com.example / Artifact: book-api / Package name: com.example.bookapi (ハイフンを含まない名前に直す) / Packaging: Jar / Configuration: Properties / Java: 21\nDependencies の ADD DEPENDENCIES から、Spring Web (Spring Boot 4 では pom.xml に spring-boot-starter-webmvc として入ります。Initializr の版によって表示名が異なることがあります)・Spring Data JPA・Validation・PostgreSQL Driver の 4 つを追加し、GENERATE で zip をダウンロードします。\nzip を作業フォルダ (Windows は Ubuntu のホームディレクトリの下) に展開し、VS Code で開きます。できた pom.xml を下のサンプルの pom.xml と見比べ、spring-boot-starter-webmvc・spring-boot-starter-data-jpa・spring-boot-starter-validation・postgresql がそろっていることを確かめます。application.properties には、サンプルの接続設定を書き足します。",
         },
         {
           heading: "起動の仕方",
@@ -344,8 +344,8 @@ export const L5_LESSONS: LessonDef[] = [
           fix: "@Service を付け、起動クラスのパッケージの下に置きます。",
         },
         {
-          error: "Could not resolve placeholder 'DB_URL' in value \"${DB_URL}\" (起動時のログ)",
-          cause: "DB_URL などの環境変数を設定していない、または別のターミナルで設定した",
+          error: "java.lang.IllegalArgumentException: 'url' must start with \"jdbc\" (起動時のログ。Error creating bean with name 'dataSource' … の後に出る)",
+          cause: "DB_URL などの環境変数を設定していない、または別のターミナルで設定した (未設定だと ${DB_URL} という文字のまま接続 URL として使われる)",
           fix: "起動するターミナルで export DB_URL=... などの 3 行を実行してから起動し直します。echo $DB_URL で値が入っているかを確かめられます (パスワードは画面に表示しません)。",
         },
         {
@@ -356,7 +356,7 @@ export const L5_LESSONS: LessonDef[] = [
         {
           error: "Whitelabel Error Page / 404 (ブラウザで URL を開いたとき)",
           cause: "@GetMapping のパスと開いた URL が一致していない",
-          fix: "起動ログやコードの @GetMapping の値と、ブラウザの URL を見比べます。",
+          fix: "コードの @GetMapping (クラスに @RequestMapping があればそれと合わせた値) と、ブラウザの URL を見比べます。",
         },
       ],
       reviewPoints: ["フレームワークが自分のコードを呼ぶ (制御の反転)", "部品はコンストラクタで受け取る (DI)", "@RestController の戻り値は本文 (JSON)", "起動クラスのパッケージの下に置く"],
@@ -503,11 +503,11 @@ export const L5_LESSONS: LessonDef[] = [
   },
   {
     slug: "l5-testing",
-    title: "API のテストを書く (JUnit 5・MockMvc)",
+    title: "API のテストを書く (JUnit・MockMvc)",
     estimatedMinutes: 90,
     content: {
       objectives: [
-        "JUnit 5 でテストを書き、mvn test で実行できる",
+        "JUnit (JUnit Jupiter) でテストを書き、mvn test で実行できる",
         "@WebMvcTest と MockMvc で、コントローラのステータスコードと本文を検証できる",
         "@MockitoBean でサービスを偽物に差し替え、正常系と異常系を分けてテストできる",
       ],
@@ -518,8 +518,8 @@ export const L5_LESSONS: LessonDef[] = [
           body: "テストは「この入力ならこう動く」をコードで記録したものです。修正のたびに手で画面を確かめなくても、mvn test で一瞬で確認でき、変更で別の場所を壊したこと (デグレード。略してデグレ。以前は動いていた機能が壊れること) にすぐ気付けます。課題の評価観点「テスト」でも、テストコードがあるかを確認します。",
         },
         {
-          heading: "JUnit 5 の基本",
-          body: "@Test を付けたメソッドが 1 つのテストです。@DisplayName で日本語の説明を付けられます。テストは「準備 (given) → 実行 (when) → 確認 (then)」の 3 段で書くと読みやすくなります。テストは src/test/java の下に、対象と同じパッケージで置きます。",
+          heading: "JUnit の基本",
+          body: "Spring Boot 4.1 の spring-boot-starter-webmvc-test には JUnit 6 が含まれます。JUnit 6 も JUnit 5 と同じ JUnit Jupiter の書き方 (org.junit.jupiter.api の @Test など) なので、JUnit 5 向けの解説もそのまま参考になります。\n@Test を付けたメソッドが 1 つのテストです。@DisplayName で日本語の説明を付けられます。テストは「準備 (given) → 実行 (when) → 確認 (then)」の 3 段で書くと読みやすくなります。テストは src/test/java の下に、対象と同じパッケージで置きます。",
         },
         {
           heading: "@WebMvcTest と MockMvc",
