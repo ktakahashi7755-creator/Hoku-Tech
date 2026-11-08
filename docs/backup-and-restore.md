@@ -7,7 +7,7 @@ ITS ENGINEER ACADEMY の成果物 (アプリ・教材・設計文書・テスト
 
 | 種類 | 場所 | 中身 |
 |------|------|------|
-| 確定版の目印 (タグ) | 持ち出し用のファイルの中の `its-academy-final-2026-11-07`。GitHub には依頼者が画面から追加する (§2) | この時点のすべてのファイルと履歴。いつでもこの状態に戻せる |
+| 確定版の目印 (タグ) | 持ち出し用のファイルの中の `its-academy-final-2026-11-08`。GitHub には依頼者が画面から追加する (§2) | この時点のすべてのファイルと履歴。いつでもこの状態に戻せる |
 | 開発中のブランチ | GitHub の `claude/sharp-bohr-4wbemd` | 最新の作業。タグの後の変更もここに積まれる |
 | 持ち出し用の 1 ファイル (git bundle) | 依頼者の手元 (チャットで受け取ったファイル) | リポジトリの全履歴を 1 ファイルにしたもの。GitHub に入れない場合でも復元できる |
 | チェックサム | bundle と同じ場所の `.sha256` | ファイルが壊れていないかの確認用 |
@@ -21,7 +21,7 @@ ITS ENGINEER ACADEMY の成果物 (アプリ・教材・設計文書・テスト
 開発の環境からは GitHub へタグを送れなかったため、GitHub のタグは依頼者が画面から作る (1 回だけ・約 1 分):
 
 1. リポジトリの「Releases」→「Draft a new release」(または「Create a new release」)
-2. 「Choose a tag」に `its-academy-final-2026-11-07` と入力し「Create new tag」
+2. 「Choose a tag」に `its-academy-final-2026-11-08` と入力し「Create new tag」
 3. 「Target」でブランチ `claude/sharp-bohr-4wbemd` を選ぶ (確定版のコミットは、持ち出し用のファイルの中のタグと同じもの。作業完了報告に記載)
 4. タイトルに「ITS ENGINEER ACADEMY 確定版 2026-11-07」と入れて「Publish release」。必要なら bundle と .sha256 のファイルも添付できる
 
@@ -30,11 +30,11 @@ ITS ENGINEER ACADEMY の成果物 (アプリ・教材・設計文書・テスト
 ```bash
 git clone https://github.com/ktakahashi7755-creator/Hoku-Tech.git
 cd Hoku-Tech
-git checkout its-academy-final-2026-11-07     # 確定版の状態にする (読むだけなら、このまま)
+git checkout its-academy-final-2026-11-08     # 確定版の状態にする (読むだけなら、このまま)
 git switch -c restore-from-final              # この状態から作業を続ける場合は、新しいブランチを作る
 ```
 
-GitHub の画面からは「Code」→ ブランチの選択 →「Tags」→ `its-academy-final-2026-11-07` で、ファイルを見る・ZIP で取り出すことができる。
+GitHub の画面からは「Code」→ ブランチの選択 →「Tags」→ `its-academy-final-2026-11-08` で、ファイルを見る・ZIP で取り出すことができる。
 
 ## 3. 持ち出し用のファイル (git bundle) から呼び出す
 
@@ -42,13 +42,13 @@ GitHub に入れない場合や、別の場所に移す場合に使う。
 
 ```bash
 # 1. ファイルが壊れていないか確認 (OK と出ればよい)
-sha256sum -c its-academy-final-2026-11-07.bundle.sha256      # Mac は: shasum -a 256 -c ...
+sha256sum -c its-academy-final-2026-11-08.bundle.sha256      # Mac は: shasum -a 256 -c ...
 
 # 2. 取り出して、中身を確かめる (git bundle verify はリポジトリの中で実行する)
-git clone its-academy-final-2026-11-07.bundle Hoku-Tech
+git clone its-academy-final-2026-11-08.bundle Hoku-Tech
 cd Hoku-Tech
-git bundle verify ../its-academy-final-2026-11-07.bundle
-git checkout its-academy-final-2026-11-07
+git bundle verify ../its-academy-final-2026-11-08.bundle
+git checkout its-academy-final-2026-11-08
 
 # 3. (任意) 新しい GitHub リポジトリに載せ直す
 git remote set-url origin https://github.com/<組織>/<新しいリポジトリ>.git
