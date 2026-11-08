@@ -25,9 +25,9 @@ IT 完全未経験者が 12 週間 (標準) で、以下を「自分で説明で
 | L0 | IT 入門 | 0.5 | コンピュータの仕組み、ファイルとフォルダ、OS、ネットワークの基礎、学習の進め方 | 1〜3 | コンピュータ/ネットワーク基礎、質問の仕方 |
 | L1 | 開発環境・Git | 1 | WSL2、ターミナル、UNIX コマンド、JDK、IDE、Git/GitHub (commit / branch / PR) | 4〜9 | GitHub の PR・Issue・ブランチ運用、SSH 鍵、.gitignore |
 | L2 | Java 基礎 | 2 | 変数・データ型・演算子・条件分岐・ループ・配列・メソッド・例外の基本、デバッガ | 10〜15, 20〜21 | デバッガの使い方、エラーメッセージの読み方 |
-| L3 | Java 応用・OOP | 2 | クラス・継承・ポリモーフィズム・インターフェース・コレクション・日付 API・パッケージ・単体テスト (JUnit 5) | 22〜33 | JUnit 5、データ構造 (List/Map/Set の選び方)、record、Optional |
+| L3 | Java 応用・OOP | 2 | クラス・継承・ポリモーフィズム・インターフェース・コレクション・日付 API・パッケージ・単体テスト (JUnit) | 22〜33 | JUnit、データ構造 (List/Map/Set の選び方)、record、Optional |
 | L4 | Web 技術・SQL | 2 | HTTP、HTML/CSS/JS 基礎、Servlet/JSP の概要、RDB 設計、SQL、JDBC | 34〜62 | JavaScript 基礎、HTTP の詳細 (ステータスコード・ヘッダ・Cookie)、テーブル設計・正規化、トランザクション |
-| L5 | Spring Boot・API | 2 | MVC、Spring Boot 4、Spring Data JPA、Validation、REST API、テスト (JUnit 5・MockMvc)、Spring Security | 63〜72 | REST API 設計、Validation、例外ハンドリング、Spring Security 7 の認証・認可、結合テスト |
+| L5 | Spring Boot・API | 2 | MVC、Spring Boot 4、Spring Data JPA、Validation、REST API、テスト (JUnit・MockMvc。Spring Boot 4.1 は JUnit 6)、Spring Security | 63〜72 | REST API 設計、Validation、例外ハンドリング、Spring Security 7 の認証・認可、結合テスト |
 | L6 | 実践・チーム開発 | 1.5 | チケット駆動、ブランチ戦略、コードレビュー、仕様書読解、報告・連絡・相談、セキュアコーディング | なし | 全面新規 |
 | L7 | 卒業制作・実務能力評価 | 1 | 要件定義〜設計〜実装〜テスト〜発表、講師による実務能力評価 | なし (SC3 が一部相当) | 全面新規 |
 | L8 | AI 駆動開発 (選択) | 1 | 生成 AI 基礎、プロンプト設計、Claude Code、AI 生成コードのレビュー・テスト・デバッグ、情報漏えい対策 | なし | 全面新規。同じコースの選択モジュール (指標 A〜E に含めない) |

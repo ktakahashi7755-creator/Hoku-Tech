@@ -66,6 +66,7 @@ CI (`.github/workflows/its-academy.yml`) は上記に加えて Firefox / WebKit 
 | `DB_POOL_MAX` | 任意 | 1 台あたりの DB 接続数の上限 (既定 10)。台数 × この値が DB の `max_connections` を超えないようにする |
 | `SEED_PASSWORD` | 任意 | 開発用 seed のパスワード |
 | `TEST_DATABASE_URL` | 任意 | E2E 用 DB |
+| `VERIFY_DATABASE_URL` | 任意 | `npm run verify:code` で SQL・JDBC の検証に使う DB (未指定なら `DATABASE_URL`)。一時スキーマを作って最後に削除する |
 | `POSTGRES_PASSWORD` | docker compose で必須 | §5 の DB コンテナのパスワード |
 
 ### 起動時の設定確認 (確認済み)

@@ -20,11 +20,11 @@
 
 | 候補 | アプリ / DB | 国内 | バックアップ・PITR | 月額の目安 | 主な注意点 |
 |------|-------------|------|--------------------|------------|------------|
-| **Google Cloud** | Cloud Run (最小 1 台) / Cloud SQL | 東京・大阪 | 自動バックアップ・PITR あり (保持日数は要確認) | 約 9,000〜17,000 円 | HTTPS・独自ドメイン・秘密情報の管理が標準。構成要素が最も少ない |
+| **Google Cloud** | Cloud Run (最小 1 台) / Cloud SQL | 東京・大阪 | 自動バックアップ・PITR あり (PITR は Enterprise で 1〜7 日) | 約 9,000〜17,000 円 | HTTPS・独自ドメイン・秘密情報の管理が標準。構成要素が最も少ない |
 | AWS | ECS Fargate + ロードバランサー / RDS | 東京・大阪 | 保持 1〜35 日・PITR あり | 約 11,000〜14,000 円 | 手軽な App Runner は 2026-04-30 で新規受付終了。ネットワーク設計が必要で手間が増える |
 | Azure | Container Apps / PostgreSQL Flexible Server | 東日本 | 保持 7〜35 日・PITR あり | 約 6,000〜8,000 円 (第三者情報からの概算・要確認) | 東日本の単価を公式ページで確認できていない |
 | さくらのクラウド | AppRun / データベースアプライアンス | 国内 | **PostgreSQL は日次バックアップのみ (PITR は MariaDB のみ)** | 約 6,500 円 (税込) | 円建て・国内事業者。PostgreSQL 16 対応は要確認 |
-| Fly.io | Machines / Managed Postgres | 東京 | 保持 10 日・PITR あり | 約 7,200 円〜 | 米ドルのカード払い。日本語サポート・請求書払いは要確認 |
+| Fly.io | Machines / Managed Postgres | 東京 (Managed Postgres の東京提供は要確認) | 保持 10 日・PITR あり | 約 7,200 円〜 | 米ドルのカード払い。日本語サポート・請求書払いは要確認 |
 | Render | — | **なし** (最寄りはシンガポール) | — | 対象外 | 国内保管の条件を満たさない |
 | 国内 VPS | docker compose / 自前の PostgreSQL | 国内 | 自前で用意 (scripts/backup.sh など) | 約 1,000〜2,500 円 (要確認) | OS 更新・監視・障害対応をすべて自社で行う。インフラ担当がいない場合は勧めない |
 
@@ -42,7 +42,8 @@
 
 * 作成済みの Docker イメージをそのまま載せられ、HTTPS・独自ドメイン・秘密情報の管理・自動バックアップと PITR がすべて用意されている
 * 必要な部品が最も少なく、インフラ専任者がいなくても運用しやすい
-* 月 1 万円前後で、受講生 200 名規模まで構成を変えずに対応できる見込み (負荷試験: test-plan.md §4)
+* 月約 9,000〜13,000 円 (共有コアの DB の場合。専用コアにすると約 17,000 円。2026-11-06 時点の調査値を 1 USD = 150 円で換算した概算、§2) で、
+  受講生 200 名規模まで構成を変えずに対応できる見込み (負荷試験: test-plan.md §4)
 
 次点は AWS (同等の機能だが設定項目が多い)。円建て・国内事業者を重視する場合はさくらのクラウドだが、
 PostgreSQL で任意時点への復元ができないため、個人情報を扱う本番 DB として許容できるかの判断が必要。
@@ -58,12 +59,18 @@ PostgreSQL で任意時点への復元ができないため、個人情報を扱
 ## 5. 確認できていない点 (契約前に公式ページ・営業窓口で確認)
 
 * 調査環境から各社の公式ページの多くを直接読めなかったため、Google Cloud と AWS の単価以外は検索結果の抜粋・第三者情報による
-* Cloud SQL の PITR 保持日数、Azure 東日本の単価、さくらの DB アプライアンスの PostgreSQL 16 対応、Fly.io 東京の割増の有無
+* Azure 東日本の単価、さくらの DB アプライアンスの PostgreSQL 16 対応と PITR の対象、AppRun の月額上限、Fly.io の Managed Postgres の東京での提供と割増の有無
+  (2026-11-08 に再検索したが、公式の情報を確認できなかった)
+* 2026-11-08 に確認済み (検索結果の抜粋): Cloud SQL の PITR 保持日数 (Enterprise 1〜7 日・Enterprise Plus 1〜35 日)、
+  App Runner の新規受付終了 (2026-04-30)、Render のリージョン (オレゴン・オハイオ・バージニア・フランクフルト・シンガポール)、
+  Fly.io Managed Postgres の Basic 38 ドルとバックアップ 10 日・PITR
 * 為替レート (150 円/ドルは仮定)
 
 ## 6. 出典 (2026-11-06 参照)
 
 * 本文を確認: https://cloud.google.com/run/pricing / https://cloud.google.com/sql/pricing / AWS Price List API (ap-northeast-1 の ECS・App Runner・RDS・ELB・VPC)
+* 検索結果の抜粋のみ (2026-11-08 追加): https://cloud.google.com/sql/docs/postgres/backup-recovery/pitr / https://cloud.google.com/sql/docs/postgres/operational-guidelines /
+  https://cloud.google.com/run/docs/mapping-custom-domains / https://fly.io/docs/mpg/
 * 検索結果の抜粋のみ: https://docs.aws.amazon.com/ja_jp/apprunner/latest/dg/apprunner-availability-change.html /
   https://docs.aws.amazon.com/AmazonRDS/latest/gettingstartedguide/managing-backup-restore.html /
   https://learn.microsoft.com/azure/postgresql/flexible-server/concepts-backup-restore /

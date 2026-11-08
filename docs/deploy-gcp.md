@@ -7,6 +7,9 @@
 > * このリポジトリ側 (コンテナ・接続文字列・初期設定コマンド・IP の扱い) は 2026-11-06 にローカルと CI で確認済み (§7)
 > * Google Cloud とエックスサーバーの操作 (gcloud コマンド・画面名) は、作成時点で公式ドキュメントを調査環境から取得できなかったため、
 >   一般的な手順に基づく。**各手順の前に公式ドキュメントで確認する** (「要確認」と書いた箇所は特に)
+> * 2026-11-08 追記: 本書の gcloud コマンドとフラグは、gcloud CLI 570.0.0 の `--help` で存在と書式を確認した
+>   (`gcloud beta run domain-mappings create` は beta コンポーネントが未導入のため未確認)。
+>   PITR の保持日数・SLA・ドメイン対応付けの提供状況は、公式ドキュメントの検索結果の抜粋で確認した (本文を直接は読めていない)
 
 ---
 
@@ -49,7 +52,7 @@ gcloud projects add-iam-policy-binding $PROJECT --member=serviceAccount:$SA --ro
 
 ```bash
 gcloud sql instances create $INSTANCE --database-version=POSTGRES_16 --region=$REGION \
-  --edition=ENTERPRISE --tier=db-g1-small --storage-type=SSD --storage-size=20 \
+  --edition=enterprise --tier=db-g1-small --storage-type=SSD --storage-size=20 \
   --backup-start-time=18:00 --enable-point-in-time-recovery \
   --retained-backups-count=30 --retained-transaction-log-days=7 \
   --deletion-protection
@@ -64,9 +67,11 @@ unset DB_PASSWORD
 gcloud secrets add-iam-policy-binding its-database-url --member=serviceAccount:$SA --role=roles/secretmanager.secretAccessor
 ```
 
-* `18:00` は UTC (日本時間 3:00)。バックアップの保持数・PITR の日数は D-09 (保存期間) の決定に合わせて変える。
-  PITR の保持日数の上限はエディションによって異なる (要確認)
-* `db-g1-small` は共有コアで SLA の対象外 (hosting-options.md §2)。受講生が増えたら専用コアに変更する
+* `18:00` は UTC (日本時間 3:00。gcloud のヘルプで UTC 指定と確認)。バックアップの保持数・PITR の日数は D-09 (保存期間) の決定に合わせて変える。
+  PITR (トランザクションログ) の保持日数は Enterprise エディションで 1〜7 日、Enterprise Plus で 1〜35 日
+  (Cloud SQL for PostgreSQL の PITR の公式ドキュメント、2026-11-08 に検索結果で確認)。上の `--retained-transaction-log-days=7` は Enterprise の上限
+* `--tier` (`db-g1-small` など) は共有コアのマシンタイプにだけ使い、専用コアは `--cpu` と `--memory` で指定する (gcloud のヘルプ)
+* `db-g1-small` は共有コアで SLA の対象外 (Cloud SQL の運用ガイドライン: SLA は専用 CPU の高可用性構成だけが対象。hosting-options.md §2)。受講生が増えたら専用コアに変更する
 * 接続文字列は Unix ソケット形式 (`?host=/cloudsql/<接続名>`)。この形式でアプリと Prisma が接続できることは確認済み (§7)
 
 ## 3. イメージの作成と登録
@@ -136,8 +141,11 @@ gcloud run deploy its-academy --image=$REPO/app:$TAG --region=$REGION \
 1. **Google 側で対応付けを作る**
    `gcloud beta run domain-mappings create --service=its-academy --domain=$DOMAIN --region=$REGION`
    * 初めてのドメインでは、所有者の確認 (Google Search Console) を求められる。確認用の TXT レコードが表示される
-   * 東京リージョンで Cloud Run のドメイン対応付けが使えるか、提供状況 (プレビューかどうか) は要確認。
-     使えない場合は外部アプリケーションロードバランサー (月 18 ドル前後の追加、要確認) で対応し、`TRUSTED_PROXY_HOPS` を見直す
+   * Cloud Run のドメイン対応付けは **プレビュー (限定提供)** で、Google は本番のサービスには推奨していない。
+     対応リージョンの一覧に `asia-northeast1` (東京) は含まれる。一部の地域から遅延が大きくなる報告がある
+     (Cloud Run の「Map custom domains」「Cloud Run locations」の公式ドキュメント、2026-11-08 に検索結果で確認)。
+     本番では外部アプリケーションロードバランサー (転送ルール 1 つで月 18 ドル前後の追加の見込み、要確認) を使う案も検討し、その場合は `TRUSTED_PROXY_HOPS` を見直す
+   * 完全マネージドの Cloud Run では `beta` 付きのコマンドを使う (`beta` なしの `gcloud run domain-mappings create` は Cloud Run for Anthos 用と gcloud のヘルプに記載)
 2. **エックスサーバーで DNS レコードを追加する** (サーバーパネルの「DNSレコード設定」。画面名は要確認)
    | 種別 | ホスト名 | 内容 | 用途 |
    |------|----------|------|------|

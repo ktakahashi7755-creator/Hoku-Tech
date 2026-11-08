@@ -50,9 +50,13 @@
 
 * `lesson_progress (user_id, lesson_id)`、`submissions (assignment_id, user_id, attempt_no)`、
   `lesson_versions (lesson_id, version)`、`enrollments (user_id, course_id)` は一意。
-* `reviews`・`audit_logs`・`skill_assessments` はアプリから更新・削除しない (履歴)。
-* 受講生を削除すると個人の学習記録は連鎖削除される (`onDelete: Cascade`)。
-  講師が作成した記録 (採点・コメント) の作成者は残す必要があるため、講師・管理者は削除せず `is_active = false` で無効化する。
+* `reviews`・`audit_logs`・`skill_assessments` はアプリから更新・削除しない (履歴)。データベースでも、
+  マイグレーション `20261107120000_append_only_history` のトリガー (`forbid_history_change()`。行単位の BEFORE UPDATE OR DELETE) で
+  書き換えと削除を拒否する (行単位のトリガーのため TRUNCATE には効かない。開発用の seed は TRUNCATE で作り直す)。
+* スキーマ上は、受講生 (`users`) を削除すると個人の学習記録が連鎖削除される (`onDelete: Cascade`) が、
+  採点・スキル評価が 1 件でもある受講生は、上のトリガーが連鎖削除を拒否するため削除できない
+  (監査ログの `actor_id` も、削除に伴う更新がトリガーで拒否される)。アプリには利用者を削除する機能はなく、
+  受講生・講師・管理者とも `is_active = false` で無効化する。退会者の個人情報の削除方法は D-09 の決定後に設計する。
 * 教材 (`lessons`) を非公開にしても、進捗・採点の履歴は残る。
 
 ## 4. 個人情報の扱い

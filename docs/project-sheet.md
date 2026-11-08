@@ -33,7 +33,7 @@
 鍵や Google Cloud の設定は不要。スプレッドシートに付けるスクリプト (Google Apps Script) が、GitHub が公開しているデータを 1 時間ごとに読み込む。
 
 1. スプレッドシートを開き、メニューの「拡張機能」→「Apps Script」を開く
-2. 最初からあるコード (`function myFunction() {}`) をすべて消し、[its-academy/scripts/project-sheet/apps-script.gs](../its-academy/scripts/project-sheet/apps-script.gs) の中身をすべて貼り付けて、保存 (💾 またはCtrl+S / ⌘+S)
+2. 最初からあるコード (`function myFunction() {}`) をすべて消し、[its-academy/scripts/project-sheet/apps-script.gs](../its-academy/scripts/project-sheet/apps-script.gs) の中身をすべて貼り付けて、保存 (💾 または Ctrl+S / ⌘+S)
 3. 画面上部の関数の選択で **setup** を選び、「実行」を押す
 4. 「承認が必要です」と出たら「権限を確認」→ 自分のアカウントを選ぶ →「このアプリは Google で確認されていません」と出たら「詳細」→「(安全ではないページ) に移動」→
    表示された権限をすべて許可する (項目ごとのチェックが出た場合は「すべて選択」にチェックして「続行」。外すと setup が失敗する)
@@ -53,7 +53,7 @@
 1. `docs/`・`its-academy/content/`・この仕組みのファイルが変わって push されると、GitHub Actions (project-sheet の publish-data) がデータを作り直して公開する (数分)
 2. スプレッドシートのスクリプトが 1 時間ごとに読み込む (すぐに見たいときは「今すぐ更新」)
 
-GitHub の毎日の定時実行 (6:17) は、デフォルトブランチにこの仕組みのファイルがあるときだけ動く。今 (2026-11-07) は開発中のブランチにしかないため、統合するまでは push のときだけ更新される。
+GitHub の毎日の定時実行 (日本時間 6:17) は、デフォルトブランチにこの仕組みのファイルがあるときだけ動く。今 (2026-11-07) は開発中のブランチにしかないため、統合するまでは push のときだけ更新される。
 
 ## 5. うまくいかないとき
 
