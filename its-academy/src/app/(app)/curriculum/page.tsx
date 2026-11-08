@@ -46,7 +46,7 @@ export default async function CurriculumPage() {
                   <h2 className="flex flex-wrap items-center gap-2 text-lg font-bold">
                     <span className="text-accent">{m.level}</span>
                     {m.title}
-                    {m.optional && <Badge tone="accent">任意 (発展)</Badge>}
+                    {m.optional && <Badge tone="accent">選択 (発展)</Badge>}
                   </h2>
                   <span className="text-sm text-muted">
                     標準 {m.weeks} 週{m.lessons.length > 0 && !staff ? ` ・ ${done} / ${m.lessons.length} 完了` : ""}

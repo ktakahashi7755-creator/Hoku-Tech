@@ -28,7 +28,7 @@ async function main() {
   if (outIndex >= 0) {
     const dir = path.resolve(args[outIndex + 1] ?? "project-sheet-out");
     mkdirSync(dir, { recursive: true });
-    tabs.forEach((t, i) => writeFileSync(path.join(dir, `${String(i + 1).padStart(2, "0")}-${t.name}.csv`), "﻿" + csv(tableValues(t))));
+    tabs.forEach((t, i) => writeFileSync(path.join(dir, `${String(i + 1).padStart(2, "0")}-${t.name}.csv`), "\uFEFF" + csv(tableValues(t))));
     writeFileSync(path.join(dir, "tabs.json"), JSON.stringify(tabs, null, 1));
     console.log(`${tabs.length} タブを書き出しました: ${dir}`);
   }

@@ -18,6 +18,6 @@ describe("csv", () => {
     expect(csvCell("山田 花子")).toBe("山田 花子");
   });
   it("null は空欄、BOM と CRLF を付ける", () => {
-    expect(toCsv([["a", null]])).toBe("﻿a,\r\n");
+    expect(toCsv([["a", null]])).toBe("\uFEFFa,\r\n");
   });
 });

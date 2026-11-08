@@ -78,7 +78,7 @@ test("受講生: 前回の続きから再開し、理解度チェック合格後
   await expect(page.getByText("8 / 30 レッスン")).toBeVisible(); // 任意の L8 (5 レッスン) は必修の分母に含めない
   await page.goto("/curriculum");
   await expect(page.getByRole("heading", { name: /L8\s*AI 駆動開発 \(発展\)/ })).toBeVisible();
-  await expect(page.getByText("任意 (発展)")).toBeVisible();
+  await expect(page.getByText("選択 (発展)")).toBeVisible();
   await logout(page);
 });
 
@@ -197,7 +197,7 @@ test("管理者: 停滞の閾値を変更でき、CSV を出力できる", async
   const res = await page.request.get("/admin/export/students");
   expect(res.status()).toBe(200);
   const text = await res.text();
-  expect(text.startsWith("﻿ユーザー ID,氏名")).toBe(true);
+  expect(text.startsWith("\uFEFFユーザー ID,氏名")).toBe(true);
   expect(text).toContain("鈴木 美咲");
 
   await page.goto("/admin/settings");

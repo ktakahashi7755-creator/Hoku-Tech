@@ -10,5 +10,5 @@ export function csvCell(value: unknown): string {
 
 export function toCsv(rows: unknown[][]): string {
   // BOM 付き UTF-8 (Excel で文字化けしないように)
-  return "﻿" + rows.map((r) => r.map(csvCell).join(",")).join("\r\n") + "\r\n";
+  return "\uFEFF" + rows.map((r) => r.map(csvCell).join(",")).join("\r\n") + "\r\n";
 }

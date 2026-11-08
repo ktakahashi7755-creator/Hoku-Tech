@@ -46,7 +46,7 @@ export const LessonContentSchema = z
   .superRefine((c, ctx) => {
     c.quiz.questions.forEach((q, i) => {
       if (q.answerIndex >= q.choices.length) {
-        ctx.addIssue({ code: "custom", path: ["quiz", "questions", i, "answerIndex"], message: "answerIndex が選択肢の範囲外です" });
+        ctx.addIssue({ code: "custom", path: ["quiz", "questions", i, "answerIndex"], message: `問 ${i + 1} の正解の番号が、選択肢の範囲外です` });
       }
     });
   });
