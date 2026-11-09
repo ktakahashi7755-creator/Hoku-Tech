@@ -29,8 +29,8 @@ export function LoginForm() {
           {state.error}
         </p>
       )}
-      <Field label="メールアドレス" htmlFor="email" error={state?.fieldErrors?.email}>
-        <input id="email" name="email" type="email" autoComplete="email" required defaultValue={state?.values?.email} className={inputStyles} />
+      <Field label="メールアドレス (または ID)" htmlFor="email" error={state?.fieldErrors?.email}>
+        <input id="email" name="email" type="text" autoCapitalize="none" autoComplete="username" required defaultValue={state?.values?.email} className={inputStyles} />
       </Field>
       <Field label="パスワード" htmlFor="password" error={state?.fieldErrors?.password}>
         <input id="password" name="password" type="password" autoComplete="current-password" required className={inputStyles} />

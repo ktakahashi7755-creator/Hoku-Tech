@@ -14,7 +14,13 @@ import { fieldErrors, type FormState } from "@/lib/form-state";
 
 
 const LoginSchema = z.object({
-  email: z.string().trim().toLowerCase().email("メールアドレスの形式で入力してください").max(254),
+  // メールアドレスのほか、試用期間の簡易ログイン用に英数字の ID も受け付ける
+  email: z
+    .string()
+    .trim()
+    .toLowerCase()
+    .max(254)
+    .refine((v) => z.string().email().safeParse(v).success || /^[a-z0-9][a-z0-9._-]{2,63}$/.test(v), "メールアドレスまたは ID を入力してください"),
   password: z.string().min(1, "パスワードを入力してください").max(256),
 });
 
