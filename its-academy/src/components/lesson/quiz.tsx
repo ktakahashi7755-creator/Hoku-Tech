@@ -44,7 +44,7 @@ export function Quiz({ lessonId, versionId, questions, passScore, alreadyPassed 
         const r = result?.results[qi];
         const answer = answers[qi];
         return (
-          <fieldset key={q.id} className="min-w-0 rounded-xl border border-border p-4">
+          <fieldset key={q.id} className="min-w-0 rounded-xl border border-border bg-bg p-4 sm:p-5">
             {/* 長い問題文が枠線に重ならないよう、見出しを枠の内側に置く (float で fieldset の枠から外す) */}
             <legend className="float-left w-full font-semibold">
               問 {qi + 1}. {q.question}
@@ -54,8 +54,8 @@ export function Quiz({ lessonId, versionId, questions, passScore, alreadyPassed 
                 <label
                   key={ci}
                   className={cx(
-                    "flex min-h-11 cursor-pointer items-center gap-3 rounded-lg border px-3 py-2",
-                    r && ci === r.answerIndex ? "border-success bg-success-soft" : "border-border",
+                    "flex min-h-12 cursor-pointer items-center gap-3 rounded-xl border px-4 py-2 transition-colors",
+                    r && ci === r.answerIndex ? "border-success bg-success-soft" : "border-border hover:bg-surface has-[:checked]:border-accent has-[:checked]:bg-accent-soft",
                     r && answer === ci && !r.correct && "border-danger bg-danger-soft",
                   )}
                 >
@@ -68,7 +68,7 @@ export function Quiz({ lessonId, versionId, questions, passScore, alreadyPassed 
                       setResult(null);
                       setAnswers((prev) => prev.map((a, i) => (i === qi ? ci : a)));
                     }}
-                    className="size-4 accent-[var(--accent)]"
+                    className="accent-[var(--accent)]"
                   />
                   <span className="flex-1">{c}</span>
                   {/* 色だけに頼らず、文字でも示す */}

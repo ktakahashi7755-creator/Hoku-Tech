@@ -8,7 +8,7 @@ export function WeekChart({ week }: { week: { day: string; minutes: number }[] }
         {week.map((w) => (
           <li key={w.day} className="flex h-full flex-col items-center justify-end gap-1">
             <span className="text-xs tabular-nums text-muted">{w.minutes}</span>
-            <span className="w-full rounded-t bg-accent" style={{ height: `${(w.minutes / max) * 80}%`, minHeight: w.minutes ? 4 : 0 }} aria-hidden />
+            <span className="w-full max-w-10 rounded-t-md bg-accent" style={{ height: `${(w.minutes / max) * 80}%`, minHeight: w.minutes ? 4 : 0 }} aria-hidden />
             <span className="text-xs text-muted">{w.day.slice(5).replace("-", "/")}</span>
           </li>
         ))}

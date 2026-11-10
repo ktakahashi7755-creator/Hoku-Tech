@@ -4,9 +4,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { cx } from "./ui";
+import { Icon, type IconName } from "./icons";
 
 /** badge: 未読のお知らせの件数 (サーバー側でログイン中の本人の分だけを数えて渡す。0 なら印を出さない) */
-export type NavItem = { href: string; label: string; exact?: boolean; badge?: number };
+export type NavItem = { href: string; label: string; exact?: boolean; badge?: number; icon?: IconName };
 
 export function NavLinks({ items }: { items: NavItem[] }) {
   const pathname = usePathname();
@@ -51,9 +52,9 @@ export function NavLinks({ items }: { items: NavItem[] }) {
     <nav
       ref={ref}
       aria-label="メインメニュー"
-      className={cx("mx-auto max-w-6xl overflow-x-auto px-2", more && "[mask-image:linear-gradient(to_right,black_85%,transparent)]")}
+      className={cx("min-w-0 overflow-x-auto", more && "[mask-image:linear-gradient(to_right,black_85%,transparent)]")}
     >
-      <ul className="flex gap-1 after:block after:w-2 after:shrink-0 after:content-['']">
+      <ul className="flex gap-1 py-1 after:block after:w-2 after:shrink-0 after:content-[''] lg:after:hidden">
         {items.map((item) => {
           const active = isActive(item);
           const badge = item.badge && seen[item.href] !== item.badge ? item.badge : 0;
@@ -63,10 +64,11 @@ export function NavLinks({ items }: { items: NavItem[] }) {
                 href={item.href}
                 aria-current={active ? "page" : undefined}
                 className={cx(
-                  "inline-flex min-h-11 items-center whitespace-nowrap border-b-2 px-3 text-sm",
-                  active ? "border-accent font-semibold text-accent-strong" : "border-transparent text-muted hover:text-text",
+                  "inline-flex min-h-11 items-center gap-2 whitespace-nowrap rounded-xl px-3 text-sm transition-colors",
+                  active ? "bg-accent-soft font-semibold text-accent-strong" : "text-muted hover:bg-surface hover:text-text",
                 )}
               >
+                {item.icon && <Icon name={item.icon} className="size-[18px] shrink-0" />}
                 {item.label}
                 {badge > 0 && (
                   <>

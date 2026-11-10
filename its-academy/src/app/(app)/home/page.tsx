@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { countUnreadNotices, requireMyOverview } from "@/lib/queries/me";
-import { Card, EmptyState, PageHeader, ProgressBar, Stat } from "@/components/ui";
+import { Card, CardTitle, EmptyState, PageHeader, ProgressBar, Stat } from "@/components/ui";
 import { NextActionCard } from "@/components/next-action";
 import { WeekChart } from "@/components/week-chart";
 import { SubmissionBadge } from "@/components/status-badge";
@@ -13,7 +13,7 @@ export default async function HomePage() {
   const { user, overview } = await requireMyOverview();
   if (!overview.enrollment) {
     return (
-      <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-6 sm:gap-8">
         <PageHeader title="ホーム" />
         <EmptyState>受講中のコースがありません。担当講師または管理者に連絡してください。</EmptyState>
       </div>
@@ -27,14 +27,14 @@ export default async function HomePage() {
   const unread = await countUnreadNotices(user.id);
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6 sm:gap-8">
       <div>
-        <h1 className="text-2xl font-bold">こんにちは、{user.name} さん</h1>
+        <h1 className="text-2xl font-bold tracking-tight sm:text-[28px]">こんにちは、{user.name} さん</h1>
         <p className="text-muted">{o.enrollment.course.title}</p>
       </div>
 
       {unread > 0 && (
-        <p role="status" className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg border border-accent/40 bg-accent-soft p-4 text-accent-strong">
+        <p role="status" className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl border border-accent/40 bg-accent-soft p-4 text-accent-strong">
           <span className="font-semibold">まだ見ていないお知らせ (レビュー結果・講師コメント) が {unread} 件あります。</span>
           <Link href="/reviews" className="inline-flex min-h-11 items-center font-semibold underline">
             質問・レビューで確認する
@@ -45,15 +45,15 @@ export default async function HomePage() {
       <NextActionCard next={o.next} assignmentSlugs={slugs} firstTime={o.metrics.completedLessons === 0} />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Stat label="教材の履修" value={`必修 ${o.metrics.completedLessons} / ${o.metrics.totalLessons}`} hint="必修レッスンのうち、理解度チェックに合格して完了したもの (L8 選択は含めない)" />
-        <Stat label="課題の合格" value={`必修 ${o.metrics.passedAssignments} / ${o.metrics.totalAssignments}`} hint="必修の課題 (L8 選択は含めない)" />
-        <Stat label="連続学習" value={formatStreak(o.streak, o.streakIncludesToday)} hint={o.streak > 0 && !o.streakIncludesToday ? "今日学習すると、連続日数がつながります" : undefined} />
-        <Stat label="累計学習時間" value={formatMinutes(o.totalMinutes)} />
+        <Stat icon="book" label="教材の履修" value={`必修 ${o.metrics.completedLessons} / ${o.metrics.totalLessons}`} hint="必修レッスンのうち、理解度チェックに合格して完了したもの (L8 選択は含めない)" />
+        <Stat icon="clipboard" label="課題の合格" value={`必修 ${o.metrics.passedAssignments} / ${o.metrics.totalAssignments}`} hint="必修の課題 (L8 選択は含めない)" />
+        <Stat icon="flame" label="連続学習" value={formatStreak(o.streak, o.streakIncludesToday)} hint={o.streak > 0 && !o.streakIncludesToday ? "今日学習すると、連続日数がつながります" : undefined} />
+        <Stat icon="clock" label="累計学習時間" value={formatMinutes(o.totalMinutes)} />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>
-          <h2 className="font-bold">コースの進み具合</h2>
+          <CardTitle icon="chart">コースの進み具合</CardTitle>
           <div className="mt-4 flex flex-col gap-4">
             <ProgressBar value={o.metrics.lessonCompletion} label="教材の履修率" />
             {o.pace && (
@@ -70,7 +70,7 @@ export default async function HomePage() {
           </div>
         </Card>
         <Card>
-          <h2 className="font-bold">直近 7 日間の学習</h2>
+          <CardTitle icon="calendar">直近 7 日間の学習</CardTitle>
           <div className="mt-4">
             <WeekChart week={o.week} />
           </div>
@@ -79,7 +79,7 @@ export default async function HomePage() {
 
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>
-          <h2 className="font-bold">取り組み中の課題</h2>
+          <CardTitle icon="clipboard">取り組み中の課題</CardTitle>
           {openAssignments.length === 0 ? (
             <p className="mt-3 text-sm text-muted">今取り組める課題はありません。</p>
           ) : (
@@ -96,7 +96,7 @@ export default async function HomePage() {
           )}
         </Card>
         <Card>
-          <h2 className="font-bold">講師からのコメント</h2>
+          <CardTitle icon="message">講師からのコメント</CardTitle>
           {visibleComments.length === 0 ? (
             <p className="mt-3 text-sm text-muted">まだコメントはありません。</p>
           ) : (

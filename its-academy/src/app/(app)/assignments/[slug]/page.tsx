@@ -105,7 +105,7 @@ export default async function AssignmentPage({ params }: { params: Promise<{ slu
                     {c.label}
                     <p className="font-normal text-muted">{c.description}</p>
                   </th>
-                  <td className="py-2 text-right align-top tabular-nums">{c.weight} 点</td>
+                  <td className="py-2 pl-3 text-right align-top whitespace-nowrap tabular-nums">{c.weight} 点</td>
                 </tr>
               ))}
             </tbody>

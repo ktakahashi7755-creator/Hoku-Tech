@@ -1,5 +1,6 @@
 import type { NextAction } from "@/lib/progress/metrics";
-import { ButtonLink, Card } from "./ui";
+import { ButtonLink } from "./ui";
+import { Icon } from "./icons";
 
 export function NextActionCard({ next, assignmentSlugs, firstTime = false }: { next: NextAction; assignmentSlugs: Record<string, string>; firstTime?: boolean }) {
   let title = "";
@@ -39,13 +40,24 @@ export function NextActionCard({ next, assignmentSlugs, firstTime = false }: { n
       break;
   }
   return (
-    <Card tone="accent">
-      <p className="text-sm font-semibold text-accent-strong">次にやること</p>
-      <h2 className="mt-1 text-xl font-bold">{title}</h2>
-      <p className="mt-1 text-muted">{body}</p>
-      <ButtonLink href={href} className="mt-4">
-        {cta}
-      </ButtonLink>
-    </Card>
+    // 画面でいちばん目立たせる場所。濃い青の地に白い文字 (6.9:1 以上)。フォーカスの枠も白にして見分けられるようにする
+    <section className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-accent-strong to-accent p-6 text-white shadow-raised sm:p-8 [&_:focus-visible]:outline-white">
+      <div aria-hidden="true" className="pointer-events-none absolute -top-16 -right-10 size-56 rounded-full bg-white/10" />
+      <div aria-hidden="true" className="pointer-events-none absolute -right-24 -bottom-24 size-64 rounded-full bg-white/5" />
+      <div className="relative flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
+          <p className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-sm font-semibold">
+            <Icon name="play" className="size-4" />
+            次にやること
+          </p>
+          <h2 className="mt-3 text-2xl font-bold tracking-tight">{title}</h2>
+          <p className="mt-1 text-white/90">{body}</p>
+        </div>
+        <ButtonLink href={href} variant="inverse" className="shrink-0 self-start sm:self-center">
+          {cta}
+          <Icon name="arrowRight" className="size-4" />
+        </ButtonLink>
+      </div>
+    </section>
   );
 }

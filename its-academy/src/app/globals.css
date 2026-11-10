@@ -1,35 +1,44 @@
 @import "tailwindcss";
 
 /*
- * PROVIDE ENGINEER ACADEMY design tokens (docs/design-system.md)
- * ライトモード標準。白・淡いグレー + 落ち着いたブルー 1 色。
- * 文字色はすべて背景に対して WCAG 2.2 AA (4.5:1) 以上。
+ * PROVIDE ENGINEER ACADEMY design tokens (docs/design-system.md, v1.0 "Premium Learning Minimal")
+ * ライトモード標準。ごく淡い青灰の画面地 (--canvas) に白いカード (--bg)、落ち着いたブルー 1 色。
+ * 緑は達成・成功の状態だけに使う。文字色はすべて、置かれる地に対して WCAG 2.2 AA (4.5:1) 以上。
  */
 :root {
-  --bg: #ffffff;
-  --surface: #f6f7f9;
-  --surface-2: #eef0f3;
-  --border: #dde1e6;
-  --text: #1c1f24; /* 16.5:1 on #fff */
-  --muted: #555b65; /* 6.8:1 on #fff */
-  --accent: #1f5fbf; /* 6.1:1 on #fff */
-  --accent-strong: #174a96;
-  --accent-soft: #eaf1fb;
+  --canvas: #f7f9fc; /* 画面の地 (body) */
+  --bg: #ffffff; /* カード・入力欄・ヘッダーの地 */
+  --surface: #f1f5fa;
+  --surface-2: #e8edf4;
+  --border: #dce3ed; /* 区切り線・カードの縁 (装飾) */
+  --border-strong: #7a879b; /* 入力欄など操作できる部品の境界 (白地 3.64:1 / 画面地 3.45:1、WCAG 1.4.11) */
+  --text: #15233d; /* 白地 15.7:1 */
+  --muted: #526078; /* 白地 6.4:1 / --surface-2 地 5.4:1 */
+  --accent: #1756b8; /* 白地 6.9:1、白文字のボタン 6.9:1 */
+  --accent-strong: #103f8a; /* --accent-soft 地 8.8:1 */
+  --accent-soft: #e9f1ff;
   --success: #1c6e41;
   --success-soft: #e8f4ec;
   --warning: #7a4f00;
   --warning-soft: #fdf3e1;
   --danger: #b42318;
   --danger-soft: #fdecea;
-  --code-bg: #f3f4f6;
-  --focus: #1f5fbf;
+  --code-bg: #f1f4f9;
+  --output-bg: #0f1b2d; /* 実行結果の地 */
+  --output-text: #e6ebf2; /* 14.4:1 */
+  --output-muted: #9fb0c7; /* 7.8:1 */
+  --focus: #1756b8;
+  --shadow-card: 0 1px 2px rgb(16 32 64 / 0.04), 0 2px 8px rgb(16 32 64 / 0.04);
+  --shadow-raised: 0 2px 4px rgb(16 32 64 / 0.05), 0 12px 32px rgb(16 32 64 / 0.08);
 }
 
 @theme inline {
+  --color-canvas: var(--canvas);
   --color-bg: var(--bg);
   --color-surface: var(--surface);
   --color-surface-2: var(--surface-2);
   --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
   --color-text: var(--text);
   --color-muted: var(--muted);
   --color-accent: var(--accent);
@@ -42,6 +51,11 @@
   --color-danger: var(--danger);
   --color-danger-soft: var(--danger-soft);
   --color-code: var(--code-bg);
+  --color-output: var(--output-bg);
+  --color-output-text: var(--output-text);
+  --color-output-muted: var(--output-muted);
+  --shadow-card: var(--shadow-card);
+  --shadow-raised: var(--shadow-raised);
   --font-sans: "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Yu Gothic UI", "Meiryo", system-ui, sans-serif;
   --font-mono: ui-monospace, "SFMono-Regular", "Menlo", "Consolas", monospace;
 }
@@ -51,7 +65,7 @@ html {
 }
 
 body {
-  background: var(--bg);
+  background: var(--canvas);
   color: var(--text);
   font-family: var(--font-sans);
   line-height: 1.75;
@@ -95,5 +109,15 @@ main :where(p, li, dd, dt, td, th, h1, h2, h3, figcaption, label, legend, summar
  * 見出しは操作できる部品ではないため、枠線は表示しない。
  */
 main h1[tabindex="-1"]:focus {
+  box-shadow: none;
   outline: none;
+}
+
+/* ラジオボタン・チェックボックスはアクセント色で、押しやすい大きさにする */
+input[type="radio"],
+input[type="checkbox"] {
+  accent-color: var(--accent);
+  width: 1.125rem;
+  height: 1.125rem;
+  flex-shrink: 0;
 }
